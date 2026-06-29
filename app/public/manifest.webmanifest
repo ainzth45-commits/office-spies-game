@@ -1,0 +1,10 @@
+{
+  "name": "สายลับในออฟฟิศ",
+  "short_name": "Office Spies",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#2B3A67",
+  "theme_color": "#2B3A67",
+  "lang": "th"
+}

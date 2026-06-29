@@ -1,0 +1,11 @@
+node_modules/
+dist/
+playwright-report/
+test-results/
+.DS_Store
+.superpowers/
+app/node_modules/
+app/dist/
+app/playwright-report/
+app/test-results/
+app/*.tsbuildinfo
