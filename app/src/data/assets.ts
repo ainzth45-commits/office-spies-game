@@ -2,7 +2,8 @@
 // ไฟล์จริงอยู่ที่ app/public/assets/generated/*.png → Vite เสิร์ฟที่ /assets/generated/*
 // อ้างอิงผ่าน registry นี้ที่เดียว เพื่อกันพิมพ์ path ผิดกระจัดกระจาย
 
-const BASE = "/assets/generated";
+// ใช้ base ของ Vite (รองรับ deploy ใต้ subpath เช่น GitHub Pages /office-spies-game/)
+const BASE = `${import.meta.env.BASE_URL}assets/generated`;
 
 export const gameAssets = {
   // โลโก้

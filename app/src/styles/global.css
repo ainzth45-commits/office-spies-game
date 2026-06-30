@@ -30,7 +30,7 @@ textarea {
   padding: 32px;
   background:
     linear-gradient(135deg, rgba(24, 33, 63, 0.86), rgba(43, 58, 103, 0.82) 56%, rgba(21, 27, 48, 0.92)),
-    url("/assets/generated/bg-detective-room.png");
+    var(--bg-detective-room);
   background-size: cover;
   background-position: center;
 }
@@ -242,7 +242,7 @@ h1 {
   background:
     radial-gradient(circle, rgba(246, 196, 83, 0.34), transparent 36%),
     linear-gradient(135deg, rgba(21, 27, 48, 0.88), rgba(43, 58, 103, 0.82)),
-    url("/assets/generated/bg-role-cover.png");
+    var(--bg-role-cover);
   background-size: cover;
   background-position: center;
 }
@@ -269,7 +269,7 @@ h1 {
   background:
     radial-gradient(circle at 20% 12%, rgba(246, 196, 83, 0.2), transparent 26%),
     linear-gradient(135deg, rgba(24, 33, 63, 0.85), rgba(43, 58, 103, 0.78) 56%, rgba(21, 27, 48, 0.9)),
-    url("/assets/generated/bg-office.png");
+    var(--bg-office);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -776,7 +776,7 @@ h1 {
   background:
     radial-gradient(circle at 50% 22%, rgba(246, 196, 83, 0.32), transparent 42%),
     linear-gradient(135deg, rgba(21, 27, 48, 0.84), rgba(43, 58, 103, 0.78)),
-    url("/assets/generated/bg-reveal.png");
+    var(--bg-reveal);
   background-size: cover;
   background-position: center;
 }
@@ -867,7 +867,7 @@ h1 {
   background:
     radial-gradient(circle at 50% 28%, rgba(246, 196, 83, 0.16), transparent 40%),
     linear-gradient(160deg, rgba(24, 33, 63, 0.82), rgba(43, 58, 103, 0.74) 55%, rgba(21, 27, 48, 0.9)),
-    url("/assets/generated/bg-office.png");
+    var(--bg-office);
   background-size: cover;
   background-position: center;
 }
