@@ -75,17 +75,19 @@ export function HomeHub() {
           alt="สายลับในออฟฟิศ"
           onError={(event) => { event.currentTarget.style.display = "none"; }}
         />
-        <img
-          className="home-mascot"
-          src={gameAssets.mascotDetective}
-          alt=""
-          aria-hidden="true"
-          onError={(event) => { event.currentTarget.style.display = "none"; }}
-        />
-        <div className="home-status">
-          <span className="home-stat"><b>{state.manualDay.label}</b><small>วันเล่น</small></span>
-          <span className="home-stat"><b>{presentCount}</b><small>คนมาวันนี้</small></span>
-          <span className="home-stat"><b>{voteCost}</b><small>ค่าเปิดโหวต</small></span>
+        <div className="home-daterow">
+          <img
+            className="home-mascot"
+            src={gameAssets.mascotDetective}
+            alt=""
+            aria-hidden="true"
+            onError={(event) => { event.currentTarget.style.display = "none"; }}
+          />
+          <div className="home-status">
+            <span className="home-stat"><b>{state.manualDay.label}</b><small>วันเล่น</small></span>
+            <span className="home-stat"><b>{presentCount}</b><small>คนมาวันนี้</small></span>
+            <span className="home-stat"><b>{voteCost}</b><small>ค่าเปิดโหวต</small></span>
+          </div>
         </div>
         <GameButton className="home-cta" onClick={() => setState((current) => startNewRound(current))}>
           🎲 เริ่มรอบใหม่ · สุ่มสายลับ
