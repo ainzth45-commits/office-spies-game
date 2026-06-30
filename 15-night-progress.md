@@ -241,3 +241,11 @@ _(อัปเดตต่อด้านล่างเป็นช่วงๆ
 - ✅ final: 62/62 tests + build ผ่าน · commit: 967e170, 9ecb4cb, + P2-5
 - **สรุป PHASE 2 ครบ:** บั๊กสปายหาย · โฮม dock ใหม่ · iPad landscape fit · กาชาลุ้น · tutorial+คำใหม่ · app icon
 - ปิดลูป + แจ้ง LINE ตามที่เจ้านายสั่ง
+
+---
+## เช้า ~11:xx — PHASE 3: settings/วัน/attendance/economy (เจ้านายสั่ง)
+- **① attendance** — คนลาเทารูป (grayscale + dim) + ป้าย "ลา/ไม่มา" (verify: C001 เทา คนอื่นสีปกติ)
+- **② ระบบวัน 1→6** — เพิ่ม maxGameDays=6 · startNewDay (ตันที่ 6) · resetGame (เก็บ config/รายชื่อ) · ปุ่ม "เริ่มวันใหม่" บนโฮม sync + ใน คุมวัน · ล็อกวันสุดท้าย + รีเซต · +2 tests (verify: โฮม "วันที่ 1/6" + ปุ่มไปวันที่ 2)
+- **③ settings slider** — เขียนใหม่เป็น slider บาร์+วงกลมเลื่อน · แยก 8 หมวด (legend pill) · ค่าโชว์ใน pill · ช่วง min/max คุมค่าบังคับให้ถูกเสมอ + validate ตอนบันทึก (verify: สวยตรงสเปค)
+- **④ economy** — ลด gachaSpinCost 5→4 (คนกลางๆ ~25/เกม หมุนได้ ~1/วัน) · ค่าโหวต 33 (11 คน) คงไว้ = เฉียด/ลงขัน · ราคาไอเทมคงไว้
+- ✅ 64/64 tests + build ผ่าน · verify ในเบราว์เซอร์ครบทุกข้อ

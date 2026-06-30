@@ -1305,3 +1305,150 @@ h1 {
   .tutorial-art { flex: none; }
   .tutorial-text, .tutorial-text h2 { text-align: center; }
 }
+
+/* คนลา/ไม่มา — เทารูปไว้ให้ดูง่าย */
+.player-card--dimmed { opacity: 0.62; }
+.player-card--dimmed .player-card__photo { filter: grayscale(1) brightness(0.82); }
+.player-card--dimmed .player-card__photo-wrap { background: linear-gradient(140deg, #9aa0b0, #6b7180); }
+.player-card--dimmed .player-card__code { background: #6b7180; }
+
+/* home: ปุ่ม action 2 อัน (เริ่มรอบใหม่ + เริ่มวันใหม่) */
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 16px);
+  margin-top: clamp(4px, 1vh, 10px);
+}
+.home-cta--day.game-button {
+  font-size: clamp(14px, 1.8vh, 18px);
+}
+
+/* คุมวัน — สถานะวัน N/6 */
+.day-panel__status { margin: 0 0 12px; font-size: 18px; }
+.day-panel__status strong { color: #ffd66b; }
+.day-panel__final { color: #e94f37; font-weight: 900; }
+.day-panel__locked {
+  border: 3px solid #e94f37;
+  border-radius: 14px;
+  background: rgba(233, 79, 55, 0.16);
+  color: #ffb5a8;
+  padding: 12px 16px;
+  margin: 0 0 14px;
+  font-weight: 800;
+}
+.day-panel__warn {
+  margin: 12px 0 0;
+  color: #ffb5a8;
+  font-weight: 700;
+}
+
+/* ============================================================
+   Settings ใหม่ — slider บาร์+วงกลมเลื่อน แยกหมวดชัดเจน
+   ============================================================ */
+.settings-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  background: rgba(246, 196, 83, 0.16);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  font-weight: 800;
+  color: #ffe9b6;
+}
+.settings-summary b { color: #fff; font-size: 18px; }
+.settings-saved {
+  background: rgba(61, 204, 161, 0.18);
+  color: #aef0db;
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-weight: 800;
+}
+
+.settings-cat {
+  border: 3px solid rgba(251, 247, 239, 0.35);
+  border-radius: 18px;
+  padding: 10px 18px 18px;
+  margin: 0 0 16px;
+}
+.settings-cat > legend {
+  padding: 4px 14px;
+  font-weight: 1000;
+  font-size: 18px;
+  color: #f6c453;
+  background: #20263f;
+  border: 2px solid rgba(251, 247, 239, 0.35);
+  border-radius: 999px;
+}
+.settings-sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 26px;
+}
+.settings-item-pair {
+  display: contents;
+}
+
+.slider-field {
+  display: grid;
+  gap: 7px;
+}
+.slider-field__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.slider-field__label { font-weight: 800; color: #fbf7ef; font-size: 14px; }
+.slider-field__value {
+  font-weight: 1000;
+  color: #20263f;
+  background: #f6c453;
+  border-radius: 999px;
+  padding: 2px 12px;
+  min-width: 52px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* บาร์ slider + วงกลมเลื่อน */
+.slider-field__range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f6c453, #e94f37);
+  border: 2px solid #20263f;
+  outline: none;
+  cursor: pointer;
+}
+.slider-field__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbf7ef;
+  border: 4px solid #20263f;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+}
+.slider-field__range::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+.slider-field__range::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbf7ef;
+  border: 4px solid #20263f;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+}
+
+.settings-actions { position: sticky; bottom: 0; background: rgba(24, 33, 63, 0.95); padding: 12px 0 4px; border-radius: 12px; }
+
+@media (max-width: 820px) {
+  .settings-sliders { grid-template-columns: 1fr; }
+}

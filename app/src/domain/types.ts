@@ -38,6 +38,7 @@ export interface Player {
 
 export interface GameConfig {
   spyCount: number;
+  maxGameDays: number;
   thresholdRatio: number;
   thresholdFloor: number;
   voteBaseCostPerPresentPlayer: number;

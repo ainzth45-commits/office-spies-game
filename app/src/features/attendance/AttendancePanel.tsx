@@ -14,6 +14,7 @@ export function AttendancePanel() {
               <PlayerCard
                 player={player}
                 selected={present}
+                dimmed={!present}
                 onClick={() => {
                   setState((current) => ({
                     ...current,

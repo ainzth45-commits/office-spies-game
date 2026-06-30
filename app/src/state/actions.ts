@@ -8,6 +8,7 @@ import { resolveGachaOutcome } from "../domain/gachaEngine";
 import type { RandomSource } from "../domain/random";
 import { assignSpyRoles } from "../domain/roleEngine";
 import { calculateVoteResult } from "../domain/voteEngine";
+import { createInitialGameState } from "./gameState";
 import type {
   GameConfig,
   GameState,
@@ -161,6 +162,40 @@ export function restDay(state: GameState, nextLabel: string): GameState {
       dailyUsage: resetDailyUsageFor(state, state.manualDay.index + 1),
     },
     "พักวันโดยไม่เพิ่มค่าโหวต",
+  );
+}
+
+// เริ่มวันใหม่ได้ไหม (ยังไม่ถึงวันสุดท้าย)
+export function canStartNewDay(state: GameState): boolean {
+  return state.manualDay.index < state.config.maxGameDays;
+}
+
+// เริ่มวันใหม่ (เดินวันต่อไป) — ตันที่ maxGameDays (วันที่ 6) ต้องรีเซตเกมเท่านั้น
+export function startNewDay(state: GameState, nextLabel?: string): GameState {
+  if (!canStartNewDay(state)) {
+    throw new Error("ถึงวันสุดท้ายของเกมแล้ว เริ่มวันใหม่ไม่ได้ — ต้องรีเซตเกม");
+  }
+  const nextIndex = state.manualDay.index + 1;
+  const advanced = endWorkingDay(state, nextLabel ?? `วันเล่นที่ ${nextIndex}`);
+  if (nextIndex >= state.config.maxGameDays) {
+    return { ...advanced, manualDay: { ...advanced.manualDay, isFinalDay: true } };
+  }
+  return advanced;
+}
+
+// รีเซตเกมใหม่ (จบเกมเดิม เริ่มนับวันที่ 1) — เก็บ config/settings/รายชื่อ/คนมา-ลา ไว้
+export function resetGame(state: GameState): GameState {
+  const fresh = createInitialGameState();
+  return log(
+    {
+      ...fresh,
+      phase: "home",
+      players: state.players,
+      config: state.config,
+      settings: state.settings,
+      attendance: state.attendance,
+    },
+    "รีเซตเกมใหม่",
   );
 }
 

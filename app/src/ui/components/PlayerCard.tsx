@@ -1,8 +1,12 @@
 import type { Player } from "../../domain/types";
 
-export function PlayerCard({ player, selected, onClick }: { player: Player; selected?: boolean; onClick?: () => void }) {
+export function PlayerCard({ player, selected, dimmed, onClick }: { player: Player; selected?: boolean; dimmed?: boolean; onClick?: () => void }) {
   return (
-    <button className={`player-card ${selected ? "player-card--selected" : ""}`} onClick={onClick} type="button">
+    <button
+      className={`player-card${selected ? " player-card--selected" : ""}${dimmed ? " player-card--dimmed" : ""}`}
+      onClick={onClick}
+      type="button"
+    >
       <span className="player-card__photo-wrap">
         <img
           className="player-card__photo"

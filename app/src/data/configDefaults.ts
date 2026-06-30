@@ -2,6 +2,7 @@ import type { GameConfig } from "../domain/types";
 
 export const defaultConfig: GameConfig = {
   spyCount: 2,
+  maxGameDays: 6,
   thresholdRatio: 0.72,
   thresholdFloor: 2,
   voteBaseCostPerPresentPlayer: 3,
@@ -16,7 +17,7 @@ export const defaultConfig: GameConfig = {
   inventoryLimit: 2,
   quizCorrectReward: 10,
   quizWrongPenaltyPerPlayer: 3,
-  gachaSpinCost: 5,
+  gachaSpinCost: 4,
   gachaDailyLimitPerPlayer: 2,
   itemPrices: {
     double: 10,

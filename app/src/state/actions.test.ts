@@ -9,14 +9,17 @@ import {
   assignNewRoles,
   buyPostVoteClue,
   buyVoteItem,
+  canStartNewDay,
   endWorkingDay,
   enterRoleReveal,
   finalizeVoteRound,
   markFinalDay,
   openVote,
+  resetGame,
   resolveSecondSpyGuess,
   restDay,
   rolesAssigned,
+  startNewDay,
   startNewRound,
   submitVoteTurn,
   updateConfig,
@@ -28,6 +31,31 @@ describe("game actions", () => {
     const state = endWorkingDay(createInitialGameState(), "วันเล่นที่ 2");
     expect(state.voteCostState.accumulatedSkippedMultiplier).toBe(1.5);
     expect(state.manualDay.label).toBe("วันเล่นที่ 2");
+  });
+
+  it("startNewDay advances the day until maxGameDays then locks", () => {
+    let state = createInitialGameState(); // day 1, maxGameDays 6
+    for (let day = 2; day <= 6; day += 1) {
+      expect(canStartNewDay(state)).toBe(true);
+      state = startNewDay(state);
+      expect(state.manualDay.index).toBe(day);
+    }
+    // ถึงวันที่ 6 — เริ่มวันใหม่ไม่ได้แล้ว
+    expect(state.manualDay.index).toBe(6);
+    expect(state.manualDay.isFinalDay).toBe(true);
+    expect(canStartNewDay(state)).toBe(false);
+    expect(() => startNewDay(state)).toThrow();
+  });
+
+  it("resetGame returns to day 1 but keeps config and players", () => {
+    let state = startNewDay(startNewDay(createInitialGameState())); // day 3
+    state = { ...state, config: { ...state.config, gachaSpinCost: 99 } };
+    const reset = resetGame(state);
+    expect(reset.manualDay.index).toBe(1);
+    expect(reset.manualDay.isFinalDay).toBe(false);
+    expect(reset.phase).toBe("home");
+    expect(reset.config.gachaSpinCost).toBe(99); // config คงไว้
+    expect(reset.players).toEqual(state.players);
   });
 
   it("rest day does not increase vote cost multiplier", () => {

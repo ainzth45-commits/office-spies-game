@@ -2,7 +2,7 @@ import { useState } from "react";
 import { playClick, setSoundEnabled } from "../../audio/sounds";
 import { gameAssets } from "../../data/assets";
 import { calculateVoteCost } from "../../domain/economy";
-import { enterRoleReveal, startNewRound } from "../../state/actions";
+import { canStartNewDay, enterRoleReveal, startNewDay, startNewRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { AttendancePanel } from "../attendance/AttendancePanel";
@@ -84,14 +84,25 @@ export function HomeHub() {
             onError={(event) => { event.currentTarget.style.display = "none"; }}
           />
           <div className="home-status">
-            <span className="home-stat"><b>{state.manualDay.label}</b><small>วันเล่น</small></span>
+            <span className="home-stat"><b>{state.manualDay.label}</b><small>วันที่ {state.manualDay.index}/{state.config.maxGameDays}</small></span>
             <span className="home-stat"><b>{presentCount}</b><small>คนมาวันนี้</small></span>
             <span className="home-stat"><b>{voteCost}</b><small>ค่าเปิดโหวต</small></span>
           </div>
         </div>
-        <GameButton className="home-cta" onClick={() => setState((current) => startNewRound(current))}>
-          🎲 เริ่มรอบใหม่ · สุ่มสายลับ
-        </GameButton>
+        <div className="home-actions">
+          <GameButton className="home-cta" onClick={() => setState((current) => startNewRound(current))}>
+            🎲 เริ่มรอบใหม่ · สุ่มสายลับ
+          </GameButton>
+          {canStartNewDay(state) ? (
+            <GameButton variant="paper" className="home-cta home-cta--day" onClick={() => setState((current) => startNewDay(current))}>
+              📅 เริ่มวันใหม่ (ไปวันที่ {state.manualDay.index + 1})
+            </GameButton>
+          ) : (
+            <GameButton variant="paper" className="home-cta home-cta--day" onClick={() => setActivePanel("day")}>
+              🔒 วันสุดท้ายแล้ว — จบเกม/รีเซต
+            </GameButton>
+          )}
+        </div>
       </div>
 
       <nav className="home-dock" aria-label="เมนูหลัก">

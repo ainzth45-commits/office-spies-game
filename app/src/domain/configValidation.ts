@@ -6,6 +6,9 @@ export function normalizeAndValidateConfig(config: GameConfig, playerCount: numb
   if (config.spyCount < 1 || config.spyCount >= playerCount) {
     throw new Error("จำนวนสปายต้องน้อยกว่าจำนวนผู้เล่นและอย่างน้อย 1 คน");
   }
+  if (!Number.isInteger(config.maxGameDays) || config.maxGameDays < 1) {
+    throw new Error("จำนวนวันต่อเกมต้องเป็นจำนวนเต็มอย่างน้อย 1 วัน");
+  }
   if (config.thresholdRatio <= 0 || config.thresholdRatio > 1 || config.thresholdFloor < 1) {
     throw new Error("ค่าเกณฑ์โหวตไม่ถูกต้อง");
   }
