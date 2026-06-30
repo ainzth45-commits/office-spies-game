@@ -14,9 +14,12 @@ export const gameAssets = {
   bgRoleCover: `${BASE}/bg-role-cover.png`,
   bgReveal: `${BASE}/bg-reveal.png`,
 
-  // การ์ดบทบาท
+  // การ์ดบทบาท (ดีฟอลต์ = เวอร์ชันผู้หญิง ให้ตรงกับพนักงานจริงที่เป็นผู้หญิงทั้งหมด)
   roleNormal: `${BASE}/role-normal.png`,
   roleSpy: `${BASE}/role-spy.png`,
+  // archive เวอร์ชันผู้ชายเดิม — เก็บไว้เผื่อระบบเลือกเพศคาแรกเตอร์ในอนาคต (ยังไม่ใช้งานตอนนี้)
+  roleNormalMale: `${BASE}/role-normal-male.png`,
+  roleSpyMale: `${BASE}/role-spy-male.png`,
   spyPairBadge: `${BASE}/spy-pair-badge.png`,
 
   // เหรียญ + เบ็ดเตล็ด

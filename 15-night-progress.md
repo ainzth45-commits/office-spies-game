@@ -211,3 +211,14 @@ _(อัปเดตต่อด้านล่างเป็นช่วงๆ
 - nit ที่ "ไม่แก้" (by design): GameButton click tick ซ้อนเสียงกลอง/กาชา (เสียงคลิกสากลตั้งใจ), App+HomeHub setSoundEnabled ซ้ำ (ค่าตรงกัน ไม่มี race)
 - ✅ verify: `tsc --noEmit` exit 0 · `npm run check` = 58/58 tests + build เขียว · reload เบราว์เซอร์ไม่มี regression (ฉาก vote เรนเดอร์ถูก private lead ขึ้นครบ)
 - commit fixes local (ต่อจาก f978c11 ไม่ push)
+
+---
+## เช้า ~08:0x — เปลี่ยนคาแรกเตอร์บทบาทเป็นผู้หญิง (ตามคำสั่งเจ้านาย)
+เหตุผล: พนักงานจริงในทีมเป็นผู้หญิงทั้งหมด → การ์ดบทบาทควรเป็นผู้หญิงให้ตรงกับผู้เล่น
+- **archive รูปผู้ชายเดิมก่อน** (ไม่ลบ ตามที่เจ้านายสั่ง): `role-normal.png`→`role-normal-male.png`, `role-spy.png`→`role-spy-male.png` + เพิ่ม registry key `roleNormalMale`/`roleSpyMale` ใน assets.ts **เผื่อระบบเลือกเพศคาแรกเตอร์ในอนาคต**
+- สั่ง codex เจน 2 ตัวหญิง (สไตล์/สี/พร็อพเดิม) เซฟทับ `role-normal.png`/`role-spy.png` → เกมใช้ทันทีไม่ต้องแก้โค้ด
+  - role-normal หญิง: พนักงานออฟฟิศ ผมน้ำตาล เบลเซอร์ navy ชุดครีม ผ้าพันคอแดง ถือกาแฟ+แฟ้ม
+  - role-spy หญิง: สายลับ หมวก fedora+แว่นกันแดด เทรนช์โค้ทครีม ถือแว่นขยาย ท่าเท่
+- ✅ ตรวจไฟล์: 1024×1024 transparent ทั้งคู่ chroma-key สะอาด · `npm run check` 58/58+build เขียว
+- ✅ verify ในเกมจริง: ดูบทบาท→การ์ดหญิง "คุณคือผู้เล่นปกติ" เรนเดอร์สวยเข้าชุด
+- commit local (ไม่ push)

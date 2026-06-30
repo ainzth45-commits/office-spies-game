@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สรุปงานคืนนี้ — Office Spies เกมสายลับในออฟฟิศ</title>
+<style>
+  :root {
+    --navy: #2B3A67;
+    --navy-deep: #18213f;
+    --cream: #F5E9D0;
+    --cream-soft: #fbf7ef;
+    --red: #E94F37;
+    --yellow: #F6C453;
+    --ink: #20263f;
+    --green: #3dcca1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(circle at 15% 8%, rgba(246,196,83,0.10), transparent 30%),
+      radial-gradient(circle at 85% 92%, rgba(233,79,55,0.08), transparent 32%),
+      var(--navy-deep);
+    color: var(--cream-soft);
+    line-height: 1.55;
+    padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  /* ---- header ---- */
+  .hero {
+    text-align: center;
+    border: 4px solid var(--cream-soft);
+    border-radius: 28px;
+    background: linear-gradient(150deg, rgba(43,58,103,0.95), rgba(24,33,63,0.95));
+    box-shadow: 0 18px 0 rgba(0,0,0,0.28);
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "TOP SECRET";
+    position: absolute; top: 22px; right: -52px;
+    transform: rotate(38deg);
+    background: var(--red); color: #fff;
+    font-weight: 900; letter-spacing: 3px; font-size: 13px;
+    padding: 6px 60px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .eyebrow { color: var(--yellow); font-weight: 900; letter-spacing: 4px; text-transform: uppercase; font-size: 14px; }
+  .hero h1 { font-size: clamp(30px, 5vw, 50px); margin: 10px 0 6px; color: #fff; }
+  .hero .sub { color: #cfd6ea; font-size: 17px; }
+  .hero .meta { margin-top: 16px; color: var(--yellow); font-weight: 700; font-size: 15px; }
+
+  /* ---- stat row ---- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin: 24px 0;
+  }
+  .stat {
+    border: 3px solid var(--ink);
+    border-radius: 18px;
+    background: var(--cream);
+    color: var(--ink);
+    text-align: center;
+    padding: 18px 10px;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.24);
+  }
+  .stat .num { font-size: clamp(26px, 4vw, 40px); font-weight: 1000; color: var(--navy); line-height: 1; }
+  .stat .lbl { font-size: 12.5px; font-weight: 800; margin-top: 6px; color: #555c75; }
+  .stat.accent-red .num { color: var(--red); }
+  .stat.accent-green .num { color: #1d9e7a; }
+
+  /* ---- section ---- */
+  section.block { margin-top: 30px; }
+  .block-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 22px; font-weight: 900; color: var(--yellow);
+    margin-bottom: 16px;
+  }
+  .block-title .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 4px rgba(233,79,55,0.25); }
+
+  /* ---- pillars (A/B/C/D) ---- */
+  .pillars { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .pillar {
+    border: 3px solid var(--ink); border-radius: 18px;
+    background: var(--cream-soft); color: var(--ink);
+    padding: 18px 20px; box-shadow: 0 7px 0 rgba(0,0,0,0.2);
+  }
+  .pillar h3 { font-size: 17px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .pillar .tag { background: var(--green); color: #08231a; font-size: 11px; font-weight: 900; padding: 2px 9px; border-radius: 999px; margin-left: auto; }
+  .pillar ul { margin: 10px 0 0 4px; padding-left: 18px; font-size: 14px; }
+  .pillar li { margin-bottom: 5px; }
+
+  /* ---- timeline ---- */
+  .timeline { border-left: 4px dashed rgba(246,196,83,0.5); margin-left: 12px; padding-left: 26px; }
+  .tl-item { position: relative; margin-bottom: 20px; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -34px; top: 4px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--yellow); border: 3px solid var(--navy-deep);
+    box-shadow: 0 0 0 3px var(--yellow);
+  }
+  .tl-time { font-weight: 900; color: var(--yellow); font-size: 14px; letter-spacing: 1px; }
+  .tl-head { font-weight: 800; color: #fff; font-size: 16px; margin: 1px 0 3px; }
+  .tl-body { color: #c7cee3; font-size: 14px; }
+
+  /* ---- asset batches ---- */
+  .batches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .batch {
+    border: 3px solid var(--ink); border-radius: 16px;
+    background: var(--cream-soft); color: var(--ink);
+    padding: 14px 16px; box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+  }
+  .batch .bn { font-weight: 1000; color: var(--red); font-size: 13px; letter-spacing: 1px; }
+  .batch .bc { font-size: 30px; font-weight: 1000; color: var(--navy); line-height: 1; margin: 2px 0 6px; }
+  .batch .bd { font-size: 12.5px; color: #555c75; }
+
+  /* ---- sound chips ---- */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    border: 2px solid var(--yellow); border-radius: 999px;
+    background: rgba(246,196,83,0.12); color: var(--cream-soft);
+    padding: 8px 16px; font-size: 14px; font-weight: 700;
+  }
+  .chip b { color: var(--yellow); }
+
+  /* ---- verify list ---- */
+  .verify { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .vrow {
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 2px solid rgba(61,204,161,0.4); border-radius: 14px;
+    background: rgba(61,204,161,0.08); padding: 12px 16px; font-size: 14px;
+  }
+  .vrow .ck { color: var(--green); font-weight: 1000; font-size: 17px; }
+
+  /* ---- decision callout ---- */
+  .decide {
+    border: 3px solid var(--red); border-radius: 20px;
+    background: rgba(233,79,55,0.12);
+    padding: 22px 26px; box-shadow: 0 8px 0 rgba(0,0,0,0.22);
+  }
+  .decide h3 { color: var(--red); font-size: 19px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .decide p { font-size: 15px; color: #ffd9d1; margin-bottom: 6px; }
+  .decide .opt { font-size: 14px; color: var(--cream-soft); margin: 4px 0 0 8px; }
+  .decide b { color: var(--yellow); }
+
+  .footer { text-align: center; margin-top: 36px; color: #8b93b0; font-size: 13px; }
+  .footer .cat { font-size: 30px; }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .pillars, .verify { grid-template-columns: 1fr; }
+    .batches { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Office Spies · งานกลางคืน Autonomous</div>
+    <h1>🕵️ สรุปงานคืนนี้ — เกมสายลับในออฟฟิศ</h1>
+    <p class="sub">เกมกระตุ้นยอดขายทีม CRM บน iPad · React + Vite + TypeScript PWA</p>
+    <p class="meta">30 มิ.ย. 2026 · เริ่ม ~00:40 → งานหลักเสร็จ ~05:00 → ตรวจปิด ~07:54 · รวม ~5.5 ชั่วโมง</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">37</div><div class="lbl">ภาพเกม (codex เจน)</div></div>
+    <div class="stat accent-green"><div class="num">58/58</div><div class="lbl">unit tests ผ่าน</div></div>
+    <div class="stat"><div class="num">5</div><div class="lbl">batch ภาพ + เสียง</div></div>
+    <div class="stat accent-red"><div class="num">0</div><div class="lbl">บั๊กค้าง</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">commit (local)</div></div>
+  </div>
+
+  <section class="block">
+    <div class="block-title"><span class="dot"></span>4 เสาหลักที่ทำสำเร็จ</div>
+    <div class="pillars">
+      <div class="pillar">
+        <h3>🔧 A · แก้ลอจิก Flow <span class="tag">เสร็จ</span></h3>
+        <ul>
+          <li>A1 แก้ค้าง phase voteResult</li>
+          <li>A2 caughtSpy → เบาะแส → ทายสายลับคนที่ 2</li>
+          <li>A3 เกราะเกิดครั้งเดียวต่อเกม</li>
+          <li>+3 regression tests (55 → 58)</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <h3>🎨 B · ภาพ/เสียง/อนิเมชัน <span class="tag">เสร็จ</span></h3>
+        <ul>
+          <li>37 ภาพ wire เข้าทุก scene</li>
+          <li>อนิเมชัน: กาชาสั่น/แคปซูลหล่น, ตราโหวต slam, ไอคอนผล pop</li>
+          <li>เสียง B9 — Web Audio API (synth สด)</li>
+          <li>chroma-key เขียวลบสะอาดทุกใบ</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <h3>✍️ C · UX Writing <span class="tag">เสร็จ</span></h3>
+        <ul>
+          <li>ปุ่ม "กฎย่อ" modal 6 ข้อ</li>
+          <li>คำใบ้ส่วนตัว "เดินมาทีละคน ห้ามแอบดู"</li>
+          <li>คำอธิบายไอเทม R/P + label กาชาไทย</li>
+          <li>กันหลุดความลับทุกหน้า</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <h3>✅ D · ปิดงาน + Verify <span class="tag">เสร็จ</span></h3>
+        <ul>
+          <li>build + 58/58 tests เขียว</li>
+          <li>verify เบราว์เซอร์: กาชา end-to-end</li>
+          <li>asset 37 ไฟล์เสิร์ฟ 200 ครบ</li>
+          <li>git commit local (ไม่ push)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-title"><span class="dot"></span>Timeline</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-time">00:15 – 00:40</div>
+        <div class="tl-head">ตั้งช่องทางคุม Codex + แก้ A1–A3</div>
+        <div class="tl-body">หาวิธีสั่ง Codex.app ผ่าน osascript (paste+enter เลี่ยงเมาส์) · verify 58/58 ผ่านบนเครื่องจริง</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">00:47 – 01:22</div>
+        <div class="tl-head">Batch 1–2 · ล็อกสไตล์ + ฉากหลัง</div>
+        <div class="tl-body">โลโก้/การ์ดบทบาท/เหรียญ/ฉากหลัง 11 ใบ — verify chroma-key สะอาด ไม่มี fringe เขียว</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">01:23 – 03:08</div>
+        <div class="tl-head">Batch 3 การ์ดไอเทม 7 ใบ · เจอลิมิตโควต้า</div>
+        <div class="tl-body">โควต้า codex ใกล้หมด → สั่งเซฟทีละใบกันงานหาย · ระหว่างรอรีเซ็ต ทำ B-wire + UX เอง (ไม่กินโควต้า)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">04:07 – 04:44</div>
+        <div class="tl-head">โควต้ารีเซ็ต → Batch 4 (9 ใบ) + เสียง B9</div>
+        <div class="tl-body">ตู้กาชา/ตราโหวต/มาสคอตแมว/ฉากจบ · ทำ sound engine Web Audio เอง (click/coin/gacha/drum/fanfare/lose)</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">04:54 – 05:05</div>
+        <div class="tl-head">Batch 5 (ไอคอนผล 10 ตัว) → งานหลักเสร็จ</div>
+        <div class="tl-body">wire ครบ · verify กาชา end-to-end ในเบราว์เซอร์ · git init + commit local <b style="color:#F6C453">f978c11</b></div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">05:33 – 06:07</div>
+        <div class="tl-head">ปิด verify + self-review</div>
+        <div class="tl-body">asset ทั้ง 37 ไฟล์เสิร์ฟ 200 ครบ · self-review โค้ด — ไม่พบบั๊ก</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-time">07:54</div>
+        <div class="tl-head">รีวิวขั้นสุดท้าย (ผู้ตรวจอิสระ) + เก็บทุกจุด</div>
+        <div class="tl-body">subagent ตรวจ audio+wiring — ไม่มี blocker/major · เก็บ 5 จุดเล็ก (StrictMode guard, onError ครบ) · commit <b style="color:#F6C453">90f8c9b</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-title"><span class="dot"></span>ภาพเกม 37 ชิ้น · 5 Batch</div>
+    <div class="batches">
+      <div class="batch"><div class="bn">BATCH 1</div><div class="bc">5</div><div class="bd">โลโก้ · การ์ดบทบาท · เหรียญ · ฉากห้องนักสืบ (ล็อกสไตล์)</div></div>
+      <div class="batch"><div class="bn">BATCH 2</div><div class="bc">6</div><div class="bd">ฉากหลัง 3 · ตราคู่สายลับ · หีบโหวต · แว่นขยาย</div></div>
+      <div class="batch"><div class="bn">BATCH 3</div><div class="bc">7</div><div class="bd">การ์ดไอเทม: quiz/double/remove/swap/reduce/protect/shield</div></div>
+      <div class="batch"><div class="bn">BATCH 4</div><div class="bc">9</div><div class="bd">ตู้กาชา+แคปซูล · ตราโหวต · ป้าย §4.5 · มาสคอตแมว · ฉากจบ 2</div></div>
+      <div class="batch"><div class="bn">BATCH 5</div><div class="bc">10</div><div class="bd">ไอคอนผลกาชาครบ 10 outcome (ตรากลมเข้าชุด)</div></div>
+      <div class="batch" style="background:var(--navy); color:var(--cream-soft); border-color:var(--yellow);"><div class="bn" style="color:var(--yellow)">รวม</div><div class="bc" style="color:#fff">37</div><div class="bd" style="color:#cfd6ea">PNG · 66 MB · เสิร์ฟ 200 ครบทุกไฟล์</div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-title"><span class="dot"></span>ระบบเสียง — Web Audio API (สังเคราะห์สด ไม่มีไฟล์ ไม่ดาวน์โหลด)</div>
+    <div class="chips">
+      <span class="chip"><b>click</b> ทุกปุ่ม</span>
+      <span class="chip"><b>coin</b> ซื้อร้านสำเร็จ</span>
+      <span class="chip"><b>gacha</b> ตอนหมุน</span>
+      <span class="chip"><b>drum</b> รัวก่อนเฉลยผลโหวต</span>
+      <span class="chip"><b>fanfare</b> จับสปาย/ทีมชนะ</span>
+      <span class="chip"><b>lose</b> โหวตพลาด/สายลับชนะ</span>
+      <span class="chip">🔊/🔇 ปุ่มเปิด-ปิด (จำค่าได้)</span>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-title"><span class="dot"></span>หลักฐานการ Verify</div>
+    <div class="verify">
+      <div class="vrow"><span class="ck">✓</span><span>กาชา end-to-end จริงในเบราว์เซอร์: ตู้→หมุน→ไอคอนผล→แคปซูลหล่น→ตัวนับ+เสียง</span></div>
+      <div class="vrow"><span class="ck">✓</span><span>asset ทั้ง 37 ไฟล์เสิร์ฟ HTTP 200 จาก preview build (ไม่มี 404)</span></div>
+      <div class="vrow"><span class="ck">✓</span><span>flow logic (โหวต/เบาะแส/ทาย/คืนเหรียญ/จบ) ครอบคลุม 58 unit tests</span></div>
+      <div class="vrow"><span class="ck">✓</span><span>tsc --noEmit exit 0 · npm run check (test+build) เขียวหมด</span></div>
+      <div class="vrow"><span class="ck">✓</span><span>รีวิวอิสระ (subagent) — ไม่มี blocker/major · เก็บจุดเล็กครบ</span></div>
+      <div class="vrow"><span class="ck">✓</span><span>boot/home/player-picker/vote เรนเดอร์ครบ ไม่มีภาพแตก</span></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="decide">
+      <h3>⚠️ รอเจ้านายตัดสินใจ ก่อน Push ขึ้น GitHub</h3>
+      <p><b>1. ความเป็นส่วนตัว (สำคัญ):</b> <code>src/data/players.ts</code> มีชื่อจริง + ลิงก์รูป Google Drive ของพนักงาน 11 คน → ถ้า push เป็น repo <b>สาธารณะ</b> = เปิดเผยข้อมูลพนักงานจริง</p>
+      <p class="opt">• ทางเลือก ก) ตั้ง repo เป็น <b>private</b></p>
+      <p class="opt">• ทางเลือก ข) แทนด้วยชื่อ/รูป <b>placeholder</b> แล้วเก็บข้อมูลจริงแยก</p>
+      <p style="margin-top:10px"><b>2. อนุมัติ Push:</b> ตอนนี้ commit local แล้ว (2 commit, <b>ไม่มี remote = ยังไม่ push</b>) — รอเจ้านายสั่ง push เอง</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="cat">🐱</div>
+    รายงานโดยฟรายเดย์ · งาน autonomous คืน 30 มิ.ย. 2026 · รายละเอียดเต็มใน <b>15-night-progress.md</b><br>
+    สถานะ: <b style="color:var(--green)">พร้อมให้เจ้านายตรวจ + ตัดสินใจ push</b>
+  </div>
+
+</div>
+</body>
+</html>
