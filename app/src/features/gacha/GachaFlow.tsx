@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { playGacha } from "../../audio/sounds";
+import { useEffect, useRef, useState } from "react";
+import { playCoin, playGacha } from "../../audio/sounds";
 import { gachaIconAssets, gameAssets } from "../../data/assets";
 import { itemCatalog } from "../../data/items";
-import type { GachaOutcome } from "../../domain/types";
 import { quizBank } from "../../data/quizBank";
 import { selectWeightedGachaOutcome } from "../../domain/gachaEngine";
-import type { PlayerId } from "../../domain/types";
+import type { GachaOutcome, PlayerId } from "../../domain/types";
 import { applyGachaOutcome } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
@@ -14,39 +13,73 @@ import { PlayerPicker } from "../../ui/components/PlayerPicker";
 
 type Step = "pick" | "confirm" | "spin";
 
+const ALL_OUTCOMES = Object.keys(gachaIconAssets) as GachaOutcome[];
+const SPIN_MS = 2500; // ระยะลุ้น ~2.5 วิ ก่อนเฉลย
+
 export function GachaFlow() {
   const { state, setState } = useGameStore();
   const [step, setStep] = useState<Step>("pick");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [resultOutcome, setResultOutcome] = useState<GachaOutcome | null>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [reelOutcome, setReelOutcome] = useState<GachaOutcome>(ALL_OUTCOMES[0]);
+  const timers = useRef<number[]>([]);
   const player = state.players.find((candidate) => candidate.id === selectedPlayerId) ?? null;
   const spinsToday = selectedPlayerId ? state.dailyUsage.gachaSpins[selectedPlayerId] ?? 0 : 0;
 
+  // เคลียร์ timer ทั้งหมดตอน unmount (กันหมุนค้างถ้าออกจากหน้า)
+  useEffect(() => () => {
+    timers.current.forEach((id) => { window.clearTimeout(id); window.clearInterval(id); });
+    timers.current = [];
+  }, []);
+
   function spin() {
-    if (!selectedPlayerId) return;
+    if (!selectedPlayerId || spinning) return;
+    setResult(null);
+    setResultOutcome(null);
+    setSpinning(true);
     playGacha();
-    try {
-      const outcome = selectWeightedGachaOutcome(state.config.gachaWeights);
-      const itemType = itemCatalog[Math.floor(Math.random() * itemCatalog.length)].type;
-      const unusedQuestion = quizBank.find((question) => !state.usedQuizIds.includes(question.id)) ?? quizBank[0];
-      const shieldSlot = Math.random() < 0.5 ? "spyA" : "spyB";
-      let message = "";
-      setState((current) => {
-        const next = applyGachaOutcome(current, selectedPlayerId, outcome, {
-          selectedItemType: itemType,
-          selectedQuizId: unusedQuestion.id,
-          shieldSlot,
+
+    // หมุน reel — สลับไอคอนสุ่มเร็วๆ ให้ดูลุ้น
+    const reel = window.setInterval(() => {
+      setReelOutcome(ALL_OUTCOMES[Math.floor(Math.random() * ALL_OUTCOMES.length)]);
+    }, 90);
+    timers.current.push(reel);
+
+    // เสียงหมุนซ้ำกลางทางให้ต่อเนื่อง
+    const whoosh = window.setTimeout(() => playGacha(), 1250);
+    timers.current.push(whoosh);
+
+    // เฉลยผลจริงเมื่อครบเวลา
+    const settle = window.setTimeout(() => {
+      window.clearInterval(reel);
+      try {
+        const outcome = selectWeightedGachaOutcome(state.config.gachaWeights);
+        const itemType = itemCatalog[Math.floor(Math.random() * itemCatalog.length)].type;
+        const unusedQuestion = quizBank.find((question) => !state.usedQuizIds.includes(question.id)) ?? quizBank[0];
+        const shieldSlot = Math.random() < 0.5 ? "spyA" : "spyB";
+        let message = "";
+        setState((current) => {
+          const next = applyGachaOutcome(current, selectedPlayerId, outcome, {
+            selectedItemType: itemType,
+            selectedQuizId: unusedQuestion.id,
+            shieldSlot,
+          });
+          message = next.lastGachaResult?.message ?? "กาชาทำงานแล้ว";
+          return next;
         });
-        message = next.lastGachaResult?.message ?? "กาชาทำงานแล้ว";
-        return next;
-      });
-      setResult(message);
-      setResultOutcome(outcome);
-    } catch (caught) {
-      setResult(caught instanceof Error ? caught.message : "หมุนกาชาไม่สำเร็จ");
-      setResultOutcome(null);
-    }
+        setReelOutcome(outcome);
+        setResult(message);
+        setResultOutcome(outcome);
+        playCoin();
+      } catch (caught) {
+        setResult(caught instanceof Error ? caught.message : "หมุนกาชาไม่สำเร็จ");
+        setResultOutcome(null);
+      }
+      setSpinning(false);
+    }, SPIN_MS);
+    timers.current.push(settle);
   }
 
   if (step === "pick") {
@@ -58,13 +91,21 @@ export function GachaFlow() {
   }
 
   return (
-    <section className="scene-panel">
+    <section className="scene-panel gacha-scene">
       <h2>ตู้กาชาสายลับ</h2>
       <p className="scene-lead">หมุนลุ้นลูกเล่นหมู่ + โจทย์เชาว์ 🎰 ผลกาชาประกาศให้ทุกคนเห็น (ไม่ลับเหมือนร้าน/โหวต)</p>
       <p className="big-callout">
         {player?.name} · ค่าหมุน {state.config.gachaSpinCost} เหรียญ · วันนี้ {spinsToday}/{state.config.gachaDailyLimitPerPlayer}
       </p>
-      {result && (
+
+      {spinning && (
+        <div className="gacha-reel">
+          <img className="gacha-reel__icon" src={gachaIconAssets[reelOutcome]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />
+          <p className="gacha-reel__text">🎰 กำลังสุ่ม... ลุ้นว่าจะได้อะไร!</p>
+        </div>
+      )}
+
+      {!spinning && result && (
         <div className="gacha-result">
           {resultOutcome && (
             <img
@@ -77,14 +118,15 @@ export function GachaFlow() {
           <p className="settings-preview gacha-result__text">{result}</p>
         </div>
       )}
-      <div className={`gacha-machine${result ? " gacha-machine--popped" : ""}`} aria-hidden="true">
+
+      <div className={`gacha-machine${spinning ? " gacha-machine--spinning" : ""}${!spinning && result ? " gacha-machine--popped" : ""}`} aria-hidden="true">
         <img
           className="gacha-machine__img"
           src={gameAssets.gachaMachine}
           alt=""
           onError={(event) => { event.currentTarget.style.display = "none"; }}
         />
-        {result && (
+        {!spinning && result && (
           <img
             className="gacha-machine__capsule"
             src={gameAssets.gachaCapsule}
@@ -93,9 +135,10 @@ export function GachaFlow() {
           />
         )}
       </div>
+
       <div className="button-row">
-        <GameButton onClick={spin}>หมุน</GameButton>
-        <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>กลับ Home</GameButton>
+        <GameButton onClick={spin} disabled={spinning}>{spinning ? "กำลังสุ่ม..." : "หมุน"}</GameButton>
+        <GameButton variant="paper" disabled={spinning} onClick={() => setState((current) => ({ ...current, phase: "home" }))}>กลับ Home</GameButton>
       </div>
     </section>
   );
