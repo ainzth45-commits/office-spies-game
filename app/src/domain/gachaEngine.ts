@@ -34,3 +34,20 @@ export function resolveGachaOutcome(
   if (outcome === "grantItem" && context.inventoryFull) return "selfGain";
   return outcome;
 }
+
+// น้ำหนักกาชา "ที่ใช้จริง" ตามสถานะเกม — ถอด outcome ที่ถูกล็อกออก (น้ำหนัก = 0)
+// แล้วปล่อยให้ selectWeightedGachaOutcome เฉลี่ยโอกาสที่เหลือตามสัดส่วนเดิมโดยอัตโนมัติ
+//   - spyShield: ถ้ามีเกราะอยู่แล้ว (ของชิ้นเดียว) → ถอดจนจบเกม
+//   - voteUp/voteDown: ถ้าค่าโหวตถูกเปลี่ยนไปแล้ววันนี้ → ถอดทั้งคู่จนขึ้นวันใหม่
+export function availableGachaWeights(
+  base: Record<GachaOutcome, number>,
+  context: { shieldExists: boolean; voteCostChangedToday: boolean },
+): Record<GachaOutcome, number> {
+  const weights = { ...base };
+  if (context.shieldExists) weights.spyShield = 0;
+  if (context.voteCostChangedToday) {
+    weights.voteUp = 0;
+    weights.voteDown = 0;
+  }
+  return weights;
+}

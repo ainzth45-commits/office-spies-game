@@ -31,7 +31,7 @@ function log(state: GameState, label: string): GameState {
 }
 
 function resetDailyUsageFor(state: GameState, dayIndex: number): GameState["dailyUsage"] {
-  return { dayIndex, gachaSpins: {}, shopPurchases: {} };
+  return { dayIndex, gachaSpins: {}, shopPurchases: {}, voteCostChanged: false };
 }
 
 function ensureDailyUsage(state: GameState): GameState["dailyUsage"] {
@@ -318,10 +318,18 @@ export function applyGachaOutcome(
   } else if (outcome === "allLose") {
     message = `ทุกคนคืน ${state.config.gachaCoinAllLose} เหรียญให้ซุป`;
   } else if (outcome === "voteUp") {
-    next = { ...next, voteCostState: { ...next.voteCostState, nextVoteMultiplier: state.config.gachaVoteMultiplierUp } };
+    next = {
+      ...next,
+      voteCostState: { ...next.voteCostState, nextVoteMultiplier: state.config.gachaVoteMultiplierUp },
+      dailyUsage: { ...nextDailyUsage, voteCostChanged: true },
+    };
     message = `ค่าเปิดโหวตครั้งหน้า x${state.config.gachaVoteMultiplierUp}`;
   } else if (outcome === "voteDown") {
-    next = { ...next, voteCostState: { ...next.voteCostState, nextVoteMultiplier: state.config.gachaVoteMultiplierDown } };
+    next = {
+      ...next,
+      voteCostState: { ...next.voteCostState, nextVoteMultiplier: state.config.gachaVoteMultiplierDown },
+      dailyUsage: { ...nextDailyUsage, voteCostChanged: true },
+    };
     message = `ค่าเปิดโหวตครั้งหน้า x${state.config.gachaVoteMultiplierDown}`;
   } else if (outcome === "grantItem") {
     const itemType = options.selectedItemType ?? itemCatalog[Math.floor(Math.random() * itemCatalog.length)].type;

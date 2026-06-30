@@ -105,7 +105,17 @@ export function SettingsPanel() {
 
   const setKey = (key: ScalarKey, value: number) => { setDraft({ ...draft, [key]: value }); setSaved(false); };
 
+  // น้ำหนักกาชาต้องรวมได้ 100 พอดี — ดันเกิน 100 ไม่ได้ (ต้องไปลดอันอื่นก่อน) และบันทึกไม่ได้ถ้าไม่ครบ 100
+  const round2 = (n: number) => Math.round(n * 2) / 2; // ปัดเข้า step 0.5
+  const gachaHeadroom = round2(100 - preview.gachaTotal); // โควตาที่เหลือให้เพิ่มได้ (อาจติดลบถ้าเกิน)
+  const isGacha100 = Math.abs(preview.gachaTotal - 100) < 0.001;
+
   function save() {
+    if (!isGacha100) {
+      setError(`น้ำหนักกาชาต้องรวมได้ 100 พอดี (ตอนนี้ ${preview.gachaTotal.toFixed(1)} · ${gachaHeadroom >= 0 ? `ขาดอีก ${gachaHeadroom}` : `เกิน ${Math.abs(gachaHeadroom)}`})`);
+      setSaved(false);
+      return;
+    }
     try {
       setState((current) => updateConfig(current, draft));
       setError(null);
@@ -176,24 +186,31 @@ export function SettingsPanel() {
       </fieldset>
 
       <fieldset className="settings-cat">
-        <legend>🎲 น้ำหนักโอกาสผลกาชา (รวม = {preview.gachaTotal.toFixed(0)})</legend>
+        <legend className={isGacha100 ? undefined : "settings-legend--warn"}>
+          🎲 น้ำหนักโอกาสผลกาชา (รวม = {preview.gachaTotal.toFixed(1)}/100{isGacha100 ? " ✅" : gachaHeadroom >= 0 ? ` · ขาดอีก ${gachaHeadroom}` : ` · เกิน ${Math.abs(gachaHeadroom)}`})
+        </legend>
         <div className="settings-sliders">
-          {gachaOutcomes.map((outcome) => (
-            <SliderField
-              key={outcome}
-              label={gachaOutcomeLabels[outcome]}
-              value={draft.gachaWeights[outcome]}
-              min={0}
-              max={30}
-              step={0.5}
-              onChange={(weight) => { setDraft({ ...draft, gachaWeights: { ...draft.gachaWeights, [outcome]: weight } }); setSaved(false); }}
-            />
-          ))}
+          {gachaOutcomes.map((outcome) => {
+            const value = draft.gachaWeights[outcome];
+            // ดันเพิ่มได้แค่เท่าโควตาที่เหลือ — เกิน 100 ไม่ได้ ต้องไปลดอันอื่นก่อน
+            const dynamicMax = Math.max(value, Math.min(30, value + Math.max(0, gachaHeadroom)));
+            return (
+              <SliderField
+                key={outcome}
+                label={gachaOutcomeLabels[outcome]}
+                value={value}
+                min={0}
+                max={dynamicMax}
+                step={0.5}
+                onChange={(weight) => { setDraft({ ...draft, gachaWeights: { ...draft.gachaWeights, [outcome]: weight } }); setSaved(false); }}
+              />
+            );
+          })}
         </div>
       </fieldset>
 
       <div className="button-row settings-actions">
-        <GameButton onClick={save}>💾 บันทึก</GameButton>
+        <GameButton onClick={save} disabled={!isGacha100}>💾 บันทึก</GameButton>
         <GameButton variant="paper" onClick={() => { setDraft(defaultConfig); setSaved(false); }}>คืนค่าเริ่มต้น (ยังไม่บันทึก)</GameButton>
         <GameButton variant="danger" onClick={() => { setState(resetConfig); setDraft(defaultConfig); }}>รีเซ็ต + บันทึกทันที</GameButton>
       </div>

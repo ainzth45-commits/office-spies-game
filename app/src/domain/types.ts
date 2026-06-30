@@ -148,6 +148,8 @@ export interface DailyUsageState {
   dayIndex: number;
   gachaSpins: Record<PlayerId, number>;
   shopPurchases: Record<PlayerId, Partial<Record<VoteItemType, number>>>;
+  // กาชา: voteUp/voteDown ออกได้รวมกันไม่เกินวันละ 1 ครั้ง — true เมื่อออกแล้ว (รีเซ็ตเมื่อขึ้นวันใหม่)
+  voteCostChanged: boolean;
 }
 
 export interface PendingQuizState {

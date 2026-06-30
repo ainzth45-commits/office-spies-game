@@ -16,6 +16,19 @@ body,
   margin: 0;
 }
 
+/* บล็อกการเลื่อน/เด้งของ "หน้าเว็บ" ทั้งหมด — เกมออกแบบให้พอดีจอ iPad อยู่แล้ว
+   (ส่วนที่ต้องเลื่อนจริง เช่น overlay ตั้งค่า ใช้ overscroll-behavior: contain ให้เลื่อนเฉพาะในตัว) */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  touch-action: pan-x pan-y;
+}
+
 button,
 input,
 select,
@@ -24,10 +37,17 @@ textarea {
 }
 
 .app-shell {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 32px;
+}
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     linear-gradient(135deg, rgba(24, 33, 63, 0.86), rgba(43, 58, 103, 0.82) 56%, rgba(21, 27, 48, 0.92)),
     var(--bg-detective-room);
@@ -232,6 +252,7 @@ h1 {
 }
 
 .handoff-curtain {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -239,6 +260,12 @@ h1 {
   gap: 18px;
   padding: 32px;
   text-align: center;
+}
+.handoff-curtain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     radial-gradient(circle, rgba(246, 196, 83, 0.34), transparent 36%),
     linear-gradient(135deg, rgba(21, 27, 48, 0.88), rgba(43, 58, 103, 0.82)),
@@ -264,15 +291,21 @@ h1 {
 }
 
 .hub-scene {
+  position: relative;
   min-height: 100vh;
   padding: 28px;
+}
+.hub-scene::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     radial-gradient(circle at 20% 12%, rgba(246, 196, 83, 0.2), transparent 26%),
     linear-gradient(135deg, rgba(24, 33, 63, 0.85), rgba(43, 58, 103, 0.78) 56%, rgba(21, 27, 48, 0.9)),
     var(--bg-office);
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
 }
 
 .hub-title {
@@ -342,8 +375,8 @@ h1 {
 }
 
 .settings-panel {
-  max-height: 66vh;
-  overflow: auto;
+  /* ไม่ scroll ในตัว — ให้ .overlay-sheet เลื่อนทั้งแผ่นทีเดียว ปุ่มท้ายจะไม่ลอยทับเนื้อหา */
+  overflow: visible;
 }
 
 .settings-grid {
@@ -769,10 +802,17 @@ h1 {
 }
 
 .reveal-stage {
+  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 32px;
+}
+.reveal-stage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     radial-gradient(circle at 50% 22%, rgba(246, 196, 83, 0.32), transparent 42%),
     linear-gradient(135deg, rgba(21, 27, 48, 0.84), rgba(43, 58, 103, 0.78)),
@@ -864,6 +904,12 @@ h1 {
   flex-direction: column;
   overflow: hidden;
   padding: clamp(10px, 2vh, 22px) clamp(16px, 3vw, 40px);
+}
+.home-screen::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     radial-gradient(circle at 50% 28%, rgba(246, 196, 83, 0.16), transparent 40%),
     linear-gradient(160deg, rgba(24, 33, 63, 0.82), rgba(43, 58, 103, 0.74) 55%, rgba(21, 27, 48, 0.9)),
@@ -959,6 +1005,8 @@ h1 {
   border-radius: 26px;
   backdrop-filter: blur(4px);
   align-self: center;
+  /* เว้นช่องว่างจากปุ่ม action ด้านบน ไม่ให้ติดกล่อง dock */
+  margin-top: clamp(12px, 2.4vh, 26px);
 }
 
 .dock-btn {
@@ -1036,6 +1084,8 @@ h1 {
   width: min(1120px, 94vw);
   max-height: 88vh;
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   display: grid;
   gap: 16px;
   border: 4px solid #fbf7ef;
@@ -1447,7 +1497,10 @@ h1 {
   cursor: grab;
 }
 
-.settings-actions { position: sticky; bottom: 0; background: rgba(24, 33, 63, 0.95); padding: 12px 0 4px; border-radius: 12px; }
+/* แถวปุ่ม บันทึก/คืนค่า/รีเซ็ต — ไหลไปอยู่ท้ายสุด ติดกับแถวเมนูแอดมิน/ปิด ไม่ลอยทับ slider */
+.settings-actions { margin-top: 6px; padding-top: 14px; border-top: 2px solid rgba(251, 247, 239, 0.18); flex-wrap: wrap; }
+/* legend เตือนเมื่อน้ำหนักกาชารวมไม่ครบ 100 */
+.settings-legend--warn { color: #ff6b5e !important; }
 
 @media (max-width: 820px) {
   .settings-sliders { grid-template-columns: 1fr; }
@@ -1463,7 +1516,9 @@ h1 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: #18213f;
+  /* โปร่งใส: ปล่อยให้พื้นหลังฉาก (เลเยอร์ fixed เต็มจอ) + root navy โชว์เต็มขอบจอ
+     padding ด้านล่างยังคงไว้ → เนื้อหาหลบ status bar/home indicator เหมือนเดิม */
+  background: transparent;
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);

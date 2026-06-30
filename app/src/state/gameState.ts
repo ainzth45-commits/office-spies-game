@@ -25,7 +25,7 @@ export function createInitialGameState(): GameState {
     },
     voteCostState: { accumulatedSkippedMultiplier: 1, nextVoteMultiplier: 1 },
     usedQuizIds: [],
-    dailyUsage: { dayIndex: 1, gachaSpins: {}, shopPurchases: {} },
+    dailyUsage: { dayIndex: 1, gachaSpins: {}, shopPurchases: {}, voteCostChanged: false },
     pendingQuiz: null,
     history: [{ id: "initial", at: new Date(0).toISOString(), label: "สร้างเกมใหม่" }],
     settings: { soundEnabled: true, tutorialCompleted: false },

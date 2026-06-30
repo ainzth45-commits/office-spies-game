@@ -3,7 +3,7 @@ import { playCoin, playGacha } from "../../audio/sounds";
 import { gachaIconAssets, gameAssets } from "../../data/assets";
 import { itemCatalog } from "../../data/items";
 import { quizBank } from "../../data/quizBank";
-import { selectWeightedGachaOutcome } from "../../domain/gachaEngine";
+import { availableGachaWeights, selectWeightedGachaOutcome } from "../../domain/gachaEngine";
 import type { GachaOutcome, PlayerId } from "../../domain/types";
 import { applyGachaOutcome } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
@@ -55,7 +55,12 @@ export function GachaFlow() {
     const settle = window.setTimeout(() => {
       window.clearInterval(reel);
       try {
-        const outcome = selectWeightedGachaOutcome(state.config.gachaWeights);
+        // ถอด outcome ที่ล็อกออกจากพูล (เกราะที่มีแล้ว / ค่าโหวตที่เปลี่ยนไปแล้ววันนี้) → เฉลี่ย % ให้อันอื่นอัตโนมัติ
+        const weights = availableGachaWeights(state.config.gachaWeights, {
+          shieldExists: state.shield.exists,
+          voteCostChangedToday: state.dailyUsage.voteCostChanged ?? false,
+        });
+        const outcome = selectWeightedGachaOutcome(weights);
         const itemType = itemCatalog[Math.floor(Math.random() * itemCatalog.length)].type;
         const unusedQuestion = quizBank.find((question) => !state.usedQuizIds.includes(question.id)) ?? quizBank[0];
         const shieldSlot = Math.random() < 0.5 ? "spyA" : "spyB";
