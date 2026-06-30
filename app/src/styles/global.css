@@ -16,13 +16,12 @@ body,
   margin: 0;
 }
 
-/* บล็อกการเลื่อน/เด้งของ "หน้าเว็บ" ทั้งหมด — เกมออกแบบให้พอดีจอ iPad อยู่แล้ว
-   (ไม่ใช้ position:fixed บน body เพราะบน iOS จะทำให้ความสูงไม่เต็ม dynamic viewport → เกิดแถบขอบล่าง)
-   ส่วนที่ต้องเลื่อนจริง เช่น overlay ตั้งค่า ใช้ overscroll-behavior: contain ให้เลื่อนเฉพาะในตัว */
+/* กันการเด้ง/overscroll ของ "หน้าเว็บ" — เกมออกแบบให้พอดีจอ iPad อยู่แล้ว เนื้อหาไม่ล้นจึงไม่เลื่อน
+   ⚠️ ห้ามใส่ overflow:hidden ที่ html/body บน iOS เพราะจะทำให้ position:fixed (เลเยอร์พื้นหลัง) ถูก clip
+   เกิดขอบล่าง · ใช้ overscroll-behavior กันเด้งพอ · overlay ที่ต้องเลื่อนใช้ contain แยกในตัว */
 html,
 body {
   height: 100%;
-  overflow: hidden;
   overscroll-behavior: none;
 }
 
@@ -43,7 +42,7 @@ textarea {
 .app-shell::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
   z-index: -1;
   background:
     linear-gradient(135deg, rgba(24, 33, 63, 0.86), rgba(43, 58, 103, 0.82) 56%, rgba(21, 27, 48, 0.92)),
@@ -261,7 +260,7 @@ h1 {
 .handoff-curtain::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
   z-index: -1;
   background:
     radial-gradient(circle, rgba(246, 196, 83, 0.34), transparent 36%),
@@ -295,7 +294,7 @@ h1 {
 .hub-scene::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
   z-index: -1;
   background:
     radial-gradient(circle at 20% 12%, rgba(246, 196, 83, 0.2), transparent 26%),
@@ -808,7 +807,7 @@ h1 {
 .reveal-stage::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
   z-index: -1;
   background:
     radial-gradient(circle at 50% 22%, rgba(246, 196, 83, 0.32), transparent 42%),
@@ -905,7 +904,7 @@ h1 {
 .home-screen::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
   z-index: -1;
   background:
     radial-gradient(circle at 50% 28%, rgba(246, 196, 83, 0.16), transparent 40%),
