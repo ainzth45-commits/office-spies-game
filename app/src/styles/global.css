@@ -17,16 +17,13 @@ body,
 }
 
 /* บล็อกการเลื่อน/เด้งของ "หน้าเว็บ" ทั้งหมด — เกมออกแบบให้พอดีจอ iPad อยู่แล้ว
-   (ส่วนที่ต้องเลื่อนจริง เช่น overlay ตั้งค่า ใช้ overscroll-behavior: contain ให้เลื่อนเฉพาะในตัว) */
+   (ไม่ใช้ position:fixed บน body เพราะบน iOS จะทำให้ความสูงไม่เต็ม dynamic viewport → เกิดแถบขอบล่าง)
+   ส่วนที่ต้องเลื่อนจริง เช่น overlay ตั้งค่า ใช้ overscroll-behavior: contain ให้เลื่อนเฉพาะในตัว */
 html,
 body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  touch-action: pan-x pan-y;
 }
 
 button,
