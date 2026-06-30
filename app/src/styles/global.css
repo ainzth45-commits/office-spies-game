@@ -1094,3 +1094,74 @@ h1 {
   font-weight: 700;
   font-size: 14px;
 }
+
+/* ============================================================
+   P2-2 iPad Landscape fit — ทุกหน้าพอดีจอ ไม่ต้องเลื่อน
+   ============================================================ */
+.app-shell { padding: clamp(10px, 2vh, 20px); }
+
+/* scene-panel ไม่ล้นจอ (คุมเป็น safety; เป้าหมายคือ content พอดีอยู่แล้ว) */
+.app-shell > .scene-panel,
+.reveal-stage > .scene-panel {
+  max-height: 96vh;
+  overflow: auto;
+}
+
+/* หน้ายืนยันตัวตน — รูปไม่ยักษ์ ทุกอย่างอยู่ในจอเดียว */
+.confirm-player {
+  display: grid;
+  justify-items: center;
+  gap: clamp(8px, 1.6vh, 16px);
+}
+.confirm-player h2 { margin: 0; }
+.confirm-player .player-card {
+  width: min(300px, 38vh);
+  cursor: default;
+}
+.confirm-player .player-card:active { transform: none; box-shadow: 0 9px 0 rgba(0, 0, 0, 0.22); }
+
+/* หน้าดูบทบาท — portrait + การ์ดคู่หู พอดีจอ */
+.role-reveal {
+  display: grid;
+  justify-items: center;
+  gap: clamp(4px, 1vh, 12px);
+}
+.role-reveal h2 { margin: 0; }
+.role-portrait {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.role-portrait__img {
+  max-height: 28vh;
+  width: auto;
+  object-fit: contain;
+}
+.partner-callout { gap: 4px; margin: 2px 0; }
+.partner-callout__photo {
+  width: auto;
+  height: clamp(96px, 20vh, 170px);
+  aspect-ratio: 4 / 5;
+}
+.partner-callout__card { padding: 8px 14px; gap: 3px; }
+
+/* picker — จัดผู้เล่นทุกคนให้พอดีจอ landscape */
+.player-picker { display: flex; flex-direction: column; }
+.player-picker h2 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 40px); }
+.player-picker .scene-lead { margin: 0 0 10px; }
+.player-grid--pick {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(8px, 1vw, 14px);
+  align-content: start;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.player-grid--pick .player-card { padding: 7px; }
+.player-grid--pick .player-card__photo-wrap { aspect-ratio: 1 / 1; }
+.player-grid--pick .player-card__name { font-size: clamp(12px, 1.5vh, 15px); margin-top: 5px; }
+.player-grid--pick .player-card__code { font-size: 12px; padding: 3px 9px; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .player-grid--pick { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

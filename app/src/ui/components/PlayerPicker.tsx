@@ -13,10 +13,10 @@ export function PlayerPicker({
   onPick: (playerId: PlayerId) => void;
 }) {
   return (
-    <section className="scene-panel">
+    <section className="scene-panel player-picker">
       <h2>{title}</h2>
       {lead && <p className="scene-lead">{lead}</p>}
-      <div className="player-grid">
+      <div className="player-grid player-grid--pick">
         {players.map((player) => (
           <PlayerCard key={player.id} player={player} onClick={() => onPick(player.id)} />
         ))}
