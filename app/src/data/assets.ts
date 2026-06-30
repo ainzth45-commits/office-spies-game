@@ -43,6 +43,11 @@ export const gameAssets = {
   endTeamWin: `${BASE}/end-team-win.png`,
   endSpyWin: `${BASE}/end-spy-win.png`,
 
+  // ภาพประกอบสอนเล่น (เน้นกลไกโหวต)
+  tutVoteCast: `${BASE}/tut-vote-cast.png`,
+  tutVoteThreshold: `${BASE}/tut-vote-threshold.png`,
+  tutVoteOutcome: `${BASE}/tut-vote-outcome.png`,
+
   // ไอคอนแอป (Add to Home Screen) + ไอคอน dock เมนูหน้าโฮม
   appIcon: `${BASE}/app-icon.png`,
   dockRole: `${BASE}/dock-role.png`,
