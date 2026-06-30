@@ -10,11 +10,14 @@ import {
   buyPostVoteClue,
   buyVoteItem,
   endWorkingDay,
+  enterRoleReveal,
   finalizeVoteRound,
   markFinalDay,
   openVote,
   resolveSecondSpyGuess,
   restDay,
+  rolesAssigned,
+  startNewRound,
   submitVoteTurn,
   updateConfig,
 } from "./actions";
@@ -60,6 +63,32 @@ describe("game actions", () => {
     const state = assignNewRoles(createInitialGameState(), () => 0);
     expect(Object.values(state.roles).filter((role) => role === "spyA")).toHaveLength(1);
     expect(Object.values(state.roles).filter((role) => role === "spyB")).toHaveLength(1);
+  });
+
+  it("fresh game has no spies assigned (rolesAssigned=false)", () => {
+    expect(rolesAssigned(createInitialGameState())).toBe(false);
+  });
+
+  it("enterRoleReveal auto-assigns spies on a fresh game (fixes no-spy bug)", () => {
+    const state = enterRoleReveal(createInitialGameState(), () => 0);
+    expect(state.phase).toBe("roleReveal");
+    expect(rolesAssigned(state)).toBe(true);
+    expect(Object.values(state.roles).filter((role) => role === "spyA")).toHaveLength(1);
+    expect(Object.values(state.roles).filter((role) => role === "spyB")).toHaveLength(1);
+  });
+
+  it("enterRoleReveal does NOT reshuffle when roles already assigned (re-view keeps same roles)", () => {
+    const assigned = assignNewRoles(createInitialGameState(), () => 0);
+    const reviewed = enterRoleReveal(assigned, () => 0.99);
+    expect(reviewed.phase).toBe("roleReveal");
+    expect(reviewed.roles).toEqual(assigned.roles);
+  });
+
+  it("startNewRound reshuffles spies and resets the round", () => {
+    const state = startNewRound(createInitialGameState(), () => 0);
+    expect(rolesAssigned(state)).toBe(true);
+    expect(state.currentVote).toBeNull();
+    expect(state.lastVoteResult).toBeNull();
   });
 
   it("assignNewRoles preserves inventory and shield state", () => {

@@ -41,6 +41,15 @@ export const gameAssets = {
   mascotDetective: `${BASE}/mascot-detective.png`,
   endTeamWin: `${BASE}/end-team-win.png`,
   endSpyWin: `${BASE}/end-spy-win.png`,
+
+  // ไอคอนแอป (Add to Home Screen) + ไอคอน dock เมนูหน้าโฮม
+  appIcon: `${BASE}/app-icon.png`,
+  dockRole: `${BASE}/dock-role.png`,
+  dockVote: `${BASE}/dock-vote.png`,
+  dockGacha: `${BASE}/dock-gacha.png`,
+  dockShop: `${BASE}/dock-shop.png`,
+  dockLearn: `${BASE}/dock-learn.png`,
+  dockSettings: `${BASE}/dock-settings.png`,
 } as const;
 
 // ไอคอนผลกาชา 10 ตัว — key ตาม GachaOutcome

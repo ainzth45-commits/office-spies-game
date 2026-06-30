@@ -61,6 +61,24 @@ export function assignNewRoles(state: GameState, random: RandomSource = Math.ran
   return log({ ...state, roles, phase: "roleReveal", currentVote: null, lastVoteResult: null, lastClueResult: null }, "สุ่มบทบาทใหม่");
 }
 
+export function rolesAssigned(state: GameState): boolean {
+  return Object.values(state.roles).some((role) => role === "spyA" || role === "spyB");
+}
+
+// เริ่มรอบใหม่ — สุ่มสายลับ 2 คนใหม่เสมอ (รีเซ็ตโหวต/เบาะแสของรอบเดิม)
+export function startNewRound(state: GameState, random: RandomSource = Math.random): GameState {
+  return assignNewRoles(state, random);
+}
+
+// เข้าหน้าดูบทบาท: ถ้ายังไม่เคยสุ่มสายลับเลย (ทุกคน normal) ให้สุ่มก่อนอัตโนมัติ
+// กันบั๊ก "เกมใหม่ไม่มีใครเป็นสปาย" — ถ้าสุ่มแล้วก็แค่เปิดดู (ไม่สุ่มซ้ำ ผู้เล่นจะได้บทบาทเดิม)
+export function enterRoleReveal(state: GameState, random: RandomSource = Math.random): GameState {
+  if (rolesAssigned(state)) {
+    return log({ ...state, phase: "roleReveal" }, "เปิดดูบทบาท (รอบเดิม)");
+  }
+  return assignNewRoles(state, random);
+}
+
 export function openVote(state: GameState): GameState {
   if (state.manualDay.openedVoteToday) {
     throw new Error("วันนี้เปิดโหวตไปแล้ว");

@@ -851,3 +851,190 @@ h1 {
   70% { opacity: 1; }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
+
+/* ============================================================
+   หน้าโฮมใหม่ — iPad Landscape, dock ไอคอนล่าง, ไม่ต้องเลื่อนจอ
+   ============================================================ */
+.home-screen {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: clamp(10px, 2vh, 22px) clamp(16px, 3vw, 40px);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(246, 196, 83, 0.16), transparent 40%),
+    linear-gradient(160deg, rgba(24, 33, 63, 0.82), rgba(43, 58, 103, 0.74) 55%, rgba(21, 27, 48, 0.9)),
+    url("/assets/generated/bg-office.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.home-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.chip-btn {
+  border: 3px solid #20263f;
+  border-radius: 14px;
+  background: #f5e9d0;
+  color: #20263f;
+  font-weight: 800;
+  font-size: clamp(13px, 1.6vh, 16px);
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.22);
+}
+.chip-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22); }
+
+.home-center {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.4vh, 16px);
+}
+
+.home-logo {
+  width: min(620px, 70vw);
+  max-height: 30vh;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.24));
+}
+
+.home-mascot {
+  height: clamp(120px, 26vh, 280px);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.3));
+  margin-top: -2vh;
+}
+
+.home-status {
+  display: flex;
+  gap: clamp(10px, 1.6vw, 18px);
+}
+.home-stat {
+  display: grid;
+  justify-items: center;
+  border: 3px solid #20263f;
+  border-radius: 16px;
+  background: #fbf7ef;
+  color: #20263f;
+  padding: 8px 18px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+  line-height: 1.1;
+}
+.home-stat b { font-size: clamp(18px, 2.6vh, 26px); }
+.home-stat small { color: #62677b; font-weight: 800; font-size: 12px; }
+
+.home-cta.game-button {
+  min-height: clamp(52px, 7vh, 66px);
+  font-size: clamp(16px, 2.2vh, 22px);
+  padding: 0 28px;
+  margin-top: clamp(4px, 1vh, 10px);
+}
+
+/* dock ล่าง */
+.home-dock {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 26px);
+  padding: clamp(8px, 1.4vh, 16px) clamp(12px, 2vw, 28px);
+  background: rgba(24, 33, 63, 0.7);
+  border: 3px solid rgba(251, 247, 239, 0.5);
+  border-radius: 26px;
+  backdrop-filter: blur(4px);
+  align-self: center;
+}
+
+.dock-btn {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.1s ease;
+}
+.dock-btn:active { transform: translateY(3px) scale(0.96); }
+
+.dock-btn__icon {
+  width: clamp(54px, 9vh, 84px);
+  height: clamp(54px, 9vh, 84px);
+  display: grid;
+  place-items: center;
+}
+.dock-btn__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.3));
+}
+.dock-btn__emoji {
+  display: none; /* แสดงเมื่อรูป 404 (onError) */
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  font-size: clamp(30px, 5vh, 46px);
+  border: 3px solid #20263f;
+  border-radius: 18px;
+  background: #f5e9d0;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.22);
+}
+.dock-btn__label {
+  color: #fbf7ef;
+  font-weight: 800;
+  font-size: clamp(12px, 1.6vh, 15px);
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* overlay + admin menu */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 28, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 24px;
+}
+.admin-menu {
+  width: min(520px, 92vw);
+  border: 4px solid #fbf7ef;
+  border-radius: 24px;
+  background: rgba(24, 33, 63, 0.97);
+  box-shadow: 0 18px 0 rgba(0, 0, 0, 0.3);
+  padding: 26px;
+  text-align: center;
+  display: grid;
+  gap: 18px;
+}
+.admin-menu h2 { margin: 0; color: #f6c453; }
+.admin-menu__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* sheet เลื่อนได้ใน overlay (สำหรับ panel แอดมินที่อาจสูงเกินจอ) */
+.overlay-sheet {
+  width: min(1120px, 94vw);
+  max-height: 88vh;
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+  border: 4px solid #fbf7ef;
+  border-radius: 22px;
+  background: rgba(24, 33, 63, 0.97);
+  box-shadow: 0 18px 0 rgba(0, 0, 0, 0.3);
+  padding: 22px;
+}
