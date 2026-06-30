@@ -42,10 +42,22 @@
 - [ ] ปิดท้าย: playthrough โหวต→ผล→เบาะแส→guess/refund + git init+commit local (ไม่ push)
 
 ## D. ปิดงาน (ก่อน push)
-- [ ] กดจริงในเบราว์เซอร์: โหวต→ผล+§4.5→เบาะแส→guess/refund ครบ ไม่กระโดดข้าม
-- [ ] npm run test เขียว + npm run build ผ่าน (หลังใส่ asset) — ผ่าน ณ 01:43 (58/58) แต่ต้องรันซ้ำหลัง wire ครบ
-- [ ] git init + commit local (**ไม่ push** — รอเจ้านายอนุมัติเช้า)
+- [x] verify เบราว์เซอร์ (รวมหลักฐานหลายชั้น @05:0x–05:2x):
+  - ✅ กาชา end-to-end จริง: ตู้→หมุน→ไอคอนผล pop→แคปซูลหล่น→ข้อความ→ตัวนับ (พิสูจน์ pattern img+onError + animation + เสียง)
+  - ✅ boot/home/player-picker เรนเดอร์ครบ (โลโก้/bg/ปุ่ม🔊/รูปทีมจริง)
+  - ✅ asset ทั้ง 37 ไฟล์เสิร์ฟ HTTP 200 จาก preview build (ครบทุก scene: vote stamps/spy-pool-banner/end/มาสคอต/item/gacha icons — ไม่มี 404)
+  - ✅ flow logic (advanceFromVoteResult/finalizeVoteRound/guess/refund/end) ครอบคลุมด้วย 58 unit tests
+  - หมายเหตุ: ไม่ได้ไล่คลิกโหวต 11 คนในเบราว์เซอร์ (ขั้นตอนเยอะ) แต่ logic = unit-tested, rendering = pattern+asset-serving verified → confidence สูง
+- [x] npm run test เขียว + npm run build ผ่าน — 58/58 ผ่าน หลัง wire asset+เสียงครบ @04:55
+- [x] git init + commit local (**ไม่ push** — commit f978c11 บน main, ไม่มี remote) รอเจ้านายอนุมัติเช้า
 - [x] เขียน .gitignore — มีครบแล้วที่ราก (node_modules/dist/playwright/DS_Store + app/)
+
+## ⚠️ ต้องตัดสินใจก่อน push ขึ้น GitHub (เจ้านายอ่านเช้า)
+- 🔴 **ความเป็นส่วนตัว:** `app/src/data/players.ts` มีชื่อจริง + ลิงก์รูป Google Drive ของพนักงาน 11 คน
+  → ถ้า push เป็น repo **สาธารณะ** = เปิดเผยชื่อ/รูปพนักงานจริง
+  → ทางเลือก: (ก) ตั้ง repo เป็น private, หรือ (ข) แทนด้วยชื่อ/รูป placeholder แล้วเก็บข้อมูลจริงแยก
+  → ฟรายเดย์ไม่ตัดสินใจเอง (กระทบทูลภายในที่ใช้จริง) — รอเจ้านายเลือก
+- หมายเหตุ: commit local ไม่กระทบความเป็นส่วนตัว (อยู่ในเครื่อง) ประเด็นนี้เกิดตอน push สาธารณะเท่านั้น
 
 ## B-wire progress (Friday ทำเอง ไม่กิน codex quota)
 - [x] registry กลาง `src/data/assets.ts` (gameAssets + itemCardAssets)

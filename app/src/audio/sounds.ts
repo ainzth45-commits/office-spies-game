@@ -16,7 +16,8 @@ function getCtx(): AudioContext | null {
     if (!Ctor) return null;
     if (!ctx) ctx = new Ctor();
     // เบราว์เซอร์ suspend context จนกว่าจะมี user gesture — resume เมื่อมีการเล่น (ถูกเรียกจาก onClick อยู่แล้ว)
-    if (ctx.state === "suspended") void ctx.resume();
+    // .catch กัน unhandled rejection ถ้า resume() ล้มเหลว (เช่น context ถูกปิดไปแล้ว)
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
     return ctx;
   } catch {
     return null;

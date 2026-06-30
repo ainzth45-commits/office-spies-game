@@ -50,14 +50,14 @@ export function RoleRevealFlow() {
           alt={role === "normal" ? "ผู้เล่นปกติ" : "สายลับ"}
         />
         {role !== "normal" && partner && (
-          <img className="role-portrait__badge" src={gameAssets.spyPairBadge} alt="ตราคู่สายลับ" />
+          <img className="role-portrait__badge" src={gameAssets.spyPairBadge} alt="ตราคู่สายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
         )}
       </div>
       <h2>{role === "normal" ? "คุณคือผู้เล่นปกติ" : `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}`}</h2>
       {role !== "normal" && partner && <p className="big-callout">คู่หูของคุณคือ {partner.name}</p>}
       {role !== "normal" && state.shield.exists && !state.shield.consumed && state.shield.slot === role && (
         <div className="shield-callout">
-          <img className="shield-callout__img" src={itemCardAssets.spyShield} alt="เกราะสายลับ" />
+          <img className="shield-callout__img" src={itemCardAssets.spyShield} alt="เกราะสายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
           <p className="big-callout">🛡️ slot ของคุณมีเกราะป้องกัน 1 ครั้ง — เก็บไว้เป็นความลับนะ</p>
         </div>
       )}

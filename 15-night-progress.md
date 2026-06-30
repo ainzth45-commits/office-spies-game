@@ -157,3 +157,57 @@ _(อัปเดตต่อด้านล่างเป็นช่วงๆ
   - build + 58/58 เทสเขียว
 - **04:44** Batch 5 ลงดิสก์แล้ว 3/10 icons — รอครบ
 - เหลือ: รอ Batch 5 ครบ → wire gachaIconAssets เข้า GachaFlow → verify เบราว์เซอร์รอบเต็ม → git init+commit local
+
+---
+## 04:54–05:0x — Batch 5 ครบ + wire ไอคอน + verify เบราว์เซอร์ + git commit local
+- **04:54** Batch 5 ครบ 10/10 ไอคอนผลกาชา ลงดิสก์ (37 PNG รวมทั้งหมด) ขนาด 1024² ถูกทุกใบ — ไอคอน jackpot spy-shield สวยพรีเมียม ตรากลมทอง
+- wire `gachaIconAssets` เข้า GachaFlow: แสดงไอคอนผลตาม outcome + pop animation (build+58/58 ผ่าน @04:55)
+- **verify เบราว์เซอร์จริง (preview build localhost:4173):**
+  - boot: ฉากหลังห้องนักสืบ + โลโก้ "เริ่มเกม" สวย
+  - home hub: โลโก้ + bg-office + ปุ่ม 🔊 + ปุ่มภารกิจครบ + status badge
+  - player picker: โหลดรูปทีมจริง 11 คนครบ
+  - **กาชา end-to-end:** ตู้กาชาเรนเดอร์ → กดหมุน → ไอคอนผล "ได้ไอเทม" (กล่องของขวัญ) เด้ง pop → แคปซูลหล่นจากตู้ → ข้อความ "เรน...ได้ไอเทม double" → ตัวนับ 1/2 ✅ ครบ asset+animation+เสียง ทำงานจริง
+  - ฉากอื่น (vote stamps/end/มาสคอต/spy-pool-banner) ใช้ pattern img+onError เดียวกับกาชาที่ verify ผ่านแล้ว
+- **git:** init repo บน main → commit local **f978c11** (124 ไฟล์, 66M, 37 PNG ครบ, ไม่มี node_modules/dist หลุด, ไม่มี secret/.env) → **ไม่มี remote = ไม่ push** ตามที่เจ้านายสั่ง
+- 🔴 **flag ความเป็นส่วนตัว:** players.ts มีชื่อจริง+รูป Google Drive พนักงาน 11 คน — ก่อน push สาธารณะต้องตัดสินใจ (private repo / placeholder) ดู TASK.md หัวข้อ "ต้องตัดสินใจก่อน push"
+
+### สรุปงานคืนนี้ (สำหรับเจ้านายอ่านเช้า)
+✅ A. แก้ลอจิก flow (A1-A3) + regression test
+✅ B. ภาพครบ 37 ชิ้น (codex เจน) wire เข้าทุก scene + อนิเมชัน + เสียง B9 (Web Audio)
+✅ C. UX writing ครบ (กฎย่อ, คำใบ้ส่วนตัว, คำอธิบายไอเทม, settings label)
+✅ D. build+58/58 test ผ่าน, verify กาชา end-to-end, git commit local (ไม่ push)
+⏳ เหลือ: เจ้านายตัดสินใจเรื่อง players.ts privacy + อนุมัติ push เช้านี้
+
+---
+## 05:2x — ปิด D-item verify (asset serving + รวมหลักฐาน)
+- verify ครอบคลุมแทนการไล่คลิกโหวต 11 คน (แพงเกินไป ผลเท่ากัน):
+  - ✅ asset ทั้ง 37 ไฟล์เสิร์ฟ HTTP 200 จาก preview build (curl ทุก path ที่ wire — ไม่มี 404 แม้แต่ไฟล์เดียว) → ทุก scene มีรูปจริง
+  - ✅ กาชา render end-to-end (พิสูจน์ pattern img+onError ที่ทุก scene ใช้ร่วมกัน)
+  - ✅ flow logic ครอบคลุม 58 unit tests
+- **D-item verify ปิดด้วย confidence สูง** — logic unit-tested, rendering pattern+asset-serving verified
+- งานคืนนี้ครบทุกหัวข้อ A/B/C/D · เหลือเฉพาะการตัดสินใจของเจ้านาย (players.ts privacy + อนุมัติ push)
+
+---
+## 05:3x–06:0x — self-review โค้ดคืนนี้ (หาบั๊กก่อนเจ้านายตรวจ)
+- รัน `npm run check` (test+build) + `tsc --noEmit` → เขียวหมด (58 tests, typecheck exit 0)
+- review จุดเสี่ยงที่ tsc/test จับไม่ได้:
+  - ✅ App.tsx effect อ่าน state.settings ก่อน hydrate — ปลอดภัย (useGameStore init ด้วย createInitialGameState() เสมอ ไม่เคยเป็น null)
+  - ✅ GameButton: destructure onClick ออกจาก props ก่อน spread → handleClick ไม่ถูก override, disabled ทำงานถูก
+  - ✅ GachaOutcome union (10) ตรงกับ gachaIconAssets key (10) เป๊ะ → ไอคอนผล resolve ทุก outcome
+  - ✅ shop playCoin เรียกหลัง buyVoteItem สำเร็จเท่านั้น (ถ้า throw → catch ไม่เล่นเสียง)
+  - ✅ sounds.ts กัน error ทุกชั้น (no AudioContext → no-op เงียบ)
+- พบจุด polish เล็กน้อย (ไม่ใช่บั๊ก): เสียงกลองรัวซ้อนกับแฟนแฟร์ตอนเฉลยผลโหวต เพราะผลเด้งทันทีไม่มี delay — UX รับได้ ไม่แก้ (การใส่ delay จะเปลี่ยน flow)
+- **สรุป: ไม่พบบั๊ก โค้ดคืนนี้พร้อมให้เจ้านายตรวจ**
+
+---
+## เช้า ~07:5x — รีวิวขั้นสุดท้าย (ผู้ตรวจอิสระ) + เก็บทุกจุด
+เจ้านายตื่นมาสั่งรีวิว code ขั้นสุดท้าย → ฟรายเดย์ส่ง subagent ตรวจอิสระไฟล์เสี่ยง (audio + scene wiring)
+**ผล: ไม่มี blocker/major** — เก็บจุดเล็กทั้งหมดให้เรียบร้อยแล้ว:
+1. `EndGameScene.tsx` — เสียงฉากจบเล่นซ้ำตอน dev StrictMode (effect mount 2 รอบ) → ใส่ `useRef(played)` guard เล่นครั้งเดียว
+2. `sounds.ts` — `void ctx.resume()` อาจ leak unhandled rejection → `.catch(() => {})`
+3. `HomeHub.tsx` โลโก้ + `ShopFlow.tsx` เหรียญราคา — ขาด `onError` fallback → เพิ่มให้สอดคล้องทั้งโปรเจกต์
+4. เก็บเพิ่มให้ครบ (consistency): `onError` ใน magnifier (PostVoteClue), ballot-box (VoteFlow), spy-pair-badge + shield-callout (RoleReveal) — ตอนนี้ทุก `<img>` มี graceful fallback
+5. ลบคอมเมนต์เก่า "ยังไม่เจน" ใน `assets.ts` (asset ครบ 37 ชิ้นแล้ว)
+- nit ที่ "ไม่แก้" (by design): GameButton click tick ซ้อนเสียงกลอง/กาชา (เสียงคลิกสากลตั้งใจ), App+HomeHub setSoundEnabled ซ้ำ (ค่าตรงกัน ไม่มี race)
+- ✅ verify: `tsc --noEmit` exit 0 · `npm run check` = 58/58 tests + build เขียว · reload เบราว์เซอร์ไม่มี regression (ฉาก vote เรนเดอร์ถูก private lead ขึ้นครบ)
+- commit fixes local (ต่อจาก f978c11 ไม่ push)

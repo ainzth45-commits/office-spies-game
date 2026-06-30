@@ -13,7 +13,7 @@ export function PostVoteClueScene() {
 
   return (
     <section className="scene-panel">
-      <img className="scene-hero" src={gameAssets.magnifier} alt="" aria-hidden="true" />
+      <img className="scene-hero" src={gameAssets.magnifier} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
       <h2>ซื้อเบาะแสหลังโหวต</h2>
       <p className="big-callout">ราคา {clueCost} เหรียญ · ซื้อได้ 1 ครั้งต่อรอบโหวต</p>
       {state.lastClueResult && (

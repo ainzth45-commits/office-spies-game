@@ -24,23 +24,23 @@ export const gameAssets = {
   ballotBox: `${BASE}/ballot-box.png`,
   magnifier: `${BASE}/magnifier.png`,
 
-  // กาชา (ยังไม่เจน — รอ codex หลังโควต้ารีเซ็ต)
+  // กาชา
   gachaMachine: `${BASE}/gacha-machine.png`,
   gachaCapsule: `${BASE}/gacha-capsule.png`,
 
-  // ตราผลโหวต + เบ็ดเตล็ดแฟ้มคดี (ยังไม่เจน)
+  // ตราผลโหวต + เบ็ดเตล็ดแฟ้มคดี
   voteWinStamp: `${BASE}/vote-win-stamp.png`,
   voteLoseStamp: `${BASE}/vote-lose-stamp.png`,
   clueCardFrame: `${BASE}/clue-card-frame.png`,
   spyPoolBanner: `${BASE}/spy-pool-banner.png`,
 
-  // มาสคอต "สารวัตรแมว" + ฉากจบ (ยังไม่เจน)
+  // มาสคอต "สารวัตรแมว" + ฉากจบ
   mascotDetective: `${BASE}/mascot-detective.png`,
   endTeamWin: `${BASE}/end-team-win.png`,
   endSpyWin: `${BASE}/end-spy-win.png`,
 } as const;
 
-// ไอคอนผลกาชา 10 ตัว — key ตาม GachaOutcome (ยังไม่เจน รอ codex)
+// ไอคอนผลกาชา 10 ตัว — key ตาม GachaOutcome
 export const gachaIconAssets = {
   selfGain: `${BASE}/gacha-result-self-gain.png`,
   selfLoseAll: `${BASE}/gacha-result-self-lose-all.png`,

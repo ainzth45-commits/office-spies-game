@@ -69,7 +69,13 @@ export function ShopFlow() {
             <span className="shop-item__label">{item.label}</span>
             <span className="shop-item__desc">{itemDescriptions[item.type]}</span>
             <span className="shop-item__price">
-              <img className="shop-item__coin" src={gameAssets.coin} alt="" aria-hidden="true" />
+              <img
+                className="shop-item__coin"
+                src={gameAssets.coin}
+                alt=""
+                aria-hidden="true"
+                onError={(event) => { event.currentTarget.style.display = "none"; }}
+              />
               {state.config.itemPrices[item.type]}
             </span>
           </button>

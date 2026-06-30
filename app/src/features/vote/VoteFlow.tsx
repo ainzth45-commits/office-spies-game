@@ -90,7 +90,7 @@ export function VoteFlow() {
   if (step === "open") {
     return (
       <section className="scene-panel">
-        <img className="scene-hero" src={gameAssets.ballotBox} alt="" aria-hidden="true" />
+        <img className="scene-hero" src={gameAssets.ballotBox} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
         <h2>เปิดโหวตวันนี้</h2>
         <p className="big-callout">รวมเหรียญจ่ายที่ซุป: {openCost} เหรียญ</p>
         {message && <p className="form-error">{message}</p>}

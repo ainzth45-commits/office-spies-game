@@ -30,7 +30,12 @@ export function HomeHub() {
         <div>
           <p className="eyebrow">Detective Party Mode</p>
           <h1 className="hub-title">
-            <img className="hub-logo" src={gameAssets.logo} alt="สายลับในออฟฟิศ" />
+            <img
+              className="hub-logo"
+              src={gameAssets.logo}
+              alt="สายลับในออฟฟิศ"
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
           </h1>
         </div>
         <div className="hub-status">
