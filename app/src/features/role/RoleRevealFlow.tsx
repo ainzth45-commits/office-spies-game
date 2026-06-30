@@ -41,41 +41,56 @@ export function RoleRevealFlow() {
     return <HandOffCurtain message="ส่งเครื่องให้คนถัดไป" onContinue={() => setStep("pick")} />;
   }
 
+  const isSpy = role !== "normal";
+  const showPartner = isSpy && partner;
+  const showShield = isSpy && state.shield.exists && !state.shield.consumed && state.shield.slot === role;
+  const hasAside = showPartner || showShield;
+
   return (
     <section className="scene-panel role-reveal">
-      <div className="role-portrait">
-        <img
-          className={`role-portrait__img${role !== "normal" ? " role-portrait__img--spy" : ""}`}
-          src={role === "normal" ? gameAssets.roleNormal : gameAssets.roleSpy}
-          alt={role === "normal" ? "ผู้เล่นปกติ" : "สายลับ"}
-        />
-        {role !== "normal" && partner && (
-          <img className="role-portrait__badge" src={gameAssets.spyPairBadge} alt="ตราคู่สายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+      <div className={`role-reveal__cols${hasAside ? "" : " role-reveal__cols--solo"}`}>
+        <div className="role-reveal__main">
+          <div className="role-portrait">
+            <img
+              className={`role-portrait__img${isSpy ? " role-portrait__img--spy" : ""}`}
+              src={role === "normal" ? gameAssets.roleNormal : gameAssets.roleSpy}
+              alt={role === "normal" ? "ผู้เล่นปกติ" : "สายลับ"}
+            />
+            {showPartner && (
+              <img className="role-portrait__badge" src={gameAssets.spyPairBadge} alt="ตราคู่สายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+            )}
+          </div>
+          <h2>{role === "normal" ? "คุณคือผู้เล่นปกติ" : `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}`}</h2>
+        </div>
+
+        {hasAside && (
+          <div className="role-reveal__aside">
+            {showPartner && (
+              <div className="partner-callout">
+                <p className="partner-callout__label">🤝 คู่หูของคุณคือ</p>
+                <div className="partner-callout__card">
+                  <img
+                    className="partner-callout__photo"
+                    src={partner.imageUrl}
+                    alt={partner.name}
+                    onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
+                  />
+                  <div className="partner-callout__name">{partner.name}</div>
+                  <div className="partner-callout__code">{partner.code}</div>
+                </div>
+                <p className="partner-callout__hint">จำหน้าไว้ดีๆ แล้วช่วยกันแฝงตัวนะ 🤫</p>
+              </div>
+            )}
+            {showShield && (
+              <div className="shield-callout">
+                <img className="shield-callout__img" src={itemCardAssets.spyShield} alt="เกราะสายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                <p className="big-callout">🛡️ slot ของคุณมีเกราะป้องกัน 1 ครั้ง — เก็บไว้เป็นความลับนะ</p>
+              </div>
+            )}
+          </div>
         )}
       </div>
-      <h2>{role === "normal" ? "คุณคือผู้เล่นปกติ" : `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}`}</h2>
-      {role !== "normal" && partner && (
-        <div className="partner-callout">
-          <p className="partner-callout__label">🤝 คู่หูของคุณคือ</p>
-          <div className="partner-callout__card">
-            <img
-              className="partner-callout__photo"
-              src={partner.imageUrl}
-              alt={partner.name}
-              onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
-            />
-            <div className="partner-callout__name">{partner.name}</div>
-            <div className="partner-callout__code">{partner.code}</div>
-          </div>
-          <p className="partner-callout__hint">จำหน้าไว้ดีๆ แล้วช่วยกันแฝงตัวนะ 🤫</p>
-        </div>
-      )}
-      {role !== "normal" && state.shield.exists && !state.shield.consumed && state.shield.slot === role && (
-        <div className="shield-callout">
-          <img className="shield-callout__img" src={itemCardAssets.spyShield} alt="เกราะสายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
-          <p className="big-callout">🛡️ slot ของคุณมีเกราะป้องกัน 1 ครั้ง — เก็บไว้เป็นความลับนะ</p>
-        </div>
-      )}
+
       <div className="button-row">
         <GameButton onClick={() => setStep("curtain")}>ปิดบทบาท</GameButton>
         <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>

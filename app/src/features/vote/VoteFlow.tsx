@@ -138,7 +138,7 @@ export function VoteFlow() {
   }
 
   return (
-    <section className="scene-panel">
+    <section className="scene-panel vote-ballot">
       <h2>ลงคะแนนลับ</h2>
       {voter && <p className="big-callout">{voter.name} เลือกเป้าหมายและไอเทมที่จะใช้</p>}
       {message && <p className="form-error">{message}</p>}
