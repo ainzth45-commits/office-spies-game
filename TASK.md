@@ -79,23 +79,23 @@
 # PHASE 2 — ยกเครื่อง UI ให้เป็นเกม (เริ่ม 2026-06-30 เช้า ~08:1x)
 > เจ้านายเลือก: **iPad Landscape** · หน้าโฮม **Dock ไอคอนล่าง** (โลโก้ใหญ่กลาง + มาสคอต + dock)
 
-## P2-1 🐛 บั๊กสปาย (สำคัญสุด)
+## P2-1 🐛 บั๊กสปาย ✅ เสร็จ
 - [ ] assignNewRoles ถูกเรียกที่เดียว (resolveSecondSpyGuess) → เกมใหม่ไม่มีใครเป็นสปาย (deadlock)
 - [ ] เพิ่ม enterRoleReveal (auto-assign ถ้ายังไม่มีสปาย) + startNewRound (สุ่มใหม่) + ปุ่มชัดเจน + test
 
-## P2-2 📐 iPad Landscape fit — ไม่ต้องเลื่อน
+## P2-2 📐 iPad Landscape fit ✅ เสร็จ
 - [ ] กรอบ fixed viewport พอดีจอ landscape · แก้ ConfirmPlayer รูปยักษ์ต้อง scroll · ทุกหน้าอยู่ในจอเดียว
 
-## P2-3 🏠 หน้าโฮมใหม่ (Dock)
+## P2-3 🏠 หน้าโฮมใหม่ Dock ✅ เสร็จ
 - [ ] โลโก้ใหญ่กลาง + มาสคอตแมว + status · dock ไอคอนล่าง (codex เจนไอคอน) · ปุ่มเริ่มรอบใหม่
 
-## P2-4 🎰 กาชาให้ลุ้น
+## P2-4 🎰 กาชาให้ลุ้น ✅ เสร็จ
 - [ ] อนิเมชันสุ่มเลื่อนๆ 2-3 วิ (reel หมุน) ก่อนเฉลยผล + เสียงต่อเนื่อง
 
-## P2-5 ✍️ เกลาคำ + Tutorial ใหม่
+## P2-5 ✍️ เกลาคำ + Tutorial ใหม่ ✅ เสร็จ
 - [ ] คำง่ายเข้าใจง่ายทุกหน้า · tutorial ใหม่มีภาพประกอบกติกา/โมชัน
 
-## P2-6 📱 ไอคอนแอป (Add to Home Screen)
+## P2-6 📱 ไอคอนแอป ✅ เสร็จ
 - [ ] codex แปลงโลโก้→app-icon · apple-touch-icon + manifest + meta tags
 
 ## P2-assets (codex กำลังเจน): app-icon + dock-role/vote/gacha/shop/learn/settings

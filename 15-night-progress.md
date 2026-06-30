@@ -232,3 +232,12 @@ _(อัปเดตต่อด้านล่างเป็นช่วงๆ
 - **P2-2 📐 iPad fit เสร็จหน้าหลัก** — ConfirmPlayer (รูปไม่ยักษ์แล้ว พอดีจอ) + PlayerPicker (11 คน 6 คอลัมน์ พอดีจอ ไม่เลื่อน) ✅
 - 🔜 ต่อ (ลูป): P2-4 กาชาลุ้น, P2-5 เกลาคำ+tutorial, P2-6 app icon manifest
 - commit: 1bc2213, e7a66b2 + รอบนี้
+
+---
+## เช้า ~10:5x — PHASE 2 เสร็จครบทุกข้อ ✅
+- **P2-4 🎰 กาชาลุ้น** — reel หมุนสุ่มไอคอน 2.5 วิ + ตู้สั่น + เสียงต่อเนื่อง ก่อนเฉลย (verify ดีเลย์ทำงาน)
+- **P2-6 📱 app icon** — สร้างไอคอน 192/512/1024 + apple-touch-icon จาก app-icon (codex) + manifest icons + iOS meta + viewport กันซูม
+- **P2-5 ✍️ tutorial ใหม่** — คำง่ายขึ้น + ภาพประกอบทุกฉาก + layout 2 คอลัมน์ landscape + dots + โมชัน (verify 10 ฉากลื่น พอดีจอ)
+- ✅ final: 62/62 tests + build ผ่าน · commit: 967e170, 9ecb4cb, + P2-5
+- **สรุป PHASE 2 ครบ:** บั๊กสปายหาย · โฮม dock ใหม่ · iPad landscape fit · กาชาลุ้น · tutorial+คำใหม่ · app icon
+- ปิดลูป + แจ้ง LINE ตามที่เจ้านายสั่ง
