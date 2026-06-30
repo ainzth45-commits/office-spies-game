@@ -28,18 +28,25 @@ function AppRouter() {
   useEffect(() => {
     setSoundEnabled(state.settings.soundEnabled);
   }, [state.settings.soundEnabled]);
+  // ห่อทุกหน้าใน frame ที่เว้น safe-area (หลบ status bar / home indicator บน iPad)
+  return <div className="app-frame">{renderPhase(hydrated, state)}</div>;
+}
+
+function renderPhase(hydrated: boolean, state: ReturnType<typeof useGameStore>["state"]) {
   if (!hydrated) return <main className="app-shell"><p>กำลังโหลดคดี...</p></main>;
-  if (state.phase === "boot") return <BootScreen />;
-  if (state.phase === "tutorial") return <TutorialFlow />;
-  if (state.phase === "roleReveal") return <RoleRevealFlow />;
-  if (state.phase === "shop") return <ShopFlow />;
-  if (state.phase === "gacha") return <GachaFlow />;
-  if (state.phase === "quiz") return <QuizFlow />;
-  if (state.phase === "vote") return <VoteFlow />;
-  if (state.phase === "voteResult") return <VoteResultScene />;
-  if (state.phase === "postVoteClue") return <PostVoteClueScene />;
-  if (state.phase === "refund") return <RefundScene />;
-  if (state.phase === "guess") return <GuessSecondSpyScene />;
-  if (state.phase === "ended") return <EndGameScene />;
-  return <HomeHub />;
+  switch (state.phase) {
+    case "boot": return <BootScreen />;
+    case "tutorial": return <TutorialFlow />;
+    case "roleReveal": return <RoleRevealFlow />;
+    case "shop": return <ShopFlow />;
+    case "gacha": return <GachaFlow />;
+    case "quiz": return <QuizFlow />;
+    case "vote": return <VoteFlow />;
+    case "voteResult": return <VoteResultScene />;
+    case "postVoteClue": return <PostVoteClueScene />;
+    case "refund": return <RefundScene />;
+    case "guess": return <GuessSecondSpyScene />;
+    case "ended": return <EndGameScene />;
+    default: return <HomeHub />;
+  }
 }
