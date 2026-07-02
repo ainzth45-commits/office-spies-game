@@ -172,8 +172,9 @@ export interface DailyUsageState {
 
 export interface PendingQuizState {
   questionId: string;
-  // เวลาเริ่มโจทย์ (ISO) — timer คิดจากตรงนี้ ไม่ใช่ตอน mount → ออกกลางคัน/refresh เวลาก็เดินต่อ
-  startedAt: string;
+  // เวลาเริ่มโจทย์ (ISO) — null = ยังอยู่หน้ากติกา ยังไม่เริ่มนับเวลา
+  // timer คิดจากค่านี้ ไม่ใช่ตอน mount → ออกกลางคัน/refresh เวลาก็เดินต่อ
+  startedAt: string | null;
 }
 
 export interface PendingQuizResultState {

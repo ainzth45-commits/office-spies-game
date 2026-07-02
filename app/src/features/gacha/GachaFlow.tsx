@@ -125,40 +125,44 @@ export function GachaFlow() {
       <h2>ตู้กาชาสายลับ</h2>
       <p className="scene-lead">หมุนได้ทุกคน ไม่จำกัดครั้ง 🎰 จ่ายซุป {state.config.gachaSpinCost} เหรียญต่อการหมุน · ผลประกาศให้ทุกคนเห็น</p>
 
-      {spinning && (
-        <div className="gacha-reel">
-          <img className="gacha-reel__icon" src={gachaOutcomeIcon(reelOutcome)} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />
-          <p className="gacha-reel__text">🎰 กำลังสุ่ม... ลุ้นว่าจะได้อะไร!</p>
-        </div>
-      )}
-
-      {!spinning && result && (
-        <div className="gacha-result">
-          <img
-            className="gacha-result__icon"
-            src={gachaOutcomeIcon(result.outcome)}
-            alt=""
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
-          />
-          <p className="settings-preview gacha-result__text">{result.message}</p>
-        </div>
-      )}
       {!spinning && !result && assignError && <p className="gacha-assign__error">{assignError}</p>}
 
-      <div className={`gacha-machine${spinning ? " gacha-machine--spinning" : ""}${!spinning && result ? " gacha-machine--popped" : ""}`} aria-hidden="true">
-        <img
-          className="gacha-machine__img"
-          src={gameAssets.gachaMachine}
-          alt=""
-          onError={(event) => { event.currentTarget.style.display = "none"; }}
-        />
-        {!spinning && result && (
+      {/* เวทีกาชา: ว่าง = ตู้กลางจอ · หมุน/เฉลย = ตู้ชิดซ้าย + ของที่สุ่มใหญ่ๆ ฝั่งขวา */}
+      <div className={`gacha-stage${spinning || result ? " gacha-stage--split" : ""}`}>
+        <div className={`gacha-machine${spinning ? " gacha-machine--spinning" : ""}${!spinning && result ? " gacha-machine--popped" : ""}`} aria-hidden="true">
           <img
-            className="gacha-machine__capsule"
-            src={gameAssets.gachaCapsule}
+            className="gacha-machine__img"
+            src={gameAssets.gachaMachine}
             alt=""
             onError={(event) => { event.currentTarget.style.display = "none"; }}
           />
+          {!spinning && result && (
+            <img
+              className="gacha-machine__capsule"
+              src={gameAssets.gachaCapsule}
+              alt=""
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
+          )}
+        </div>
+
+        {spinning && (
+          <div className="gacha-reel">
+            <img className="gacha-reel__icon" src={gachaOutcomeIcon(reelOutcome)} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />
+            <p className="gacha-reel__text">🎰 กำลังสุ่ม...</p>
+          </div>
+        )}
+
+        {!spinning && result && (
+          <div className="gacha-result">
+            <img
+              className="gacha-result__icon"
+              src={gachaOutcomeIcon(result.outcome)}
+              alt=""
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
+            <p className="settings-preview gacha-result__text">{result.message}</p>
+          </div>
         )}
       </div>
 

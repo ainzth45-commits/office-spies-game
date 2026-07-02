@@ -22,6 +22,7 @@ import {
   rolesAssigned,
   startNewDay,
   startNewRound,
+  startPendingQuiz,
   submitVoteTurn,
   updateConfig,
 } from "./actions";
@@ -196,12 +197,18 @@ describe("game actions", () => {
 
     expect(state.phase).toBe("quiz");
     expect(state.pendingQuiz?.questionId).toMatch(/^Q\d{3}$/);
-    expect(state.pendingQuiz?.startedAt).toBe("2026-07-03T10:00:00.000Z");
+    // เข้าหน้ากติกาก่อน — เวลายังไม่เริ่มนับ จนกว่าจะกด "ไปที่คำถาม" (startPendingQuiz)
+    expect(state.pendingQuiz?.startedAt).toBeNull();
+    expect(() => answerPendingQuiz(state, "A", Date.parse("2026-07-03T10:00:05.000Z"))).toThrow("ยังไม่เริ่มโจทย์");
+    const started = startPendingQuiz(state, Date.parse("2026-07-03T10:00:00.000Z"));
+    expect(started.pendingQuiz?.startedAt).toBe("2026-07-03T10:00:00.000Z");
+    // กดเริ่มซ้ำ ไม่รีเซ็ตเวลา
+    expect(startPendingQuiz(started, Date.parse("2026-07-03T10:09:00.000Z")).pendingQuiz?.startedAt).toBe("2026-07-03T10:00:00.000Z");
   });
 
   it("answering fast earns full reward; result waits on quiz screen", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const pending = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
     const state = answerPendingQuiz(pending, question.answer, nowMs + 3_000);
 
@@ -217,7 +224,7 @@ describe("game actions", () => {
 
   it("slow answers decay the reward down to the floor", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const pending = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
     // 35 วิ → ลด 3 ขั้น (default decay 10 วิ/ขั้น จาก 10 → 7)
     const state = answerPendingQuiz(pending, question.answer, nowMs + 35_000);
@@ -226,7 +233,7 @@ describe("game actions", () => {
 
   it("wrong answers escalate the penalty after the time tier", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const pending = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
     const wrong = question.answer === "A" ? "B" : "A";
 

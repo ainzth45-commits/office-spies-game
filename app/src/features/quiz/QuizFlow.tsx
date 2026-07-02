@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty } from "../../domain/types";
-import { answerPendingQuiz, dismissQuizResult } from "../../state/actions";
+import { answerPendingQuiz, dismissQuizResult, startPendingQuiz } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 
@@ -56,6 +56,29 @@ export function QuizFlow() {
         <h2>ไม่มีโจทย์ที่กำลังเล่น</h2>
         <div className="button-row">
           <GameButton onClick={() => setState((current) => ({ ...current, phase: "home", pendingQuiz: null }))}>กลับ Home</GameButton>
+        </div>
+      </section>
+    );
+  }
+
+  // หน้ากติกา — โผล่ก่อนคำถามเสมอ อ่านสบายๆ ไม่มีเวลากดดัน · เวลาเริ่มนับเมื่อกดปุ่ม
+  if (!pending.startedAt) {
+    const config = state.config;
+    return (
+      <section className="scene-panel quiz-scene quiz-intro">
+        <p className="eyebrow">🎁 ได้โจทย์เชาว์ฟรีจากกาชา!</p>
+        <h2>กติกาโจทย์เชาว์</h2>
+        <ul className="quiz-rules">
+          <li>❓ มีคำตอบ <b>2 ตัวเลือก (A/B)</b> — เลือกตอบได้ครั้งเดียว</li>
+          <li>⏱ เวลาเริ่มนับทันทีที่กดปุ่มด้านล่าง <b>ยิ่งตอบไว เหรียญยิ่งเยอะ</b></li>
+          <li>✅ ตอบถูก: เริ่มที่ <b>{config.quizCorrectReward} เหรียญ</b> ลดลง 1 ทุก {config.quizRewardDecaySec} วิ (ต่ำสุด {config.quizRewardMin})</li>
+          <li>❌ ตอบผิด: ทุกคนคืน <b>{config.quizWrongPenaltyPerPlayer} เหรียญ</b> ให้ซุป</li>
+          <li>🚨 ช้าเกิน {config.quizPenaltyTierSec} วิ แล้วตอบผิด: โทษเพิ่มเป็น <b>{config.quizWrongPenaltyLate} เหรียญ</b></li>
+        </ul>
+        <div className="button-row">
+          <GameButton onClick={() => setState((current) => startPendingQuiz(current, Date.now()))}>
+            พร้อมแล้ว! ไปที่คำถาม →
+          </GameButton>
         </div>
       </section>
     );

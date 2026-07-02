@@ -328,10 +328,11 @@ export function applyGachaOutcome(
       message = "ได้โจทย์เชาว์ แต่คลังโจทย์หมดแล้ว — กด 'รีเซตคลังโจทย์' ในตั้งค่าเพื่อเริ่มคลังใหม่";
     } else {
       markQuizUsed(question.id);
+      // startedAt = null → เข้าหน้ากติกาก่อน เวลาเริ่มนับเมื่อผู้เล่นกด "ไปที่คำถาม"
       next = {
         ...next,
         phase: "quiz",
-        pendingQuiz: { questionId: question.id, startedAt: new Date(options.nowMs ?? Date.now()).toISOString() },
+        pendingQuiz: { questionId: question.id, startedAt: null },
       };
       message = "คนที่หมุนได้โจทย์เชาว์ฟรี — ตอบไว ได้เหรียญเยอะ!";
     }
@@ -360,8 +361,16 @@ export function remainingQuizCount(): number {
   return quizBank.filter((question) => !used.has(question.id)).length;
 }
 
+// ผู้เล่นอ่านกติกาจบ กดเริ่มทำโจทย์ — นาฬิกาเริ่มเดินตรงนี้
+export function startPendingQuiz(state: GameState, nowMs: number): GameState {
+  if (!state.pendingQuiz) throw new Error("ไม่มีโจทย์ที่กำลังเล่น");
+  if (state.pendingQuiz.startedAt) return state; // เริ่มไปแล้ว — กันกดซ้ำรีเซ็ตเวลา
+  return { ...state, pendingQuiz: { ...state.pendingQuiz, startedAt: new Date(nowMs).toISOString() } };
+}
+
 export function answerPendingQuiz(state: GameState, answer: "A" | "B", nowMs: number): GameState {
   if (!state.pendingQuiz) throw new Error("ไม่มีโจทย์ที่กำลังเล่น");
+  if (!state.pendingQuiz.startedAt) throw new Error("ยังไม่เริ่มโจทย์ — ต้องกดเริ่มจากหน้ากติกาก่อน");
   const question = quizBank.find((candidate) => candidate.id === state.pendingQuiz?.questionId);
   if (!question) throw new Error("ไม่พบโจทย์");
   const elapsedSec = Math.max(0, (nowMs - Date.parse(state.pendingQuiz.startedAt)) / 1000);

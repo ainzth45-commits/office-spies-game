@@ -1503,6 +1503,28 @@ h1 {
 .quiz-verdict--correct { color: #7ddf8e !important; }
 .quiz-verdict--wrong { color: #ff8a76 !important; }
 
+/* หน้ากติกาโจทย์เชาว์ — อ่านสบายก่อนเริ่มจับเวลา */
+.quiz-intro h2 { margin-bottom: clamp(10px, 2dvh, 20px); }
+.quiz-rules {
+  list-style: none;
+  margin: 0 auto clamp(12px, 2.4dvh, 24px);
+  padding: 0;
+  display: grid;
+  gap: clamp(8px, 1.4dvh, 14px);
+  width: min(680px, 100%);
+}
+.quiz-rules li {
+  border: 3px solid rgba(251, 247, 239, 0.45);
+  border-radius: 16px;
+  background: rgba(24, 33, 63, 0.65);
+  color: #fbf7ef;
+  font-weight: 800;
+  font-size: clamp(15px, 2.3dvh, 20px);
+  line-height: 1.45;
+  padding: clamp(10px, 1.8dvh, 16px) 18px;
+}
+.quiz-rules b { color: #ffd66b; }
+
 .settings-quizbank {
   margin: 0 0 12px;
   color: #c9cede;
@@ -1510,10 +1532,71 @@ h1 {
   line-height: 1.5;
 }
 .settings-quizbank b { color: #ffe9b6; }
-.gacha-scene .gacha-result { margin: 0; gap: 6px; }
-.gacha-scene .gacha-result__icon { width: clamp(80px, 15dvh, 150px); }
-.gacha-scene .gacha-reel { margin: 0; }
-.gacha-scene .gacha-reel__icon { width: clamp(90px, 15dvh, 150px); }
+/* เวทีกาชา — ว่าง: ตู้กลาง · หมุน/เฉลย (--split): ตู้ซ้าย + showcase ของรางวัลฝั่งขวา */
+.gacha-scene .gacha-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 40px);
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.gacha-stage--split .gacha-machine {
+  width: min(210px, 26dvh); /* ตอนโชว์ของ ตู้หลบซ้ายตัวเล็กลง ให้ของเป็นพระเอก */
+  transform: rotate(-3deg);
+}
+
+/* showcase: กรอบเวทีมีสปอตไลต์ทอง — ใช้ทั้งตอนหมุน (reel) และตอนเฉลย (result) */
+.gacha-scene .gacha-result,
+.gacha-scene .gacha-reel {
+  position: relative;
+  margin: 0;
+  gap: clamp(6px, 1.2dvh, 12px);
+  flex: 0 1 auto;
+  min-width: min(380px, 40vw);
+  max-width: min(500px, 46vw);
+  border: 4px solid #fbf7ef;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(246, 196, 83, 0.32), transparent 62%),
+    rgba(24, 33, 63, 0.88);
+  box-shadow: 0 14px 0 rgba(0, 0, 0, 0.26);
+  padding: clamp(14px, 2.6dvh, 26px) clamp(18px, 2.4vw, 30px);
+  overflow: hidden;
+}
+/* แสงหมุนวนหลังของรางวัล — ให้ความรู้สึก "แจ็คพอต" */
+.gacha-scene .gacha-result::before,
+.gacha-scene .gacha-reel::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 24deg, rgba(246, 196, 83, 0.14) 24deg 48deg,
+    transparent 48deg 72deg, rgba(246, 196, 83, 0.14) 72deg 96deg,
+    transparent 96deg 120deg, rgba(246, 196, 83, 0.14) 120deg 144deg,
+    transparent 144deg 168deg, rgba(246, 196, 83, 0.14) 168deg 192deg,
+    transparent 192deg 216deg, rgba(246, 196, 83, 0.14) 216deg 240deg,
+    transparent 240deg 264deg, rgba(246, 196, 83, 0.14) 264deg 288deg,
+    transparent 288deg 312deg, rgba(246, 196, 83, 0.14) 312deg 336deg,
+    transparent 336deg 360deg
+  );
+  animation: showcase-rays 9s linear infinite;
+  pointer-events: none;
+}
+@keyframes showcase-rays {
+  to { transform: rotate(360deg); }
+}
+.gacha-scene .gacha-result > *,
+.gacha-scene .gacha-reel > * { position: relative; }
+.gacha-scene .gacha-result__icon { width: clamp(130px, 27dvh, 250px); }
+.gacha-scene .gacha-reel__icon { width: clamp(140px, 30dvh, 270px); }
+.gacha-scene .gacha-result__text {
+  font-size: clamp(15px, 2.4dvh, 20px);
+  max-width: 40ch;
+  border-color: rgba(251, 247, 239, 0.55);
+}
 .gacha-scene .button-row { margin-top: clamp(4px, 1dvh, 10px); }
 
 .gacha-reel {
