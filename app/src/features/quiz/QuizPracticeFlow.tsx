@@ -46,6 +46,12 @@ export function QuizPracticeFlow() {
     open(quizBank[Math.floor(Math.random() * quizBank.length)]);
   }
 
+  // ข้อถัดไปตามลำดับ — ข้อสุดท้ายวนกลับข้อ 1
+  function openNext(current: QuizQuestion) {
+    const index = quizBank.findIndex((question) => question.id === current.id);
+    open(quizBank[(index + 1) % quizBank.length]);
+  }
+
   function answer(choice: "A" | "B") {
     if (!attempt) return;
     const elapsedSec = Math.max(0, (Date.now() - attempt.startedAtMs) / 1000);
@@ -74,8 +80,9 @@ export function QuizPracticeFlow() {
           </small>
         </p>
         <div className="button-row">
-          <GameButton onClick={() => setVerdict(null)}>กลับคลังโจทย์</GameButton>
-          <GameButton variant="paper" onClick={openRandom}>🎲 สุ่มข้อต่อไป</GameButton>
+          <GameButton variant="paper" onClick={() => setVerdict(null)}>← กลับ</GameButton>
+          <GameButton variant="paper" onClick={openRandom}>🎲 สุ่ม</GameButton>
+          <GameButton onClick={() => openNext(question)}>ต่อไป →</GameButton>
         </div>
       </section>
     );
