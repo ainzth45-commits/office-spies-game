@@ -28,6 +28,11 @@ function AppRouter() {
   useEffect(() => {
     setSoundEnabled(state.settings.soundEnabled);
   }, [state.settings.soundEnabled]);
+  // บอกฉากปัจจุบันให้ html canvas สลับภาพพื้นหลังตาม (global.css: html[data-scene=...])
+  // — แถบ safe-area ล่างบน iPad ที่เลเยอร์ fixed ทาไม่ถึง จะโชว์ภาพฉากเดียวกันแทนสีพื้น
+  useEffect(() => {
+    document.documentElement.dataset.scene = hydrated ? state.phase : "boot";
+  }, [hydrated, state.phase]);
   // ห่อทุกหน้าใน frame ที่เว้น safe-area (หลบ status bar / home indicator บน iPad)
   return <div className="app-frame">{renderPhase(hydrated, state)}</div>;
 }

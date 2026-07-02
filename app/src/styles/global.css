@@ -1,12 +1,36 @@
 :root {
   color-scheme: dark;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  /* พื้นหลังวาดลง canvas ของ html ตรงๆ — canvas เติมเต็ม viewport เสมอ (รวม safe-area/ขอบ dvh)
-     ต่อให้เลเยอร์ fixed ของแต่ละฉากพลาดบน iOS แถบที่โผล่ก็เป็นภาพห้องนักสืบโทนเดียวกัน ไม่ใช่สีพื้น */
+  /* พื้นหลังวาดลง canvas ของ html ตรงๆ — สเปค CSS: พื้นที่ระบายของ canvas bg = ทั้งจอเสมอ
+     · ยึดขอบบน (top center): ภาพสัดส่วนเท่าจอ iPad → ส่วนที่ยื่นเกินกล่อง html ลงล่าง
+       คือ "ส่วนล่างของภาพจริง" ไหลไปกลบแถบ safe-area ที่เลเยอร์ fixed ทาไม่ถึงบน iOS
+     · gradient ยืดสูงเกินกล่อง 200px ด้วยเหตุเดียวกัน (สีเพี้ยนไม่ถึงตาเปล่า)
+     · ภาพสลับตามฉากผ่าน html[data-scene] (ตั้งจาก App.tsx) ให้แถบล่างกลืนกับฉากปัจจุบัน */
   background:
-    linear-gradient(135deg, rgba(24, 33, 63, 0.86), rgba(43, 58, 103, 0.82) 56%, rgba(21, 27, 48, 0.92)),
-    var(--bg-detective-room, none) center / cover no-repeat #18213f;
+    linear-gradient(135deg, rgba(24, 33, 63, 0.86), rgba(43, 58, 103, 0.82) 56%, rgba(21, 27, 48, 0.92)) top center / 100% calc(100% + 200px) no-repeat,
+    var(--bg-detective-room, none) top center / cover no-repeat #18213f;
   color: #fbf7ef;
+}
+
+/* canvas ตามฉาก — gradient ชุดเดียวกับ ::before ของฉากนั้น ให้แถบล่างต่อเนื่องเนียน */
+html[data-scene="home"] {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(246, 196, 83, 0.16), transparent 40%) top center / 100% calc(100% + 200px) no-repeat,
+    linear-gradient(160deg, rgba(24, 33, 63, 0.82), rgba(43, 58, 103, 0.74) 55%, rgba(21, 27, 48, 0.9)) top center / 100% calc(100% + 200px) no-repeat,
+    var(--bg-office, none) top center / cover no-repeat #18213f;
+}
+html[data-scene="voteResult"],
+html[data-scene="ended"] {
+  background:
+    radial-gradient(circle at 50% 22%, rgba(246, 196, 83, 0.32), transparent 42%) top center / 100% calc(100% + 200px) no-repeat,
+    linear-gradient(135deg, rgba(21, 27, 48, 0.84), rgba(43, 58, 103, 0.78)) top center / 100% calc(100% + 200px) no-repeat,
+    var(--bg-reveal, none) top center / cover no-repeat #18213f;
+}
+html[data-scene="roleReveal"] {
+  background:
+    radial-gradient(circle, rgba(246, 196, 83, 0.34), transparent 36%) top center / 100% calc(100% + 200px) no-repeat,
+    linear-gradient(135deg, rgba(21, 27, 48, 0.88), rgba(43, 58, 103, 0.82)) top center / 100% calc(100% + 200px) no-repeat,
+    var(--bg-role-cover, none) top center / cover no-repeat #18213f;
 }
 
 * {
@@ -46,13 +70,15 @@ textarea {
 .app-shell::before {
   content: "";
   position: fixed;
-  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
+  inset: 0; /* ห้าม overshoot — กล่องใหญ่กว่าจอทำให้ภาพ cover โดน crop บน/ล่าง · แถบ safe-area ล่างให้ canvas (html bg) รับแทน */
   z-index: -1;
   background:
     linear-gradient(135deg, rgba(24, 33, 63, 0.86), rgba(43, 58, 103, 0.82) 56%, rgba(21, 27, 48, 0.92)),
     var(--bg-detective-room);
   background-size: cover;
-  background-position: center;
+  /* ยึดขอบบน: ภาพ bg สัดส่วน 2360×1640 = จอ iPad พอดี → เรนเดอร์ตรงพิกเซลจอจริง
+     และเรียงแนวเดียวกับภาพบน canvas (html) ให้แถบ safe-area ล่างต่อเนื่องไร้รอยต่อ */
+  background-position: top center;
 }
 
 .boot-card {
@@ -272,14 +298,16 @@ h1 {
 .handoff-curtain::before {
   content: "";
   position: fixed;
-  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
+  inset: 0; /* ห้าม overshoot — กล่องใหญ่กว่าจอทำให้ภาพ cover โดน crop บน/ล่าง · แถบ safe-area ล่างให้ canvas (html bg) รับแทน */
   z-index: -1;
   background:
     radial-gradient(circle, rgba(246, 196, 83, 0.34), transparent 36%),
     linear-gradient(135deg, rgba(21, 27, 48, 0.88), rgba(43, 58, 103, 0.82)),
     var(--bg-role-cover);
   background-size: cover;
-  background-position: center;
+  /* ยึดขอบบน: ภาพ bg สัดส่วน 2360×1640 = จอ iPad พอดี → เรนเดอร์ตรงพิกเซลจอจริง
+     และเรียงแนวเดียวกับภาพบน canvas (html) ให้แถบ safe-area ล่างต่อเนื่องไร้รอยต่อ */
+  background-position: top center;
 }
 
 .handoff-curtain__spotlight {
@@ -306,14 +334,16 @@ h1 {
 .hub-scene::before {
   content: "";
   position: fixed;
-  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
+  inset: 0; /* ห้าม overshoot — กล่องใหญ่กว่าจอทำให้ภาพ cover โดน crop บน/ล่าง · แถบ safe-area ล่างให้ canvas (html bg) รับแทน */
   z-index: -1;
   background:
     radial-gradient(circle at 20% 12%, rgba(246, 196, 83, 0.2), transparent 26%),
     linear-gradient(135deg, rgba(24, 33, 63, 0.85), rgba(43, 58, 103, 0.78) 56%, rgba(21, 27, 48, 0.9)),
     var(--bg-office);
   background-size: cover;
-  background-position: center;
+  /* ยึดขอบบน: ภาพ bg สัดส่วน 2360×1640 = จอ iPad พอดี → เรนเดอร์ตรงพิกเซลจอจริง
+     และเรียงแนวเดียวกับภาพบน canvas (html) ให้แถบ safe-area ล่างต่อเนื่องไร้รอยต่อ */
+  background-position: top center;
 }
 
 .hub-title {
@@ -819,14 +849,16 @@ h1 {
 .reveal-stage::before {
   content: "";
   position: fixed;
-  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
+  inset: 0; /* ห้าม overshoot — กล่องใหญ่กว่าจอทำให้ภาพ cover โดน crop บน/ล่าง · แถบ safe-area ล่างให้ canvas (html bg) รับแทน */
   z-index: -1;
   background:
     radial-gradient(circle at 50% 22%, rgba(246, 196, 83, 0.32), transparent 42%),
     linear-gradient(135deg, rgba(21, 27, 48, 0.84), rgba(43, 58, 103, 0.78)),
     var(--bg-reveal);
   background-size: cover;
-  background-position: center;
+  /* ยึดขอบบน: ภาพ bg สัดส่วน 2360×1640 = จอ iPad พอดี → เรนเดอร์ตรงพิกเซลจอจริง
+     และเรียงแนวเดียวกับภาพบน canvas (html) ให้แถบ safe-area ล่างต่อเนื่องไร้รอยต่อ */
+  background-position: top center;
 }
 
 .result-scene h2 {
@@ -916,14 +948,16 @@ h1 {
 .home-screen::before {
   content: "";
   position: fixed;
-  inset: -100px; /* overshoot เลยขอบจอทุกด้าน → คลุม safe-area iOS ไม่ให้เกิดขอบล่าง/บน */
+  inset: 0; /* ห้าม overshoot — กล่องใหญ่กว่าจอทำให้ภาพ cover โดน crop บน/ล่าง · แถบ safe-area ล่างให้ canvas (html bg) รับแทน */
   z-index: -1;
   background:
     radial-gradient(circle at 50% 28%, rgba(246, 196, 83, 0.16), transparent 40%),
     linear-gradient(160deg, rgba(24, 33, 63, 0.82), rgba(43, 58, 103, 0.74) 55%, rgba(21, 27, 48, 0.9)),
     var(--bg-office);
   background-size: cover;
-  background-position: center;
+  /* ยึดขอบบน: ภาพ bg สัดส่วน 2360×1640 = จอ iPad พอดี → เรนเดอร์ตรงพิกเซลจอจริง
+     และเรียงแนวเดียวกับภาพบน canvas (html) ให้แถบ safe-area ล่างต่อเนื่องไร้รอยต่อ */
+  background-position: top center;
 }
 
 .home-topbar {
