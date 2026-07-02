@@ -9,3 +9,6 @@ app/dist/
 app/playwright-report/
 app/test-results/
 app/*.tsbuildinfo
+
+# ไฟล์รูปต้นฉบับ/งานอาร์ต — เก็บในเครื่อง ไม่ขึ้น repo (ไฟล์ใหญ่)
+art-source/
