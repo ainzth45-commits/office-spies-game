@@ -13,7 +13,11 @@ describe("gacha engine", () => {
       allLose: 0,
       voteUp: 0,
       voteDown: 0,
-      grantItem: 0,
+      itemDouble: 0,
+      itemRemove: 0,
+      itemSwap: 0,
+      itemReduce: 0,
+      itemProtect: 0,
       grantQuiz: 0,
       spyShield: 0,
     };
@@ -27,11 +31,11 @@ describe("gacha engine", () => {
   });
 
   it("falls back from spy shield to all gain when shield already exists", () => {
-    expect(resolveGachaOutcome("spyShield", { inventoryFull: false, shieldAvailable: false })).toBe("allGain");
+    expect(resolveGachaOutcome("spyShield", { shieldAvailable: false })).toBe("allGain");
   });
 
-  it("falls back from grant item to self gain when inventory is full", () => {
-    expect(resolveGachaOutcome("grantItem", { inventoryFull: true, shieldAvailable: true })).toBe("selfGain");
+  it("item outcomes pass through untouched (no inventory rule at engine level)", () => {
+    expect(resolveGachaOutcome("itemSwap", { shieldAvailable: true })).toBe("itemSwap");
   });
 
   it("removes spyShield from the pool once a shield already exists", () => {

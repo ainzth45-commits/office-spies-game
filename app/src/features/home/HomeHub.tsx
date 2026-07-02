@@ -38,7 +38,6 @@ export function HomeHub() {
     { key: "role", label: "บทบาท", icon: gameAssets.dockRole, fallback: "🕵️", onClick: () => setState((current) => enterRoleReveal(current)) },
     { key: "vote", label: "โหวต", icon: gameAssets.dockVote, fallback: "🗳️", onClick: goPhase("vote") },
     { key: "gacha", label: "กาชา", icon: gameAssets.dockGacha, fallback: "🎰", onClick: goPhase("gacha") },
-    { key: "shop", label: "ร้านลับ", icon: gameAssets.dockShop, fallback: "🛒", onClick: goPhase("shop") },
     {
       key: "learn",
       label: "สอนเล่น",

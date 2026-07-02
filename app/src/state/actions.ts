@@ -5,6 +5,8 @@ import { drawClue, type ClueOption } from "../domain/clueEngine";
 import { normalizeAndValidateConfig } from "../domain/configValidation";
 import { calculateClueCost, calculateRefund, calculateThreshold, calculateVoteCost, nextSkippedVoteMultiplier } from "../domain/economy";
 import { resolveGachaOutcome } from "../domain/gachaEngine";
+import { quizPenaltyAt, quizRewardAt } from "../domain/quizEngine";
+import { getUsedQuizIds, markQuizUsed } from "./quizHistory";
 import type { RandomSource } from "../domain/random";
 import { assignSpyRoles } from "../domain/roleEngine";
 import { calculateVoteResult } from "../domain/voteEngine";
@@ -20,6 +22,7 @@ import type {
   VoteItem,
   VoteItemType,
 } from "../domain/types";
+import { gachaItemOutcomeToItemType, isGachaItemOutcome } from "../domain/types";
 
 function newActionId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `action-${Date.now()}`;
@@ -31,7 +34,7 @@ function log(state: GameState, label: string): GameState {
 }
 
 function resetDailyUsageFor(state: GameState, dayIndex: number): GameState["dailyUsage"] {
-  return { dayIndex, gachaSpins: {}, shopPurchases: {}, voteCostChanged: false };
+  return { dayIndex, voteCostChanged: false };
 }
 
 function ensureDailyUsage(state: GameState): GameState["dailyUsage"] {
@@ -39,14 +42,18 @@ function ensureDailyUsage(state: GameState): GameState["dailyUsage"] {
   return resetDailyUsageFor(state, state.manualDay.index);
 }
 
-function createVoteItem(type: VoteItemType, source: VoteItem["source"]): VoteItem {
+function createVoteItem(type: VoteItemType): VoteItem {
   return {
     id: newActionId(),
     type,
-    source,
-    publicKnown: source === "gacha",
+    source: "gacha",
+    publicKnown: true, // ผลกาชาประกาศให้ทุกคนเห็นเสมอ
     createdAtActionId: newActionId(),
   };
+}
+
+function itemLabel(type: VoteItemType): string {
+  return itemCatalog.find((item) => item.type === type)?.label ?? type;
 }
 
 function presentPlayerIds(state: GameState): PlayerId[] {
@@ -233,84 +240,56 @@ export function resetConfig(state: GameState): GameState {
   return updateConfig(state, defaultConfig);
 }
 
-export function buyVoteItem(
-  state: GameState,
-  playerId: PlayerId,
-  type: VoteItemType,
-  source: VoteItem["source"] = "shop",
-): GameState {
+// ไอเทมเข้ากระเป๋าได้ทางเดียว: กาชาแจก (ร้านลับถูกถอดออกจากเกมแล้ว)
+export function grantVoteItem(state: GameState, playerId: PlayerId, type: VoteItemType): GameState {
   const inventory = state.inventories[playerId] ?? [];
   if (inventory.length >= state.config.inventoryLimit) {
-    throw new Error("กระเป๋าไอเทมเต็ม");
+    throw new Error(`กระเป๋าของ ${playerName(state, playerId)} เต็ม เลือกคนอื่น`);
   }
-
-  const dailyUsage = ensureDailyUsage(state);
-  if (source === "shop") {
-    const boughtToday = dailyUsage.shopPurchases[playerId]?.[type] ?? 0;
-    if (boughtToday >= state.config.itemDailyLimits[type]) {
-      throw new Error("ซื้อไอเทมชนิดนี้ครบลิมิตวันนี้แล้ว");
-    }
-  }
-
-  const nextDailyUsage =
-    source === "shop"
-      ? {
-          ...dailyUsage,
-          shopPurchases: {
-            ...dailyUsage.shopPurchases,
-            [playerId]: {
-              ...(dailyUsage.shopPurchases[playerId] ?? {}),
-              [type]: (dailyUsage.shopPurchases[playerId]?.[type] ?? 0) + 1,
-            },
-          },
-        }
-      : dailyUsage;
 
   return log(
     {
       ...state,
-      dailyUsage: nextDailyUsage,
       inventories: {
         ...state.inventories,
-        [playerId]: [...inventory, createVoteItem(type, source)],
+        [playerId]: [...inventory, createVoteItem(type)],
       },
     },
-    `${source === "gacha" ? "กาชาแจก" : "ซื้อ"}ไอเทม ${type} ให้ ${playerName(state, playerId)}`,
+    `กาชาแจกไอเทม ${itemLabel(type)} ให้ ${playerName(state, playerId)}`,
   );
 }
 
-export interface ApplyGachaOutcomeOptions {
-  selectedItemType?: VoteItemType;
-  selectedQuizId?: string;
-  shieldSlot?: SpySlot;
+// ซุปกดเลือกคนรับไอเทมที่ค้างจากกาชา
+export function assignGachaItem(state: GameState, playerId: PlayerId): GameState {
+  if (!state.pendingGachaGrant) throw new Error("ไม่มีไอเทมที่รอแจก");
+  const next = grantVoteItem(state, playerId, state.pendingGachaGrant.itemType);
+  return { ...next, pendingGachaGrant: null };
 }
 
+export interface ApplyGachaOutcomeOptions {
+  shieldSlot?: SpySlot;
+  random?: RandomSource;
+  // เวลาปัจจุบัน (ms) — inject ได้ในเทส · ใช้ประทับ startedAt ของโจทย์เชาว์
+  nowMs?: number;
+}
+
+// หมุนกาชา — ไม่ผูกผู้เล่น ไม่จำกัดครั้ง: ผลเหรียญเป็นของจริงหน้าตู้ (ซุปจัดการมือ)
+// ผลที่ต้องมีเจ้าของในแอปมีแค่ไอเทม (pendingGachaGrant รอซุปกดเลือกคน) กับเกราะ (เข้า slot สปายอัตโนมัติ)
 export function applyGachaOutcome(
   state: GameState,
-  playerId: PlayerId,
   rawOutcome: GachaOutcome,
   options: ApplyGachaOutcomeOptions = {},
 ): GameState {
   const dailyUsage = ensureDailyUsage(state);
-  const spunToday = dailyUsage.gachaSpins[playerId] ?? 0;
-  if (spunToday >= state.config.gachaDailyLimitPerPlayer) {
-    throw new Error("หมุนกาชาครบลิมิตวันนี้แล้ว");
-  }
-
-  const nextDailyUsage = {
-    ...dailyUsage,
-    gachaSpins: { ...dailyUsage.gachaSpins, [playerId]: spunToday + 1 },
-  };
-  const inventoryFull = (state.inventories[playerId] ?? []).length >= state.config.inventoryLimit;
   const shieldAvailable = !state.shield.exists;
-  const outcome = resolveGachaOutcome(rawOutcome, { inventoryFull, shieldAvailable });
-  let next: GameState = { ...state, dailyUsage: nextDailyUsage };
+  const outcome = resolveGachaOutcome(rawOutcome, { shieldAvailable });
+  let next: GameState = { ...state, dailyUsage };
   let message = "";
 
   if (outcome === "selfGain") {
-    message = `${playerName(state, playerId)} รับ ${state.config.gachaCoinSelfGain} เหรียญจากซุป`;
+    message = `คนที่หมุนรับ ${state.config.gachaCoinSelfGain} เหรียญจากซุป`;
   } else if (outcome === "selfLoseAll") {
-    message = `${playerName(state, playerId)} คืนเหรียญทั้งหมดให้ซุป`;
+    message = "คนที่หมุนคืนเหรียญทั้งหมดให้ซุป";
   } else if (outcome === "allGain") {
     message = `ทุกคนรับ ${state.config.gachaCoinAllGain} เหรียญจากซุป`;
   } else if (outcome === "poorGain") {
@@ -321,58 +300,88 @@ export function applyGachaOutcome(
     next = {
       ...next,
       voteCostState: { ...next.voteCostState, nextVoteMultiplier: state.config.gachaVoteMultiplierUp },
-      dailyUsage: { ...nextDailyUsage, voteCostChanged: true },
+      dailyUsage: { ...dailyUsage, voteCostChanged: true },
     };
     message = `ค่าเปิดโหวตครั้งหน้า x${state.config.gachaVoteMultiplierUp}`;
   } else if (outcome === "voteDown") {
     next = {
       ...next,
       voteCostState: { ...next.voteCostState, nextVoteMultiplier: state.config.gachaVoteMultiplierDown },
-      dailyUsage: { ...nextDailyUsage, voteCostChanged: true },
+      dailyUsage: { ...dailyUsage, voteCostChanged: true },
     };
     message = `ค่าเปิดโหวตครั้งหน้า x${state.config.gachaVoteMultiplierDown}`;
-  } else if (outcome === "grantItem") {
-    const itemType = options.selectedItemType ?? itemCatalog[Math.floor(Math.random() * itemCatalog.length)].type;
-    next = buyVoteItem(next, playerId, itemType, "gacha");
-    message = `${playerName(state, playerId)} ได้ไอเทม ${itemType} จากกาชา`;
+  } else if (isGachaItemOutcome(outcome)) {
+    const itemType = gachaItemOutcomeToItemType[outcome];
+    const someoneHasRoom = state.players.some(
+      (player) => (state.inventories[player.id] ?? []).length < state.config.inventoryLimit,
+    );
+    if (someoneHasRoom) {
+      message = `ได้ไอเทม ${itemLabel(itemType)}! ซุปกดเลือกว่าใส่กระเป๋าใคร`;
+      next = { ...next, pendingGachaGrant: { itemType, message } };
+    } else {
+      // กันเกมค้าง: ทุกกระเป๋าเต็มหมด → แจกเหรียญแทน (เหรียญจริง ซุปจัดการมือ)
+      message = `ได้ไอเทม ${itemLabel(itemType)} แต่กระเป๋าเต็มทั้งออฟฟิศ — ซุปแจก ${state.config.gachaCoinAllGain} เหรียญให้คนที่หมุนแทน`;
+    }
   } else if (outcome === "grantQuiz") {
-    const questionId = options.selectedQuizId ?? nextQuizId(state);
-    next = { ...next, phase: "quiz", pendingQuiz: { playerId, questionId } };
-    message = `${playerName(state, playerId)} ได้โจทย์เชาว์ฟรี`;
+    const question = pickUnusedQuizQuestion(options.random ?? Math.random);
+    if (!question) {
+      message = "ได้โจทย์เชาว์ แต่คลังโจทย์หมดแล้ว — กด 'รีเซตคลังโจทย์' ในตั้งค่าเพื่อเริ่มคลังใหม่";
+    } else {
+      markQuizUsed(question.id);
+      next = {
+        ...next,
+        phase: "quiz",
+        pendingQuiz: { questionId: question.id, startedAt: new Date(options.nowMs ?? Date.now()).toISOString() },
+      };
+      message = "คนที่หมุนได้โจทย์เชาว์ฟรี — ตอบไว ได้เหรียญเยอะ!";
+    }
   } else if (outcome === "spyShield") {
     if (!Object.values(state.roles).some((role) => role === "spyA" || role === "spyB")) {
       throw new Error("ต้องสุ่มบทบาทก่อนกาชาจะออกเกราะสปาย");
     }
-    const slot = options.shieldSlot ?? (Math.random() < 0.5 ? "spyA" : "spyB");
+    const slot = options.shieldSlot ?? ((options.random ?? Math.random)() < 0.5 ? "spyA" : "spyB");
     next = { ...next, shield: { slot, exists: true, consumed: false } };
     message = `สปาย ${slot === "spyA" ? "A" : "B"} ได้เกราะป้องกัน 1 ครั้ง`;
   }
 
-  return log({ ...next, lastGachaResult: { playerId, outcome, message } }, `กาชา: ${message}`);
+  return log({ ...next, lastGachaResult: { outcome, message } }, `กาชา: ${message}`);
 }
 
-function nextQuizId(state: GameState): string {
-  return quizBank.find((question) => !state.usedQuizIds.includes(question.id))?.id ?? quizBank[0].id;
+function pickUnusedQuizQuestion(random: RandomSource) {
+  const used = new Set(getUsedQuizIds());
+  const remaining = quizBank.filter((question) => !used.has(question.id));
+  if (remaining.length === 0) return null;
+  return remaining[Math.floor(random() * remaining.length)];
 }
 
-export function answerPendingQuiz(state: GameState, answer: "A" | "B"): GameState {
+// จำนวนโจทย์คงเหลือในคลัง (โชว์ในตั้งค่า)
+export function remainingQuizCount(): number {
+  const used = new Set(getUsedQuizIds());
+  return quizBank.filter((question) => !used.has(question.id)).length;
+}
+
+export function answerPendingQuiz(state: GameState, answer: "A" | "B", nowMs: number): GameState {
   if (!state.pendingQuiz) throw new Error("ไม่มีโจทย์ที่กำลังเล่น");
   const question = quizBank.find((candidate) => candidate.id === state.pendingQuiz?.questionId);
   if (!question) throw new Error("ไม่พบโจทย์");
+  const elapsedSec = Math.max(0, (nowMs - Date.parse(state.pendingQuiz.startedAt)) / 1000);
   const correct = question.answer === answer;
   const message = correct
-    ? `${playerName(state, state.pendingQuiz.playerId)} ตอบถูก รับ ${state.config.quizCorrectReward} เหรียญ`
-    : `ตอบผิด ทุกคนคืน ${state.config.quizWrongPenaltyPerPlayer} เหรียญให้ซุป`;
+    ? `ตอบถูก! รับ ${quizRewardAt(elapsedSec, state.config)} เหรียญจากซุป (ใช้เวลา ${Math.round(elapsedSec)} วิ)`
+    : `ตอบผิด (เฉลย: ${question.answer} · ${question.answer === "A" ? question.choiceA : question.choiceB}) ทุกคนคืน ${quizPenaltyAt(elapsedSec, state.config)} เหรียญให้ซุป`;
   return log(
     {
       ...state,
-      phase: "home",
+      // คงอยู่หน้า quiz — โชว์ผลก่อน ซุปกดกลับเอง (ไม่เด้งโฮมอัตโนมัติ)
       pendingQuiz: null,
-      usedQuizIds: [...new Set([...state.usedQuizIds, question.id])],
-      lastGachaResult: { playerId: state.pendingQuiz.playerId, outcome: "grantQuiz", message },
+      pendingQuizResult: { questionId: question.id, correct, message },
     },
     `โจทย์เชาว์: ${message}`,
   );
+}
+
+export function dismissQuizResult(state: GameState): GameState {
+  return { ...state, pendingQuizResult: null, phase: "home" };
 }
 
 export interface VoteTurnInput {

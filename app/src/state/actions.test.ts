@@ -6,10 +6,11 @@ import {
   advanceFromVoteResult,
   applyGachaOutcome,
   applyGachaVoteMultiplier,
+  assignGachaItem,
   assignNewRoles,
   buyPostVoteClue,
-  buyVoteItem,
   canStartNewDay,
+  dismissQuizResult,
   endWorkingDay,
   enterRoleReveal,
   finalizeVoteRound,
@@ -24,6 +25,7 @@ import {
   submitVoteTurn,
   updateConfig,
 } from "./actions";
+import { quizBank } from "../data/quizBank";
 import { createInitialGameState } from "./gameState";
 
 describe("game actions", () => {
@@ -121,7 +123,7 @@ describe("game actions", () => {
 
   it("assignNewRoles preserves inventory and shield state", () => {
     const original = createInitialGameState();
-    original.inventories.C001 = [{ id: "item-1", type: "double", source: "shop", publicKnown: false, createdAtActionId: "a1" }];
+    original.inventories.C001 = [{ id: "item-1", type: "double", source: "gacha", publicKnown: true, createdAtActionId: "a1" }];
     original.shield = { slot: "spyA", exists: true, consumed: false };
     const state = assignNewRoles(original, () => 0);
     expect(state.inventories.C001).toEqual(original.inventories.C001);
@@ -142,54 +144,98 @@ describe("game actions", () => {
     expect(() => updateConfig(createInitialGameState(), { spyCount: 11 })).toThrow("จำนวนสปายต้องน้อยกว่าจำนวนผู้เล่น");
   });
 
-  it("buys a secret vote item and enforces inventory limit", () => {
-    const first = buyVoteItem(createInitialGameState(), "C001", "double", "shop");
-    const second = buyVoteItem(first, "C001", "remove", "shop");
+  it("item outcome parks a pending grant, admin assigns it into an inventory", () => {
+    const spun = applyGachaOutcome(createInitialGameState(), "itemSwap");
+    expect(spun.pendingGachaGrant).toMatchObject({ itemType: "swap" });
+    expect(spun.inventories.C002 ?? []).toHaveLength(0);
 
-    expect(second.inventories.C001.map((item) => item.type)).toEqual(["double", "remove"]);
-    expect(second.inventories.C001[0].publicKnown).toBe(false);
-    expect(() => buyVoteItem(second, "C001", "swap", "shop")).toThrow("กระเป๋าไอเทมเต็ม");
+    const assigned = assignGachaItem(spun, "C002");
+    expect(assigned.pendingGachaGrant).toBeNull();
+    expect(assigned.inventories.C002).toMatchObject([{ type: "swap", source: "gacha", publicKnown: true }]);
   });
 
-  it("resets daily shop and gacha limits when a new day starts", () => {
-    const spun = applyGachaOutcome(createInitialGameState(), "C001", "selfGain");
-    const shopped = buyVoteItem(spun, "C001", "double", "shop");
-    const nextDay = endWorkingDay(shopped, "วันเล่นที่ 2");
+  it("assignGachaItem rejects a full inventory but keeps the grant pending for someone else", () => {
+    let state = createInitialGameState();
+    state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
+    state = assignGachaItem(applyGachaOutcome(state, "itemRemove"), "C001"); // C001 เต็ม (limit 2)
+    const spun = applyGachaOutcome(state, "itemSwap");
 
+    expect(() => assignGachaItem(spun, "C001")).toThrow("เต็ม");
+    const assigned = assignGachaItem(spun, "C002");
+    expect(assigned.inventories.C002.map((item) => item.type)).toEqual(["swap"]);
+  });
+
+  it("item outcome falls back to a coin message when every inventory is full", () => {
+    let state = createInitialGameState();
+    state = { ...state, config: { ...state.config, inventoryLimit: 0 } };
+    const spun = applyGachaOutcome(state, "itemSwap");
+
+    expect(spun.pendingGachaGrant).toBeNull();
+    expect(spun.lastGachaResult?.message).toContain("กระเป๋าเต็มทั้งออฟฟิศ");
+  });
+
+  it("gacha spins are unlimited (no daily cap, no player binding)", () => {
+    let state = createInitialGameState();
+    for (let i = 0; i < 10; i += 1) {
+      state = applyGachaOutcome(state, "selfGain");
+    }
+    expect(state.lastGachaResult?.message).toContain("คนที่หมุน");
+  });
+
+  it("resets daily vote-cost flag when a new day starts", () => {
+    const spun = applyGachaOutcome(createInitialGameState(), "voteUp");
+    expect(spun.dailyUsage.voteCostChanged).toBe(true);
+    const nextDay = endWorkingDay(spun, "วันเล่นที่ 2");
     expect(nextDay.dailyUsage.dayIndex).toBe(2);
-    expect(nextDay.dailyUsage.gachaSpins.C001).toBeUndefined();
-    expect(nextDay.dailyUsage.shopPurchases.C001?.double).toBeUndefined();
+    expect(nextDay.dailyUsage.voteCostChanged).toBe(false);
   });
 
-  it("applies gacha grant item as a public inventory item", () => {
-    const state = applyGachaOutcome(createInitialGameState(), "C002", "grantItem", { selectedItemType: "swap" });
-
-    expect(state.inventories.C002).toMatchObject([{ type: "swap", source: "gacha", publicKnown: true }]);
-    expect(state.lastGachaResult?.message).toContain("ได้ไอเทม");
-  });
-
-  it("opens quiz phase when gacha grants a quiz", () => {
-    const state = applyGachaOutcome(createInitialGameState(), "C003", "grantQuiz", { selectedQuizId: "Q001" });
+  it("opens quiz phase with a timestamp when gacha grants a quiz", () => {
+    const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
+    const state = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
 
     expect(state.phase).toBe("quiz");
-    expect(state.pendingQuiz).toEqual({ playerId: "C003", questionId: "Q001" });
+    expect(state.pendingQuiz?.questionId).toMatch(/^Q\d{3}$/);
+    expect(state.pendingQuiz?.startedAt).toBe("2026-07-03T10:00:00.000Z");
   });
 
-  it("answers pending quiz and stores the used question", () => {
-    const pending = applyGachaOutcome(createInitialGameState(), "C003", "grantQuiz", { selectedQuizId: "Q001" });
-    const state = answerPendingQuiz(pending, "B");
+  it("answering fast earns full reward; result waits on quiz screen", () => {
+    const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
+    const pending = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
+    const state = answerPendingQuiz(pending, question.answer, nowMs + 3_000);
 
-    expect(state.phase).toBe("home");
+    expect(state.phase).toBe("quiz"); // ไม่เด้งโฮม — โชว์ผลก่อน
     expect(state.pendingQuiz).toBeNull();
-    expect(state.usedQuizIds).toContain("Q001");
-    expect(state.lastGachaResult?.message).toContain("ตอบถูก");
+    expect(state.pendingQuizResult?.correct).toBe(true);
+    expect(state.pendingQuizResult?.message).toContain(`รับ ${defaultConfig.quizCorrectReward} เหรียญ`);
+
+    const home = dismissQuizResult(state);
+    expect(home.phase).toBe("home");
+    expect(home.pendingQuizResult).toBeNull();
   });
 
-  it("enforces gacha daily limit per player", () => {
-    const config = { ...defaultConfig, gachaDailyLimitPerPlayer: 1 };
-    const state = applyGachaOutcome({ ...createInitialGameState(), config }, "C004", "selfGain");
+  it("slow answers decay the reward down to the floor", () => {
+    const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
+    const pending = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
+    // 35 วิ → ลด 3 ขั้น (default decay 10 วิ/ขั้น จาก 10 → 7)
+    const state = answerPendingQuiz(pending, question.answer, nowMs + 35_000);
+    expect(state.pendingQuizResult?.message).toContain("รับ 7 เหรียญ");
+  });
 
-    expect(() => applyGachaOutcome(state, "C004", "allGain")).toThrow("หมุนกาชาครบลิมิตวันนี้แล้ว");
+  it("wrong answers escalate the penalty after the time tier", () => {
+    const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
+    const pending = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
+    const wrong = question.answer === "A" ? "B" : "A";
+
+    const early = answerPendingQuiz(pending, wrong, nowMs + 10_000);
+    expect(early.pendingQuizResult?.correct).toBe(false);
+    expect(early.pendingQuizResult?.message).toContain(`คืน ${defaultConfig.quizWrongPenaltyPerPlayer} เหรียญ`);
+
+    const late = answerPendingQuiz(pending, wrong, nowMs + 300_000);
+    expect(late.pendingQuizResult?.message).toContain(`คืน ${defaultConfig.quizWrongPenaltyLate} เหรียญ`);
   });
 
   it("does not create a new spy shield after the only shield was consumed", () => {
@@ -198,7 +244,7 @@ describe("game actions", () => {
       roles: { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const },
       shield: { slot: "spyA" as const, exists: true, consumed: true },
     };
-    const state = applyGachaOutcome(initial, "C004", "spyShield", { shieldSlot: "spyB" });
+    const state = applyGachaOutcome(initial, "spyShield", { shieldSlot: "spyB" });
 
     expect(state.shield).toEqual(initial.shield);
     expect(state.lastGachaResult?.outcome).toBe("allGain");
@@ -279,7 +325,7 @@ describe("game actions", () => {
   });
 
   it("consumes vote items when a turn uses them", () => {
-    let state = buyVoteItem(createInitialGameState(), "C001", "double", "shop");
+    let state = assignGachaItem(applyGachaOutcome(createInitialGameState(), "itemDouble"), "C001");
     state = openVote(state);
     const itemId = state.inventories.C001[0].id;
     state = submitVoteTurn(state, { voterId: "C001", targetId: "C002", doubleItemId: itemId });

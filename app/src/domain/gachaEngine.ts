@@ -28,10 +28,9 @@ export function normalizeGachaWeights(weights: Record<GachaOutcome, number>): Re
 
 export function resolveGachaOutcome(
   outcome: GachaOutcome,
-  context: { inventoryFull: boolean; shieldAvailable: boolean },
+  context: { shieldAvailable: boolean },
 ): GachaOutcome {
   if (outcome === "spyShield" && !context.shieldAvailable) return "allGain";
-  if (outcome === "grantItem" && context.inventoryFull) return "selfGain";
   return outcome;
 }
 

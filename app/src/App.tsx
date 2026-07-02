@@ -8,7 +8,6 @@ import { HomeHub } from "./features/home/HomeHub";
 import { QuizFlow } from "./features/quiz/QuizFlow";
 import { RefundScene } from "./features/refund/RefundScene";
 import { RoleRevealFlow } from "./features/role/RoleRevealFlow";
-import { ShopFlow } from "./features/shop/ShopFlow";
 import { TutorialFlow } from "./features/tutorial/TutorialFlow";
 import { PostVoteClueScene } from "./features/vote/PostVoteClueScene";
 import { VoteFlow } from "./features/vote/VoteFlow";
@@ -24,7 +23,7 @@ export function App() {
 }
 
 function AppRouter() {
-  const { hydrated, state } = useGameStore();
+  const { hydrated, state, setState } = useGameStore();
   useEffect(() => {
     setSoundEnabled(state.settings.soundEnabled);
   }, [state.settings.soundEnabled]);
@@ -34,7 +33,20 @@ function AppRouter() {
     document.documentElement.dataset.scene = hydrated ? state.phase : "boot";
   }, [hydrated, state.phase]);
   // ห่อทุกหน้าใน frame ที่เว้น safe-area (หลบ status bar / home indicator บน iPad)
-  return <div className="app-frame">{renderPhase(hydrated, state)}</div>;
+  return (
+    <div className="app-frame">
+      {hydrated && state.phase !== "home" && state.phase !== "boot" && (
+        <button
+          type="button"
+          className="chip-btn home-chip"
+          onClick={() => setState((current) => ({ ...current, phase: "home" }))}
+        >
+          🏠 Home
+        </button>
+      )}
+      {renderPhase(hydrated, state)}
+    </div>
+  );
 }
 
 function renderPhase(hydrated: boolean, state: ReturnType<typeof useGameStore>["state"]) {
@@ -43,7 +55,6 @@ function renderPhase(hydrated: boolean, state: ReturnType<typeof useGameStore>["
     case "boot": return <BootScreen />;
     case "tutorial": return <TutorialFlow />;
     case "roleReveal": return <RoleRevealFlow />;
-    case "shop": return <ShopFlow />;
     case "gacha": return <GachaFlow />;
     case "quiz": return <QuizFlow />;
     case "vote": return <VoteFlow />;

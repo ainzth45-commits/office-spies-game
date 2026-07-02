@@ -15,7 +15,7 @@ describe("config validation", () => {
 
   it("rejects negative prices", () => {
     expect(() =>
-      normalizeAndValidateConfig({ ...defaultConfig, itemPrices: { ...defaultConfig.itemPrices, double: -1 } }, 11),
+      normalizeAndValidateConfig({ ...defaultConfig, quizRewardDecaySec: -1 }, 11),
     ).toThrow("ตัวเลขราคาและรางวัลต้องไม่ติดลบ");
   });
 

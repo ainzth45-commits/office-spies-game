@@ -2,6 +2,8 @@ export type PlayerId = string;
 export type SpySlot = "spyA" | "spyB";
 export type Role = "normal" | SpySlot;
 export type VoteItemType = "double" | "remove" | "swap" | "reduceThreshold" | "protectThreshold";
+// ช่องไอเทมในตู้กาชา — แตกรายใบ (ร้านลับถูกถอด กาชาเป็นทางเดียวที่ได้ไอเทม)
+export type GachaItemOutcome = "itemDouble" | "itemRemove" | "itemSwap" | "itemReduce" | "itemProtect";
 export type GachaOutcome =
   | "selfGain"
   | "selfLoseAll"
@@ -10,15 +12,26 @@ export type GachaOutcome =
   | "allLose"
   | "voteUp"
   | "voteDown"
-  | "grantItem"
+  | GachaItemOutcome
   | "grantQuiz"
   | "spyShield";
+
+export const gachaItemOutcomeToItemType: Record<GachaItemOutcome, VoteItemType> = {
+  itemDouble: "double",
+  itemRemove: "remove",
+  itemSwap: "swap",
+  itemReduce: "reduceThreshold",
+  itemProtect: "protectThreshold",
+};
+
+export function isGachaItemOutcome(outcome: GachaOutcome): outcome is GachaItemOutcome {
+  return outcome in gachaItemOutcomeToItemType;
+}
 export type GamePhase =
   | "boot"
   | "home"
   | "tutorial"
   | "roleReveal"
-  | "shop"
   | "gacha"
   | "quiz"
   | "vote"
@@ -53,10 +66,12 @@ export interface GameConfig {
   inventoryLimit: number;
   quizCorrectReward: number;
   quizWrongPenaltyPerPlayer: number;
+  // กลไกเวลาโจทย์เชาว์: รางวัลลดตามเวลา + โทษ 2 ขั้น
+  quizRewardDecaySec: number;
+  quizRewardMin: number;
+  quizPenaltyTierSec: number;
+  quizWrongPenaltyLate: number;
   gachaSpinCost: number;
-  gachaDailyLimitPerPlayer: number;
-  itemPrices: Record<VoteItemType, number>;
-  itemDailyLimits: Record<VoteItemType, number>;
   gachaCoinSelfGain: number;
   gachaCoinAllGain: number;
   gachaCoinAllLose: number;
@@ -70,7 +85,7 @@ export interface GameConfig {
 export interface VoteItem {
   id: string;
   type: VoteItemType;
-  source: "shop" | "gacha";
+  source: "gacha";
   publicKnown: boolean;
   createdAtActionId: string;
 }
@@ -101,9 +116,12 @@ export interface VoteCostState {
   nextVoteMultiplier: number;
 }
 
+export type QuizDifficulty = "easy" | "medium" | "hard";
+
 export interface QuizQuestion {
   id: string;
   category: string;
+  difficulty: QuizDifficulty;
   question: string;
   choiceA: string;
   choiceB: string;
@@ -121,9 +139,11 @@ export interface GameState {
   shield: ShieldState;
   manualDay: ManualDayState;
   voteCostState: VoteCostState;
-  usedQuizIds: string[];
   dailyUsage: DailyUsageState;
   pendingQuiz: PendingQuizState | null;
+  pendingQuizResult: PendingQuizResultState | null;
+  // ผลกาชาช่องไอเทมที่รอซุปกดเลือกคนรับ (ค้างข้าม refresh ได้)
+  pendingGachaGrant: PendingGachaGrantState | null;
   history: GameActionLog[];
   settings: {
     soundEnabled: boolean;
@@ -146,19 +166,28 @@ export interface GameActionLog {
 
 export interface DailyUsageState {
   dayIndex: number;
-  gachaSpins: Record<PlayerId, number>;
-  shopPurchases: Record<PlayerId, Partial<Record<VoteItemType, number>>>;
   // กาชา: voteUp/voteDown ออกได้รวมกันไม่เกินวันละ 1 ครั้ง — true เมื่อออกแล้ว (รีเซ็ตเมื่อขึ้นวันใหม่)
   voteCostChanged: boolean;
 }
 
 export interface PendingQuizState {
-  playerId: PlayerId;
   questionId: string;
+  // เวลาเริ่มโจทย์ (ISO) — timer คิดจากตรงนี้ ไม่ใช่ตอน mount → ออกกลางคัน/refresh เวลาก็เดินต่อ
+  startedAt: string;
+}
+
+export interface PendingQuizResultState {
+  questionId: string;
+  correct: boolean;
+  message: string;
+}
+
+export interface PendingGachaGrantState {
+  itemType: VoteItemType;
+  message: string;
 }
 
 export interface GachaResultState {
-  playerId: PlayerId;
   outcome: GachaOutcome;
   message: string;
 }

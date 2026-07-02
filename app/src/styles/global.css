@@ -159,6 +159,7 @@ h1 {
 }
 
 .player-card {
+  position: relative; /* จุดยึด badge จำนวนไอเทมมุมการ์ด */
   width: 100%;
   border: 3px solid #20263f;
   border-radius: 20px;
@@ -980,6 +981,14 @@ h1 {
 }
 .chip-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22); }
 
+/* ปุ่ม Home ประจำทุกหน้า (ยกเว้นโฮม/บูต) — ตำแหน่งเดียวกันเสมอ มุมซ้ายบน */
+.home-chip {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: calc(env(safe-area-inset-left, 0px) + 12px);
+  z-index: 40;
+}
+
 .home-center {
   flex: 1 1 auto;
   min-height: 0;
@@ -1386,9 +1395,121 @@ h1 {
 }
 .gacha-scene .gacha-machine {
   margin: 0 auto;
-  width: min(240px, 30dvh);
+  /* ตู้ = พระเอกของหน้า — ใหญ่ขึ้นแต่ยังจบจอเดียว (โซนอื่นถูกบีบด้วย dvh อยู่แล้ว) */
+  width: min(300px, 36dvh);
   flex-shrink: 0;
 }
+
+/* โหมดแจกไอเทม: การ์ดไอเทมที่ได้ + กริดผู้เล่นให้ซุปกดเลือกคนรับ */
+.gacha-assign__item {
+  display: grid;
+  place-items: center;
+}
+.gacha-assign__item img {
+  width: clamp(90px, 16dvh, 150px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
+  animation: gacha-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.gacha-assign__error {
+  margin: 0;
+  color: #ffb5a8;
+  font-weight: 900;
+  text-align: center;
+}
+.player-card__badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  border-radius: 10px;
+  background: #20263f;
+  color: #ffe9b6;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 7px;
+}
+
+/* modal "ในตู้มีอะไร" — กริดของ 14 ช่อง + % สด */
+.pool-modal {
+  width: min(1060px, 94vw);
+  max-height: 92dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.pool-modal h2 { margin: 0 0 6px; color: #f6c453; text-align: center; }
+.pool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.pool-slot {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  border: 3px solid rgba(251, 247, 239, 0.4);
+  border-radius: 16px;
+  background: rgba(24, 33, 63, 0.6);
+  padding: 10px;
+  text-align: center;
+}
+.pool-slot img {
+  width: clamp(48px, 7dvh, 72px);
+  height: clamp(48px, 7dvh, 72px);
+  object-fit: contain;
+}
+.pool-slot b { color: #ffe9b6; font-size: 15px; }
+.pool-slot small { color: #c9cede; font-size: 12px; line-height: 1.25; }
+.pool-slot__pct {
+  color: #f6c453;
+  font-weight: 1000;
+  font-size: 16px;
+}
+.pool-slot--locked { opacity: 0.45; }
+.pool-slot--locked .pool-slot__pct { color: #ffb5a8; font-size: 13px; }
+
+/* โจทย์เชาว์จับเวลา */
+.quiz-timer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border: 3px solid #20263f;
+  border-radius: 16px;
+  background: rgba(246, 196, 83, 0.16);
+  color: #ffe9b6;
+  font-weight: 1000;
+  font-size: clamp(16px, 2.4dvh, 22px);
+  padding: 8px 18px;
+  margin: 0 auto clamp(8px, 1.6dvh, 16px);
+  width: fit-content;
+}
+.quiz-timer--late {
+  background: rgba(233, 79, 55, 0.22);
+  border-color: #e94f37;
+  color: #ffb5a8;
+  animation: reel-pulse 0.8s ease-in-out infinite;
+}
+.quiz-timer__clock { font-variant-numeric: tabular-nums; }
+.quiz-hint {
+  margin: clamp(8px, 1.6dvh, 14px) 0 0;
+  text-align: center;
+  color: #9aa3c0;
+  font-weight: 800;
+  font-size: 13px;
+}
+.quiz-verdict--correct { color: #7ddf8e !important; }
+.quiz-verdict--wrong { color: #ff8a76 !important; }
+
+.settings-quizbank {
+  margin: 0 0 12px;
+  color: #c9cede;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.settings-quizbank b { color: #ffe9b6; }
 .gacha-scene .gacha-result { margin: 0; gap: 6px; }
 .gacha-scene .gacha-result__icon { width: clamp(80px, 15dvh, 150px); }
 .gacha-scene .gacha-reel { margin: 0; }

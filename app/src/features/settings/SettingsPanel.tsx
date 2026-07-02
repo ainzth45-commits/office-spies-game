@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { defaultConfig } from "../../data/configDefaults";
-import { itemCatalog } from "../../data/items";
+import { quizBank } from "../../data/quizBank";
 import { calculateThreshold, calculateVoteCost } from "../../domain/economy";
-import type { GameConfig, GachaOutcome, VoteItemType } from "../../domain/types";
-import { resetConfig, updateConfig } from "../../state/actions";
+import type { GameConfig, GachaOutcome } from "../../domain/types";
+import { remainingQuizCount, resetConfig, updateConfig } from "../../state/actions";
+import { resetQuizHistory } from "../../state/quizHistory";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 
@@ -53,9 +54,8 @@ const CATEGORIES: Category[] = [
   {
     title: "🎰 กาชา",
     fields: [
-      { key: "gachaSpinCost", label: "ราคาหมุนกาชา", min: 1, max: 20, unit: " เหรียญ" },
-      { key: "gachaDailyLimitPerPlayer", label: "ลิมิตหมุน/คน/วัน", min: 1, max: 5, unit: " ครั้ง" },
-      { key: "gachaCoinSelfGain", label: "ผู้หมุนได้เหรียญ", min: 0, max: 20, unit: " เหรียญ" },
+      { key: "gachaSpinCost", label: "ราคาหมุนกาชา (จ่ายซุปหน้าตู้)", min: 1, max: 20, unit: " เหรียญ" },
+      { key: "gachaCoinSelfGain", label: "คนที่หมุนได้เหรียญ", min: 0, max: 20, unit: " เหรียญ" },
       { key: "gachaCoinAllGain", label: "ทุกคนได้เหรียญ", min: 0, max: 15, unit: " เหรียญ" },
       { key: "gachaCoinAllLose", label: "ทุกคนเสียเหรียญ", min: 0, max: 15, unit: " เหรียญ" },
       { key: "gachaPoorThreshold", label: "เกณฑ์ 'คนเหรียญน้อย'", min: 0, max: 20, unit: " เหรียญ" },
@@ -67,21 +67,29 @@ const CATEGORIES: Category[] = [
   {
     title: "❓ โจทย์เชาว์",
     fields: [
-      { key: "quizCorrectReward", label: "รางวัลตอบถูก", min: 0, max: 30, unit: " เหรียญ" },
-      { key: "quizWrongPenaltyPerPlayer", label: "โทษตอบผิด/คน", min: 0, max: 10, unit: " เหรียญ" },
+      { key: "quizCorrectReward", label: "รางวัลตอบถูก (เริ่มต้น)", min: 0, max: 30, unit: " เหรียญ" },
+      { key: "quizRewardDecaySec", label: "รางวัลลด 1 ทุกๆ", min: 3, max: 30, unit: " วิ" },
+      { key: "quizRewardMin", label: "รางวัลต่ำสุด", min: 0, max: 10, unit: " เหรียญ" },
+      { key: "quizWrongPenaltyPerPlayer", label: "โทษตอบผิด/คน (ขั้น 1)", min: 0, max: 10, unit: " เหรียญ" },
+      { key: "quizPenaltyTierSec", label: "เข้าโซนโทษแรงเมื่อเกิน", min: 15, max: 180, step: 5, unit: " วิ" },
+      { key: "quizWrongPenaltyLate", label: "โทษตอบผิด/คน (ขั้น 2)", min: 0, max: 20, unit: " เหรียญ" },
     ],
   },
 ];
 
 const gachaOutcomeLabels: Record<GachaOutcome, string> = {
-  selfGain: "ผู้หมุนได้เหรียญ",
-  selfLoseAll: "ผู้หมุนเสียเหรียญหมด",
+  selfGain: "คนที่หมุนได้เหรียญ",
+  selfLoseAll: "คนที่หมุนเสียเหรียญหมด",
   allGain: "ทุกคนได้เหรียญ",
   poorGain: "คนเหรียญน้อยได้เหรียญ",
   allLose: "ทุกคนเสียเหรียญ",
   voteUp: "ค่าเปิดโหวตหน้าแพงขึ้น",
   voteDown: "ค่าเปิดโหวตหน้าถูกลง",
-  grantItem: "ได้ไอเทมสุ่ม",
+  itemDouble: "ไอเทม: โหวต 2 เสียง",
+  itemRemove: "ไอเทม: ลบ 1 เสียง",
+  itemSwap: "ไอเทม: สลับผลโหวต",
+  itemReduce: "ไอเทม: R ลดเกณฑ์",
+  itemProtect: "ไอเทม: P กันลดเกณฑ์",
   grantQuiz: "ได้โจทย์เชาว์",
   spyShield: "เกราะสายลับ (แจ็คพอต)",
 };
@@ -92,6 +100,8 @@ export function SettingsPanel() {
   const [draft, setDraft] = useState<GameConfig>(state.config);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [quizRemaining, setQuizRemaining] = useState(() => remainingQuizCount());
+  const [confirmQuizReset, setConfirmQuizReset] = useState(false);
   const presentCount = Object.values(state.attendance).filter(Boolean).length;
 
   const preview = useMemo(
@@ -158,31 +168,25 @@ export function SettingsPanel() {
       ))}
 
       <fieldset className="settings-cat">
-        <legend>🛒 ราคา &amp; ลิมิตไอเทมร้าน</legend>
-        <div className="settings-sliders">
-          {itemCatalog.map((item) => (
-            <div key={item.type} className="settings-item-pair">
-              <SliderField
-                label={`${item.label} · ราคา`}
-                value={draft.itemPrices[item.type]}
-                min={0}
-                max={30}
-                step={1}
-                unit=" เหรียญ"
-                onChange={(price) => { setDraft({ ...draft, itemPrices: { ...draft.itemPrices, [item.type as VoteItemType]: price } }); setSaved(false); }}
-              />
-              <SliderField
-                label={`${item.label} · ลิมิต/วัน`}
-                value={draft.itemDailyLimits[item.type]}
-                min={0}
-                max={5}
-                step={1}
-                unit=" ชิ้น"
-                onChange={(limit) => { setDraft({ ...draft, itemDailyLimits: { ...draft.itemDailyLimits, [item.type as VoteItemType]: limit } }); setSaved(false); }}
-              />
-            </div>
-          ))}
-        </div>
+        <legend>📚 คลังโจทย์เชาว์ (จำข้ามรอบเกม)</legend>
+        <p className="settings-quizbank">
+          ใช้ไปแล้ว <b>{quizBank.length - quizRemaining}</b> / เหลือ <b>{quizRemaining}</b> จาก {quizBank.length} ข้อ
+          — รีเซตเกม/เริ่มรอบใหม่ <u>ไม่</u> ล้างประวัติ โจทย์จะไม่ออกซ้ำจนกว่าจะกดปุ่มนี้
+        </p>
+        <GameButton
+          variant={confirmQuizReset ? "danger" : "paper"}
+          onClick={() => {
+            if (!confirmQuizReset) {
+              setConfirmQuizReset(true);
+              return;
+            }
+            resetQuizHistory();
+            setQuizRemaining(remainingQuizCount());
+            setConfirmQuizReset(false);
+          }}
+        >
+          {confirmQuizReset ? "⚠️ กดอีกครั้งเพื่อยืนยันล้างประวัติ" : "♻️ รีเซตคลังโจทย์"}
+        </GameButton>
       </fieldset>
 
       <fieldset className="settings-cat">
