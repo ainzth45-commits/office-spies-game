@@ -1370,8 +1370,30 @@ h1 {
 /* ============================================================
    P2-4 กาชาให้ลุ้น — reel หมุนสุ่ม + ตู้สั่นตอนหมุน
    ============================================================ */
-.gacha-scene { display: flex; flex-direction: column; align-items: center; }
-.gacha-scene .gacha-machine { margin: 10px auto; }
+/* หน้ากาชา — บีบจังหวะแนวตั้งด้วย dvh ให้ทุกสภาพ (ว่าง/กำลังหมุน/ผล+แคปซูล) จบในจอเดียว iPad */
+.gacha-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.2dvh, 12px);
+  padding: clamp(14px, 2.4dvh, 24px) 28px;
+}
+.gacha-scene h2 { margin: 0; font-size: clamp(24px, 4.6dvh, 40px); }
+.gacha-scene .scene-lead { margin: 0; font-size: clamp(13px, 2dvh, 17px); }
+.gacha-scene .big-callout {
+  font-size: clamp(16px, 2.6dvh, 24px);
+  padding: clamp(8px, 1.6dvh, 14px) 18px;
+}
+.gacha-scene .gacha-machine {
+  margin: 0 auto;
+  width: min(240px, 30dvh);
+  flex-shrink: 0;
+}
+.gacha-scene .gacha-result { margin: 0; gap: 6px; }
+.gacha-scene .gacha-result__icon { width: clamp(80px, 15dvh, 150px); }
+.gacha-scene .gacha-reel { margin: 0; }
+.gacha-scene .gacha-reel__icon { width: clamp(90px, 15dvh, 150px); }
+.gacha-scene .button-row { margin-top: clamp(4px, 1dvh, 10px); }
 
 .gacha-reel {
   display: grid;
