@@ -34,6 +34,7 @@ export type GamePhase =
   | "roleReveal"
   | "gacha"
   | "quiz"
+  | "quizPractice"
   | "vote"
   | "voteResult"
   | "postVoteClue"

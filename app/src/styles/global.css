@@ -1503,6 +1503,40 @@ h1 {
 .quiz-verdict--correct { color: #7ddf8e !important; }
 .quiz-verdict--wrong { color: #ff8a76 !important; }
 
+/* โหมดฝึกเชาว์ — คลังโจทย์เป็นกล่องหมายเลข จบจอเดียว iPad */
+.quiz-practice {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(14px, 2.4dvh, 24px) 28px;
+}
+.quiz-practice h2 { margin: 0 0 4px; }
+.quiz-practice .scene-lead { margin: 0 0 clamp(6px, 1.2dvh, 12px); }
+.quiz-practice .practice-actions { margin: 0 0 clamp(8px, 1.6dvh, 14px); }
+.practice-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(40px, 4.4vw, 54px), 1fr));
+  gap: clamp(5px, 0.9dvh, 9px);
+  padding-bottom: 4px;
+}
+.practice-cell {
+  aspect-ratio: 1;
+  border: 3px solid #20263f;
+  border-radius: 12px;
+  background: #f5e9d0;
+  color: #20263f;
+  font-weight: 900;
+  font-size: clamp(13px, 1.8dvh, 17px);
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 0.08s ease;
+}
+.practice-cell:active { transform: translateY(2px) scale(0.95); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2); }
+.practice-sim { color: #ffd66b; font-weight: 800; font-size: 0.72em; }
+
 /* หน้ากติกาโจทย์เชาว์ — อ่านสบายก่อนเริ่มจับเวลา */
 .quiz-intro h2 { margin-bottom: clamp(10px, 2dvh, 20px); }
 .quiz-rules {

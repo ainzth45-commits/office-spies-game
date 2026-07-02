@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { playClick, setSoundEnabled } from "../../audio/sounds";
-import { gameAssets } from "../../data/assets";
+import { gachaIconAssets, gameAssets } from "../../data/assets";
 import { calculateVoteCost } from "../../domain/economy";
 import { canStartNewDay, enterRoleReveal, startNewDay, startNewRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
@@ -38,6 +38,8 @@ export function HomeHub() {
     { key: "role", label: "บทบาท", icon: gameAssets.dockRole, fallback: "🕵️", onClick: () => setState((current) => enterRoleReveal(current)) },
     { key: "vote", label: "โหวต", icon: gameAssets.dockVote, fallback: "🗳️", onClick: goPhase("vote") },
     { key: "gacha", label: "กาชา", icon: gameAssets.dockGacha, fallback: "🎰", onClick: goPhase("gacha") },
+    // ทางเข้าพิเศษ: สนามซ้อมโจทย์เชาว์ — ไม่มีผลกับระบบเกม (ใช้ไอคอนโจทย์เชาว์จากชุดกาชา)
+    { key: "practice", label: "ฝึกเชาว์", icon: gachaIconAssets.grantQuiz, fallback: "🧠", onClick: goPhase("quizPractice") },
     {
       key: "learn",
       label: "สอนเล่น",

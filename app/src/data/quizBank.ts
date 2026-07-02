@@ -1,7 +1,8 @@
 // คลังโจทย์เชาว์ 200 ข้อ (ยกเครื่อง 2026-07-03)
 // รีวิวจากของเดิม 100 ข้อ: เก็บ 85 (ติดป้ายความยาก + สลับ A/B ให้สมดุล) · ตัด 15 ข้อที่เฉลยผิด/กำกวม/ง่ายเกิน (ดู comment ท้ายไฟล์) · เขียนใหม่ 115
-// หมวด 7 หมวด: คณิตคิดเร็ว(30) คณิตประยุกต์(28) อนุกรม/ลำดับ(27) ตรรกะ & เชาว์(30) เชาว์ภาษา/คำ(28) ความรู้รอบตัว(29) กับดัก/ฮาๆ(28)
-// ความยาก: easy 72 · medium 79 · hard 49 — คำตอบถูก A 100 / B 100
+// 2026-07-03: ยกเลิกหมวด "กับดัก/ฮาๆ" ตามคำสั่งเจ้าของเกม — เขียน Q173–Q200 ใหม่เป็นโจทย์วัดความรู้/ไหวพริบ/วิเคราะห์/คณิต กระจายลง 4 หมวดเดิม
+// หมวด 6 หมวด: คณิตคิดเร็ว(30) คณิตประยุกต์(36) อนุกรม/ลำดับ(32) ตรรกะ & เชาว์(38) เชาว์ภาษา/คำ(28) ความรู้รอบตัว(36)
+// ความยาก: easy 72 · medium 81 · hard 47 — คำตอบถูก A 100 / B 100
 import type { QuizQuestion } from "../domain/types";
 
 export const quizBank: QuizQuestion[] = [
@@ -189,35 +190,39 @@ export const quizBank: QuizQuestion[] = [
   { id: "Q171", category: "ความรู้รอบตัว", question: "ผู้ใหญ่มีฟันแท้ครบทั้งหมดกี่ซี่ (รวมฟันคุด)?", choiceA: "32 ซี่", choiceB: "28 ซี่", answer: "A", difficulty: "hard" },
   { id: "Q172", category: "ความรู้รอบตัว", question: "ดาวเคราะห์ที่ถูกเรียกว่า \"ดาวสีแดง\" คือ?", choiceA: "ดาวพฤหัสบดี", choiceB: "ดาวอังคาร", answer: "B", difficulty: "easy" },
 
-  // ── กับดัก/ฮาๆ (Q173–Q200) ──
-  { id: "Q173", category: "กับดัก/ฮาๆ", question: "ลิ้นชักมีถุงเท้า 2 สีปนกัน หยิบในความมืดอย่างน้อยกี่ข้าง ถึงได้คู่สีเดียวกันแน่ๆ?", choiceA: "2 ข้าง", choiceB: "3 ข้าง", answer: "B", difficulty: "hard" },
-  { id: "Q174", category: "กับดัก/ฮาๆ", question: "ไข่ใบไหนปั่นหมุนบนโต๊ะได้นานกว่า?", choiceA: "ไข่ต้มสุก", choiceB: "ไข่ดิบ", answer: "A", difficulty: "hard" },
-  { id: "Q175", category: "กับดัก/ฮาๆ", question: "เครื่องบินตกตรงชายแดน 2 ประเทศพอดี ต้องฝัง \"ผู้รอดชีวิต\" ที่ประเทศไหน?", choiceA: "ประเทศที่เครื่องตก", choiceB: "ไม่ฝัง เพราะยังรอดชีวิตอยู่", answer: "B", difficulty: "medium" },
-  { id: "Q176", category: "กับดัก/ฮาๆ", question: "จากเวลา 11:50 น. ถึงเที่ยงตรง ใช้เวลากี่นาที?", choiceA: "10 นาที", choiceB: "50 นาที", answer: "A", difficulty: "easy" },
-  { id: "Q177", category: "กับดัก/ฮาๆ", question: "อะไรเดินได้ทั้งวันโดยไม่มีขา?", choiceA: "งู", choiceB: "เวลา", answer: "B", difficulty: "easy" },
-  { id: "Q178", category: "กับดัก/ฮาๆ", question: "ลิงปีนเสาสูง 10 เมตร แต่ละนาทีปีนขึ้น 2 เมตรแล้วไถลลง 1 เมตร ถึงยอดในนาทีที่เท่าไร?", choiceA: "นาทีที่ 9", choiceB: "นาทีที่ 10", answer: "A", difficulty: "hard" },
-  { id: "Q179", category: "กับดัก/ฮาๆ", question: "1 + 1 ในระบบเลขฐานสอง เขียนว่าอย่างไร?", choiceA: "2", choiceB: "10", answer: "B", difficulty: "medium" },
-  { id: "Q180", category: "กับดัก/ฮาๆ", question: "อะไรมีฟันเรียงเป็นแถวแต่กัดใครไม่ได้เลย?", choiceA: "หวี", choiceB: "เลื่อย", answer: "A", difficulty: "easy" },
-  { id: "Q181", category: "กับดัก/ฮาๆ", question: "แบ่งส้ม 3 ผลให้ครบ 3 คน แต่ยังให้เหลือส้มในตะกร้า 1 ผล เป็นไปได้ไหม?", choiceA: "ไม่ได้ ขัดแย้งกันเอง", choiceB: "ได้ ให้คนสุดท้ายรับส้มไปทั้งตะกร้า", answer: "B", difficulty: "medium" },
-  { id: "Q182", category: "กับดัก/ฮาๆ", question: "นาฬิกาตีบอกเวลา 6 ครั้งใช้เวลา 5 วินาที ถ้าตี 12 ครั้งใช้กี่วินาที?", choiceA: "11 วินาที", choiceB: "10 วินาที", answer: "A", difficulty: "hard" },
-  { id: "Q183", category: "กับดัก/ฮาๆ", question: "มือซ้ายของเราจับอะไรไม่ได้เด็ดขาด?", choiceA: "หูซ้ายของตัวเอง", choiceB: "ข้อศอกซ้ายของตัวเอง", answer: "B", difficulty: "medium" },
-  { id: "Q184", category: "กับดัก/ฮาๆ", question: "ถ้าไก่ครึ่งตัวออกไข่ครึ่งฟองใน 1 วันครึ่ง ไก่ 1 ตัวออกไข่กี่ฟองใน 1 วัน?", choiceA: "1 ฟองพอดี", choiceB: "ประมาณ 0.67 ฟอง", answer: "B", difficulty: "hard" },
-  { id: "Q185", category: "กับดัก/ฮาๆ", question: "แบ่งเงิน 100 บาทให้ 2 คน โดยให้คนหนึ่งได้มากกว่าอีกคน 100 บาท ทำได้ไหม?", choiceA: "ได้ คนหนึ่งรับ 100 อีกคนรับ 0", choiceB: "ไม่ได้ เงินไม่พอ", answer: "A", difficulty: "hard" },
-  { id: "Q186", category: "กับดัก/ฮาๆ", question: "คำถามไหนที่ไม่มีทางตอบ \"ใช่\" ได้ตามความจริง?", choiceA: "คุณหลับอยู่หรือเปล่า?", choiceB: "คุณหิวหรือเปล่า?", answer: "A", difficulty: "medium" },
-  { id: "Q187", category: "กับดัก/ฮาๆ", question: "อะไรเป็นของของเรา แต่คนอื่นได้ใช้บ่อยกว่าเราเอง?", choiceA: "เบอร์โทรศัพท์", choiceB: "ชื่อของเรา", answer: "B", difficulty: "medium" },
-  { id: "Q188", category: "กับดัก/ฮาๆ", question: "ตอนซื้อสีดำ ตอนใช้สีแดง ตอนทิ้งสีเทา คืออะไร?", choiceA: "ถ่าน", choiceB: "ยางรถยนต์", answer: "A", difficulty: "medium" },
-  { id: "Q189", category: "กับดัก/ฮาๆ", question: "วันที่ 32 มกราคม เป็นวันอะไร?", choiceA: "วันตรุษจีน", choiceB: "ไม่มีวันนั้นในปฏิทิน", answer: "B", difficulty: "easy" },
-  { id: "Q190", category: "กับดัก/ฮาๆ", question: "แมวอะไร \"ออกลูก\" เป็นไก่?", choiceA: "แมวที่ชอบปล่อยไก่", choiceB: "แมวพันธุ์ไทยแท้", answer: "A", difficulty: "easy" },
-  { id: "Q191", category: "กับดัก/ฮาๆ", question: "อะไรเอ่ย สี่ตีนเดินมา หลังคามุงกระเบื้อง?", choiceA: "บ้านทรงไทย", choiceB: "เต่า", answer: "B", difficulty: "easy" },
-  { id: "Q192", category: "กับดัก/ฮาๆ", question: "พระอะไรไม่ต้องโกนหัว?", choiceA: "พระอาทิตย์", choiceB: "พระบวชใหม่", answer: "A", difficulty: "easy" },
-  { id: "Q193", category: "กับดัก/ฮาๆ", question: "ใน 1 วัน (24 ชม.) เข็มสั้นกับเข็มยาวทับกันทั้งหมดกี่ครั้ง?", choiceA: "24 ครั้ง", choiceB: "22 ครั้ง", answer: "B", difficulty: "hard" },
-  { id: "Q194", category: "กับดัก/ฮาๆ", question: "เดือนไหนที่คนได้นอนน้อยที่สุด?", choiceA: "กุมภาพันธ์ เพราะมีวันน้อยที่สุด", choiceB: "ธันวาคม เพราะเที่ยวปีใหม่", answer: "A", difficulty: "medium" },
-  { id: "Q195", category: "กับดัก/ฮาๆ", question: "อะไรอยู่ \"ตรงกลาง\" ของกรุงเทพฯ เสมอ?", choiceA: "สยามพารากอน", choiceB: "ตัว \"ง\" (กรุ-ง-เทพฯ)", answer: "B", difficulty: "medium" },
-  { id: "Q196", category: "กับดัก/ฮาๆ", question: "สุนัขวิ่ง \"เข้า\" ป่าได้ลึกที่สุดแค่ไหน?", choiceA: "ครึ่งป่า เพราะเลยจากนั้นคือวิ่งออก", choiceB: "จนสุดชายป่าอีกฝั่ง", answer: "A", difficulty: "hard" },
-  { id: "Q197", category: "กับดัก/ฮาๆ", question: "แม่ไก่ยืนขาเดียวหนัก 2 กก. ถ้ายืนสองขาจะหนักเท่าไร?", choiceA: "2 กก. เท่าเดิม", choiceB: "4 กก.", answer: "A", difficulty: "easy" },
-  { id: "Q198", category: "กับดัก/ฮาๆ", question: "มีไหม เดือนที่มี 31 วันติดกันสองเดือน?", choiceA: "ไม่มีทาง ปฏิทินไม่อนุญาต", choiceB: "มี เช่น กรกฎาคม–สิงหาคม", answer: "B", difficulty: "medium" },
-  { id: "Q199", category: "กับดัก/ฮาๆ", question: "ประตูอะไรที่เปิดไม่ได้?", choiceA: "ประตูน้ำ", choiceB: "ประตูฟุตบอล", answer: "B", difficulty: "easy" },
-  { id: "Q200", category: "กับดัก/ฮาๆ", question: "หมึกอะไรว่ายน้ำไม่ได้?", choiceA: "หมึกปากกา", choiceB: "หมึกกระดอง", answer: "A", difficulty: "easy" },
+  // ── ชุดเสริม Q173–Q200 (แทนหมวดกับดัก/ฮาๆ เดิม — กระจายลง 4 หมวดหลัก) ──
+  // คณิตประยุกต์เสริม (Q173–Q180)
+  { id: "Q173", category: "คณิตประยุกต์", question: "สินค้าราคา 200 บาท โปร ก. ลดทันที 50 บาท โปร ข. ลด 20% เลือกโปรไหนจ่ายถูกกว่า?", choiceA: "โปร ก. ลด 50 บาท", choiceB: "โปร ข. ลด 20%", answer: "A", difficulty: "easy" },
+  { id: "Q174", category: "คณิตประยุกต์", question: "ฝากเงิน 10,000 บาท ดอกเบี้ย 2% ต่อปี ครบ 1 ปีได้ดอกเบี้ยเท่าไร?", choiceA: "2,000 บาท", choiceB: "200 บาท", answer: "B", difficulty: "easy" },
+  { id: "Q175", category: "คณิตประยุกต์", question: "ครีมจัดโปร 3 กระปุก 500 บาท ลูกค้าซื้อ 12 กระปุก ต้องจ่ายเท่าไร?", choiceA: "2,000 บาท", choiceB: "2,400 บาท", answer: "A", difficulty: "easy" },
+  { id: "Q176", category: "คณิตประยุกต์", question: "โทรหาลูกค้า 40 สาย ปิดการขายได้ 15% ของสายทั้งหมด ปิดได้กี่ราย?", choiceA: "8 ราย", choiceB: "6 ราย", answer: "B", difficulty: "easy" },
+  { id: "Q177", category: "คณิตประยุกต์", question: "สินค้าทุน 400 บาท ต้องตั้งราคาขายเท่าไรจึงได้กำไร 25% ของทุน?", choiceA: "500 บาท", choiceB: "425 บาท", answer: "A", difficulty: "medium" },
+  { id: "Q178", category: "คณิตประยุกต์", question: "เป้าเดือนนี้ 120,000 บาท ขายได้แล้ว 45,000 บาท คิดเป็นกี่เปอร์เซ็นต์ของเป้า?", choiceA: "45%", choiceB: "37.5%", answer: "B", difficulty: "medium" },
+  { id: "Q179", category: "คณิตประยุกต์", question: "รับสินค้ามาชิ้นละ 20 บาท ขายชิ้นละ 35 บาท ขายได้วันละ 8 ชิ้น ได้กำไรวันละเท่าไร?", choiceA: "160 บาท", choiceB: "120 บาท", answer: "B", difficulty: "medium" },
+  { id: "Q180", category: "คณิตประยุกต์", question: "สินค้าราคารวม VAT 7% แล้วเป็น 214 บาท ราคาก่อน VAT คือเท่าไร?", choiceA: "200 บาท", choiceB: "207 บาท", answer: "A", difficulty: "hard" },
+  // ตรรกะ & เชาว์เสริม (Q181–Q188)
+  { id: "Q181", category: "ตรรกะ & เชาว์", question: "ก้อยนั่งฝั่งซ้ายของแนน และแนนนั่งฝั่งซ้ายของบี ใครนั่งขวาสุด?", choiceA: "บี", choiceB: "แนน", answer: "A", difficulty: "easy" },
+  { id: "Q182", category: "ตรรกะ & เชาว์", question: "แมว 3 ตัวจับหนูได้ 3 ตัวใน 3 นาที แล้วแมว 6 ตัวจับหนู 6 ตัว ใช้เวลากี่นาที?", choiceA: "6 นาที", choiceB: "3 นาที", answer: "B", difficulty: "medium" },
+  { id: "Q183", category: "ตรรกะ & เชาว์", question: "เชือกยาว 12 เมตร ตัดออกเป็นท่อนละ 2 เมตร ต้องลงมีดตัดทั้งหมดกี่ครั้ง?", choiceA: "5 ครั้ง", choiceB: "6 ครั้ง", answer: "A", difficulty: "medium" },
+  { id: "Q184", category: "ตรรกะ & เชาว์", question: "ปีนี้วันเกิดตรงกับวันอังคาร ถ้านับไปอีก 365 วันพอดี วันเกิดปีหน้าตรงกับวันอะไร?", choiceA: "อังคาร", choiceB: "พุธ", answer: "B", difficulty: "medium" },
+  { id: "Q185", category: "ตรรกะ & เชาว์", question: "พนักงาน 5 คนจับมือทักทายกันครบทุกคู่ จะเกิดการจับมือทั้งหมดกี่ครั้ง?", choiceA: "20 ครั้ง", choiceB: "10 ครั้ง", answer: "B", difficulty: "medium" },
+  { id: "Q186", category: "ตรรกะ & เชาว์", question: "เซลส์ทุกคนมีไอแพด และบางคนที่มีไอแพดชอบกาแฟ สรุปได้แน่นอนไหมว่ามีเซลส์บางคนชอบกาแฟ?", choiceA: "สรุปไม่ได้ คนที่ชอบกาแฟอาจไม่ใช่เซลส์เลยก็ได้", choiceB: "สรุปได้ เพราะเซลส์ทุกคนมีไอแพด", answer: "A", difficulty: "hard" },
+  { id: "Q187", category: "ตรรกะ & เชาว์", question: "คนหนึ่งพูดจริงเสมอ อีกคนโกหกเสมอ ถามทีละคนว่า \"คุณเป็นคนพูดจริงใช่ไหม\" ใครบ้างจะตอบว่า \"ใช่\"?", choiceA: "เฉพาะคนพูดจริง", choiceB: "ทั้งสองคน", answer: "B", difficulty: "hard" },
+  { id: "Q188", category: "ตรรกะ & เชาว์", question: "ทีมมี 11 คน ชอบชา 7 คน ชอบกาแฟ 8 คน ทุกคนชอบอย่างน้อยหนึ่งอย่าง มีกี่คนที่ชอบทั้งสองอย่าง?", choiceA: "4 คน", choiceB: "1 คน", answer: "A", difficulty: "hard" },
+  // ความรู้รอบตัวเสริม (Q189–Q195)
+  { id: "Q189", category: "ความรู้รอบตัว", question: "ธงชาติไทยมีทั้งหมดกี่สี?", choiceA: "5 สี", choiceB: "3 สี", answer: "B", difficulty: "easy" },
+  { id: "Q190", category: "ความรู้รอบตัว", question: "วันแม่แห่งชาติของไทยตรงกับวันที่เท่าไร?", choiceA: "12 สิงหาคม", choiceB: "12 กันยายน", answer: "A", difficulty: "easy" },
+  { id: "Q191", category: "ความรู้รอบตัว", question: "สกุลเงินของประเทศเกาหลีใต้คือ?", choiceA: "หยวน", choiceB: "วอน", answer: "B", difficulty: "easy" },
+  { id: "Q192", category: "ความรู้รอบตัว", question: "เวลาประเทศไทยเร็วกว่าเวลามาตรฐานกรีนิช (GMT) กี่ชั่วโมง?", choiceA: "7 ชั่วโมง", choiceB: "9 ชั่วโมง", answer: "A", difficulty: "medium" },
+  { id: "Q193", category: "ความรู้รอบตัว", question: "แสงจากดวงอาทิตย์เดินทางมาถึงโลกใช้เวลาประมาณเท่าไร?", choiceA: "8 วินาที", choiceB: "8 นาที", answer: "B", difficulty: "medium" },
+  { id: "Q194", category: "ความรู้รอบตัว", question: "ปัจจุบันประเทศที่มีประชากรมากที่สุดในโลกคือ?", choiceA: "อินเดีย", choiceB: "จีน", answer: "A", difficulty: "medium" },
+  { id: "Q195", category: "ความรู้รอบตัว", question: "ที่ดิน 1 ไร่ เท่ากับกี่ตารางวา?", choiceA: "100 ตารางวา", choiceB: "400 ตารางวา", answer: "B", difficulty: "hard" },
+  // อนุกรม/ลำดับเสริม (Q196–Q200)
+  { id: "Q196", category: "อนุกรม/ลำดับ", question: "15, 20, 25, 30, ?", choiceA: "35", choiceB: "40", answer: "A", difficulty: "easy" },
+  { id: "Q197", category: "อนุกรม/ลำดับ", question: "09:00, 10:15, 11:30, 12:45, ?", choiceA: "13:45", choiceB: "14:00", answer: "B", difficulty: "easy" },
+  { id: "Q198", category: "อนุกรม/ลำดับ", question: "3, 7, 15, 31, ?", choiceA: "63", choiceB: "47", answer: "A", difficulty: "medium" },
+  { id: "Q199", category: "อนุกรม/ลำดับ", question: "6, 12, 9, 18, 15, 30, ?", choiceA: "27", choiceB: "60", answer: "A", difficulty: "medium" },
+  { id: "Q200", category: "อนุกรม/ลำดับ", question: "5, 6, 8, 12, 20, ?", choiceA: "28", choiceB: "36", answer: "B", difficulty: "hard" },
 ];
 
 /*

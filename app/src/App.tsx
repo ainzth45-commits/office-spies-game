@@ -6,6 +6,7 @@ import { GachaFlow } from "./features/gacha/GachaFlow";
 import { GuessSecondSpyScene } from "./features/guess/GuessSecondSpyScene";
 import { HomeHub } from "./features/home/HomeHub";
 import { QuizFlow } from "./features/quiz/QuizFlow";
+import { QuizPracticeFlow } from "./features/quiz/QuizPracticeFlow";
 import { RefundScene } from "./features/refund/RefundScene";
 import { RoleRevealFlow } from "./features/role/RoleRevealFlow";
 import { TutorialFlow } from "./features/tutorial/TutorialFlow";
@@ -57,6 +58,7 @@ function renderPhase(hydrated: boolean, state: ReturnType<typeof useGameStore>["
     case "roleReveal": return <RoleRevealFlow />;
     case "gacha": return <GachaFlow />;
     case "quiz": return <QuizFlow />;
+    case "quizPractice": return <QuizPracticeFlow />;
     case "vote": return <VoteFlow />;
     case "voteResult": return <VoteResultScene />;
     case "postVoteClue": return <PostVoteClueScene />;
