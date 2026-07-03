@@ -83,18 +83,43 @@ export function VoteResultScene() {
       />
       <h2>{title}</h2>
       <p className="big-callout">
-        {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 แต่อีกคนยังลอยนวล... ทีมได้สิทธิ์ชี้ตัวต่อทันที` : null}
-        {result.publicResult === "caughtInnocent" && winner ? `${winner.name} เป็นพนักงานดีๆ นี่เอง 😅 ซุปเตรียมคืนเหรียญปลอบใจให้ทีม` : null}
+        {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 จับได้แล้ว 1 คน — อีกคนยังลอยนวล ทีมได้สิทธิ์ชี้ตัวต่อทันที` : null}
+        {/* จับผิดคน: ห้ามเผยชื่อ! ใครโดนเสียงถล่มเป็นความลับ — บอกแค่ว่าไม่ใช่สายลับ */}
+        {result.publicResult === "caughtInnocent" ? "เสียงถึงเกณฑ์... แต่คนที่โดนไม่ใช่สายลับ 😅 ส่วนโดนใครน่ะเหรอ — ความลับ! ซุปเตรียมคืนเหรียญปลอบใจให้ทีม" : null}
         {result.publicResult === "failed" ? "เสียงแตกเกินไป จับใครไม่ได้ 🕶 เหรียญคืนที่ซุป — พรุ่งนี้เอาใหม่ อย่าให้มันรอดอีก" : null}
       </p>
+      {result.publicResult === "caughtSpy" && winner && (
+        <div className="end-scene__spy-cards end-scene__spy-cards--caught result-caught-card">
+          <div className="end-spy-card">
+            <img
+              className="end-spy-card__photo"
+              src={winner.imageUrl}
+              alt={winner.name}
+              onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
+            />
+            <b>{winner.name}</b>
+            <span className="end-spy-card__stamp">จับแล้ว</span>
+          </div>
+        </div>
+      )}
+      {/* ข่าวกรองแถมฟรี — โผล่เมื่อกองคนถูกโหวตใหญ่พอ (≥ เกณฑ์ในตั้งค่า, ปกติ 4 คน) */}
       {result.spyPoolReveal && (
-        <div
-          className="spy-pool-banner"
-          style={{ backgroundImage: `url(${gameAssets.spyPoolBanner})` }}
-        >
-          <p className="spy-pool-banner__text">
-            🔎 ข่าวกรองหลุดมา: ในกองคนถูกโหวต {result.spyPoolReveal.total} คน มีสายลับปนอยู่ {result.spyPoolReveal.spies} คน!
-          </p>
+        <div className="intel-banner">
+          <img
+            className="intel-banner__icon"
+            src={gameAssets.spyPoolBanner}
+            alt=""
+            aria-hidden="true"
+            onError={(event) => { event.currentTarget.style.display = "none"; }}
+          />
+          <div className="intel-banner__text">
+            <b>🗞️ ข่าวกรองแถมฟรี (รอบนี้มีคนถูกโหวตถึง {result.spyPoolReveal.total} คน)</b>
+            <span>
+              {result.spyPoolReveal.spies === 0
+                ? "ในกองคนถูกโหวตทั้งหมด... ไม่มีสายลับเลยสักคน! พวกมันหลบเก่งจริงๆ"
+                : `ในกองคนถูกโหวต มีสายลับปนอยู่ ${result.spyPoolReveal.spies} คน — เอาไปถกกันต่อได้เลย`}
+            </span>
+          </div>
         </div>
       )}
       <div className="button-row">

@@ -441,6 +441,81 @@ h1 {
   100% { transform: translateY(106dvh) rotate(720deg); opacity: 0.4; }
 }
 
+/* แบนเนอร์ข่าวกรองแถมฟรี (สายลับในกองคนถูกโหวต) — การ์ดอ่านง่าย ไม่ทับภาพ */
+.intel-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 22px);
+  border: 3px solid #f6c453;
+  border-radius: 18px;
+  background: rgba(246, 196, 83, 0.14);
+  padding: clamp(10px, 1.8dvh, 16px) clamp(16px, 2.4vw, 26px);
+  max-width: min(760px, 100%);
+  margin: 0 auto;
+}
+.intel-banner__icon {
+  width: clamp(64px, 11dvh, 100px);
+  height: auto;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.intel-banner__text {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  font-size: clamp(14px, 2.2dvh, 18px);
+}
+.intel-banner__text b { color: #ffd66b; }
+.intel-banner__text span { color: #fbf7ef; font-weight: 800; }
+.result-caught-card { margin: 0 auto; }
+
+/* การ์ดคนที่ถูกเปิดในเบาะแส — ใหญ่ ชัด กลางจอ */
+.clue-cards {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2.4vw, 30px);
+  flex-wrap: wrap;
+}
+.clue-card {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  border: 4px solid #fbf7ef;
+  border-radius: 20px;
+  background: rgba(24, 33, 63, 0.75);
+  padding: clamp(10px, 1.8dvh, 18px) clamp(14px, 2vw, 24px);
+  color: #ffe9b6;
+  font-weight: 900;
+  font-size: clamp(15px, 2.4dvh, 20px);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.25);
+}
+.clue-card__photo {
+  width: clamp(140px, 26dvh, 220px);
+  height: clamp(140px, 26dvh, 220px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border-radius: 14px;
+}
+.clue-card span { color: #9aa3c0; font-size: 0.8em; }
+
+/* จอสายข่าวเยาะเย้ย (จ่ายฟรี) */
+.clue-mock {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+.clue-mock img {
+  max-height: clamp(200px, 42dvh, 360px);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.35));
+  animation: gacha-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
 /* popup ยืนยันธีมเกม (ขึ้นวันใหม่ ฯลฯ) — กันมือลั่น */
 .confirm-modal {
   display: grid;
@@ -1092,8 +1167,33 @@ h1 {
   background-position: top center;
 }
 
+/* หน้าเฉลยผลโหวต — จัดกลางแนวตั้ง ไล่จังหวะ ตรา→หัว→ข้อความ→ข่าวกรอง→ปุ่ม พอดีจอ */
+.result-scene {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(6px, 1.4dvh, 16px);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(12px, 2dvh, 22px) 28px;
+}
+.result-scene .vote-stamp { flex-shrink: 1; min-height: 0; }
+.result-scene .big-callout { margin: 0; }
+.result-scene .button-row { margin: 0; }
 .result-scene h2 {
-  font-size: clamp(46px, 7vw, 88px);
+  margin: 0;
+  font-size: clamp(34px, 7.5dvh, 68px);
+}
+.result-scene .vote-stamp {
+  width: min(220px, 26dvh);
+  margin: 0 auto;
+}
+/* การ์ดสายลับที่เพิ่งโดนจับบนหน้าผล — ย่อมกว่าเวอร์ชันฉากจบ ให้หน้าผลจบจอเดียว */
+.result-caught-card .end-spy-card__photo {
+  width: clamp(76px, 14dvh, 120px);
+  height: clamp(76px, 14dvh, 120px);
 }
 
 .clue-result {
@@ -1218,6 +1318,12 @@ h1 {
   object-fit: contain;
   vertical-align: -0.32em;
   display: inline-block;
+}
+/* ชิปแบบไอคอนล้วน (เสียง/เริ่มรอบใหม่) — ใหญ่เห็นชัด ไม่มีคำอธิบาย */
+.chip-icon--lg {
+  width: clamp(30px, 4.6dvh, 40px);
+  height: clamp(30px, 4.6dvh, 40px);
+  vertical-align: middle;
 }
 .handoff-curtain__spot-icon {
   width: clamp(84px, 16dvh, 140px);
@@ -1589,10 +1695,10 @@ h1 {
   align-content: start;
   margin: 0;
 }
-/* การ์ดเป้าหมาย: สูงพอเห็นหน้าเต็ม (รูปแนวตั้ง จัดโฟกัสช่วงใบหน้า) → 11 ใบ 2 แถว พอดีจอ */
+/* การ์ดเป้าหมาย: ใหญ่เต็มโซน (แถบไอเทมย้ายเข้ากระเป๋าแล้ว) → 11 ใบ 2 แถว พอดีจอ */
 .vote-ballot .player-card__photo-wrap {
   aspect-ratio: auto;
-  height: clamp(96px, 15dvh, 145px);
+  height: clamp(110px, 19dvh, 180px);
 }
 .vote-ballot .player-card__photo,
 .player-grid--compact .player-card__photo,
@@ -1600,8 +1706,74 @@ h1 {
   /* รูปพนักงานเป็นแนวตั้ง ใบหน้าอยู่ช่วงบน — เลื่อนจุดตัดขึ้นให้เห็นหน้าเต็ม ไม่ใช่หน้าผาก */
   object-position: 50% 18%;
 }
-.vote-ballot .item-strip { margin: clamp(4px, 0.8vh, 10px) 0; }
 .vote-ballot .button-row { margin-top: clamp(4px, 0.8vh, 10px); }
+
+/* ไอเทมที่วางแผนไว้ — แถบเล็กใต้กริด */
+.planned-item {
+  margin: clamp(4px, 0.8vh, 8px) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #ffe9b6;
+  font-weight: 800;
+  font-size: clamp(13px, 2dvh, 16px);
+}
+.planned-item b { color: #ffd66b; }
+.planned-item__cancel {
+  border: 2px solid rgba(233, 79, 55, 0.7);
+  border-radius: 999px;
+  background: rgba(233, 79, 55, 0.15);
+  color: #ffb5a8;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+
+/* กระเป๋าไอเทมในคูหา */
+.bag-modal { width: min(860px, 94vw); max-height: 92dvh; overflow: auto; overscroll-behavior: contain; }
+.bag-grid {
+  display: flex;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 20px);
+  flex-wrap: wrap;
+}
+.bag-item {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  border: 3px solid rgba(251, 247, 239, 0.5);
+  border-radius: 18px;
+  background: rgba(24, 33, 63, 0.6);
+  color: #ffe9b6;
+  font-weight: 800;
+  font-size: clamp(13px, 2dvh, 16px);
+  padding: 12px 16px;
+  cursor: pointer;
+}
+.bag-item:active { transform: translateY(2px); }
+.bag-item img {
+  width: clamp(84px, 15dvh, 130px);
+  height: auto;
+  object-fit: contain;
+}
+.bag-detail__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.bag-detail__head img { width: clamp(56px, 10dvh, 90px); object-fit: contain; }
+.bag-detail__head h2 { margin: 0; }
+.bag-detail__pick-label {
+  margin: 0;
+  color: #ffd66b;
+  font-weight: 900;
+  text-align: center;
+}
+.bag-detail__grid { max-height: 38dvh; overflow: auto; }
 
 /* หน้าซื้อเบาะแสหลังโหวต — โครงเดียวกับ ballot: หัว/ปุ่มตรึง, กริดเบาะแสยืดหยุ่น พอดีจอ */
 .clue-scene {
@@ -1657,6 +1829,40 @@ h1 {
   /* ตู้ = พระเอกของหน้า — ใหญ่ขึ้นแต่ยังจบจอเดียว (โซนอื่นถูกบีบด้วย dvh อยู่แล้ว) */
   width: min(300px, 36dvh);
   flex-shrink: 0;
+}
+
+/* ปุ่มส่องของในตู้ — มุมขวาบนของการ์ดตู้กาชา */
+.pool-peek-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  z-index: 2;
+  width: clamp(44px, 7dvh, 58px);
+  height: clamp(44px, 7dvh, 58px);
+  border: 3px solid #20263f;
+  border-radius: 50%;
+  background: #f5e9d0;
+  font-size: clamp(20px, 3.4dvh, 28px);
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
+  display: grid;
+  place-items: center;
+}
+.pool-peek-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25); }
+
+/* โชว์ไอเทมที่สุ่มได้ ใหญ่เต็มตา ก่อนกดใส่กระเป๋า */
+.gacha-assign__showcase {
+  display: grid;
+  place-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.gacha-assign__showcase img {
+  height: clamp(220px, 42dvh, 380px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 30px rgba(246, 196, 83, 0.35));
+  animation: gacha-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
 }
 
 /* โหมดแจกไอเทม: การ์ดไอเทมที่ได้ + กริดผู้เล่นให้ซุปกดเลือกคนรับ */

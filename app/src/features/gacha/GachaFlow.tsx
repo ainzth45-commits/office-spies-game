@@ -26,6 +26,8 @@ export function GachaFlow() {
   const [reelOutcome, setReelOutcome] = useState<GachaOutcome>(ALL_OUTCOMES[0]);
   const [showPool, setShowPool] = useState(false);
   const [assignError, setAssignError] = useState("");
+  // จังหวะแจกไอเทม: โชว์ของก่อน → กด "ใส่กระเป๋า" → ค่อยเลือกคนรับ
+  const [pickingReceiver, setPickingReceiver] = useState(false);
   const timers = useRef<number[]>([]);
   const result = state.lastGachaResult;
   const pendingGrant = state.pendingGachaGrant;
@@ -87,18 +89,32 @@ export function GachaFlow() {
     try {
       setState((current) => assignGachaItem(current, playerId));
       setAssignError("");
+      setPickingReceiver(false);
       playCoin();
     } catch (caught) {
       setAssignError(caught instanceof Error ? caught.message : "แจกไอเทมไม่สำเร็จ");
     }
   }
 
-  // โหมดแจกไอเทม — ผลค้างรอซุปกดเลือกคนรับ (ทน refresh: อ่านจาก state กลาง)
+  // โหมดแจกไอเทม — จังหวะ 1: โชว์ไอเทมใหญ่ก่อน · จังหวะ 2: กด "ใส่กระเป๋า" แล้วค่อยเลือกคนรับ
   if (pendingGrant) {
+    if (!pickingReceiver) {
+      return (
+        <section className="scene-panel gacha-scene">
+          <h2>🎉 ได้ไอเทมใหม่!</h2>
+          <div className="gacha-assign__showcase">
+            <img src={itemCardAssets[pendingGrant.itemType]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+          </div>
+          <p className="big-callout">{pendingGrant.message}</p>
+          <div className="button-row">
+            <GameButton onClick={() => setPickingReceiver(true)}>🎒 ใส่กระเป๋า ➜</GameButton>
+          </div>
+        </section>
+      );
+    }
     return (
       <section className="scene-panel gacha-scene">
-        <h2>ใส่ไอเทมให้ใคร?</h2>
-        <p className="scene-lead">{pendingGrant.message}</p>
+        <h2>ใส่กระเป๋าใคร?</h2>
         <div className="gacha-assign__item">
           <img src={itemCardAssets[pendingGrant.itemType]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
         </div>
@@ -131,11 +147,18 @@ export function GachaFlow() {
 
       {/* เวทีกาชา: ว่าง = ตู้กลางจอ · หมุน/เฉลย = ตู้ชิดซ้าย + ของที่สุ่มใหญ่ๆ ฝั่งขวา */}
       <div className={`gacha-stage${spinning || result ? " gacha-stage--split" : ""}`}>
-        <div className={`gacha-machine${spinning ? " gacha-machine--spinning" : ""}${!spinning && result ? " gacha-machine--popped" : ""}`} aria-hidden="true">
+        <div className={`gacha-machine${spinning ? " gacha-machine--spinning" : ""}${!spinning && result ? " gacha-machine--popped" : ""}`}>
+          {/* ปุ่มส่องของในตู้ — เกาะมุมขวาบนของการ์ดตู้ */}
+          {!spinning && (
+            <button type="button" className="pool-peek-btn" onClick={() => setShowPool(true)} aria-label="ดูของในตู้">
+              📦
+            </button>
+          )}
           <img
             className="gacha-machine__img"
             src={gameAssets.gachaMachine}
             alt=""
+            aria-hidden="true"
             onError={(event) => { event.currentTarget.style.display = "none"; }}
           />
           {!spinning && result && (
@@ -169,8 +192,7 @@ export function GachaFlow() {
       </div>
 
       <div className="button-row">
-        <GameButton onClick={spin} disabled={spinning}>{spinning ? "กำลังสุ่ม..." : "หมุน"}</GameButton>
-        <GameButton variant="paper" disabled={spinning} onClick={() => setShowPool(true)}>📦 ในตู้มีอะไร</GameButton>
+        <GameButton onClick={spin} disabled={spinning}>{spinning ? "กำลังสุ่ม..." : "🎰 หมุน!"}</GameButton>
       </div>
 
       {showPool && <GachaPoolModal onClose={() => setShowPool(false)} />}

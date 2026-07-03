@@ -77,11 +77,12 @@ export function HomeHub() {
                 setConfirmReset(false);
               }
             }}
+            aria-label="เริ่มรอบใหม่ (ล้างกระดานทั้งหมด)"
           >
             {confirmReset ? (
-              "⚠️ ล้างกระดานทั้งเกม? กดอีกครั้ง"
+              "⚠️ ยืนยัน?"
             ) : (
-              <><ThemedIcon className="chip-icon" src={gameAssets.iconReset} emoji="🔄" /> เริ่มรอบใหม่</>
+              <ThemedIcon className="chip-icon chip-icon--lg" src={gameAssets.iconReset} emoji="🔄" />
             )}
           </button>
           {resetError && <p className="home-reset__error">{resetError}</p>}
@@ -103,11 +104,10 @@ export function HomeHub() {
           }}
         >
           <ThemedIcon
-            className="chip-icon"
+            className="chip-icon chip-icon--lg"
             src={state.settings.soundEnabled ? gameAssets.iconSoundOn : gameAssets.iconSoundOff}
             emoji={state.settings.soundEnabled ? "🔊" : "🔇"}
-          />{" "}
-          {state.settings.soundEnabled ? "เสียง" : "ปิด"}
+          />
         </button>
       </div>
 
@@ -195,10 +195,10 @@ export function HomeHub() {
               )}
             </p>
             <div className="button-row">
+              <GameButton variant="paper" onClick={() => setConfirmNewDay(false)}>ยังก่อน</GameButton>
               <GameButton onClick={() => { setConfirmNewDay(false); setState((current) => startNewDay(current)); }}>
                 ✅ ยืนยัน ขึ้นวันใหม่
               </GameButton>
-              <GameButton variant="paper" onClick={() => setConfirmNewDay(false)}>ยังก่อน</GameButton>
             </div>
           </div>
         </div>

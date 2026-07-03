@@ -59,7 +59,7 @@ function AppRouter() {
             }}
           >
             <ThemedIcon
-              className="chip-icon"
+              className="chip-icon chip-icon--lg"
               src={state.settings.soundEnabled ? gameAssets.iconSoundOn : gameAssets.iconSoundOff}
               emoji={state.settings.soundEnabled ? "🔊" : "🔇"}
             />

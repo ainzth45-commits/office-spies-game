@@ -68,7 +68,7 @@ describe("game actions", () => {
     expect(fresh.shield).toEqual({ slot: null, exists: false, consumed: false });
     expect(fresh.voteCostState).toEqual({ accumulatedSkippedMultiplier: 1, nextVoteMultiplier: 1 });
     expect(rolesAssigned(fresh)).toBe(false); // บทบาทว่าง — ไปสุ่มตอนกดเปิดบทบาท
-    expect(fresh.phase).toBe("home");
+    expect(fresh.phase).toBe("boot"); // กลับหน้าแตะโลโก้
     // ของที่ต้องรอด: ตั้งค่าเกมของซุป + settings เครื่อง + ผู้เล่น
     expect(fresh.config.gachaSpinCost).toBe(9);
     expect(fresh.settings.soundEnabled).toBe(false);
@@ -468,11 +468,18 @@ describe("game actions", () => {
       state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
     }
     state = finalizeVoteRound(state);
+    // หีบรอบเก่าต้องถูกปิดทิ้ง — ไม่งั้นวันถัดไปหน้าโหวตค้างที่ "ครบทุกเสียงแล้ว" เปิดรอบใหม่ไม่ได้
+    expect(state.currentVote).toBeNull();
     state = advanceFromVoteResult(state);
     if (state.phase === "refund") state = finishRefund(state);
     state = advanceFromPostVoteClue(state);
 
     expect(state.phase).toBe("home");
     expect(state.endWinner).toBeNull();
+
+    // วันใหม่ต้องเปิดโหวตรอบใหม่ได้ทันที
+    const nextDay = startNewDay(state);
+    const reopened = openVote(nextDay);
+    expect(reopened.currentVote?.submittedVoterIds).toHaveLength(0);
   });
 });

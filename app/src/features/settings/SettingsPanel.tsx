@@ -215,9 +215,9 @@ export function SettingsPanel() {
       </fieldset>
 
       <div className="button-row settings-actions">
-        <GameButton onClick={save} disabled={!isGacha100}>💾 บันทึก</GameButton>
         <GameButton variant="paper" onClick={() => { setDraft(defaultConfig); setSaved(false); }}>คืนค่าเริ่มต้น (ยังไม่บันทึก)</GameButton>
         <GameButton variant="danger" onClick={() => { setState(resetConfig); setDraft(defaultConfig); }}>รีเซ็ต + บันทึกทันที</GameButton>
+        <GameButton onClick={save} disabled={!isGacha100}>💾 บันทึก</GameButton>
       </div>
     </section>
   );

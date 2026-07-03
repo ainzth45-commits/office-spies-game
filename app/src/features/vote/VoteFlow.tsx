@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { gameAssets } from "../../data/assets";
+import { gameAssets, itemCardAssets } from "../../data/assets";
 import { itemCatalog } from "../../data/items";
 import { calculateVoteCost } from "../../domain/economy";
-import type { Player, PlayerId, VoteItemType } from "../../domain/types";
+import type { Player, PlayerId, VoteItem, VoteItemType } from "../../domain/types";
 import { openVote, submitVoteTurn } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
@@ -13,16 +13,33 @@ import { PlayerPicker } from "../../ui/components/PlayerPicker";
 
 type Step = "open" | "pickVoter" | "confirm" | "ballot" | "curtain";
 
-const effectItemTypes: VoteItemType[] = ["remove", "swap", "reduceThreshold", "protectThreshold"];
+// ไอเทมที่วางแผนจะใช้ในตานี้ (คนละส่วนกับการโหวต — โหวตยังต้องเลือกเป้าตามปกติ)
+type PlannedItem =
+  | { id: string; type: "double" }
+  | { id: string; type: "remove"; targetId: PlayerId }
+  | { id: string; type: "swap"; firstTargetId: PlayerId; secondTargetId: PlayerId }
+  | { id: string; type: "reduceThreshold" }
+  | { id: string; type: "protectThreshold" };
+
+const itemDescriptions: Record<VoteItemType, string> = {
+  double: "เสียงโหวตของคุณในตานี้ นับเป็น 2 เสียง — แค่กดใช้ แล้วไปเลือกเป้าโหวตตามปกติ",
+  remove: "เลือก 1 คน เพื่อลบเสียงของคนนั้นลง 1 เสียง — ไม่เกี่ยวกับเสียงโหวตของคุณ ยังต้องโหวตตามปกติ",
+  swap: "เลือก 2 คน เพื่อสลับจำนวนเสียงที่สองคนนั้นได้รับ — ไม่เกี่ยวกับเสียงโหวตของคุณ ยังต้องโหวตตามปกติ",
+  reduceThreshold: "ลดเกณฑ์เสียงที่ต้องถึงของรอบนี้ลง 25% — โหวตโดนง่ายขึ้นทั้งรอบ",
+  protectThreshold: "กันไม่ให้ไอเทม R ลดเกณฑ์ได้ผลในรอบนี้",
+};
+
+function labelItem(type: VoteItemType): string {
+  return itemCatalog.find((item) => item.type === type)?.label ?? type;
+}
 
 export function VoteFlow() {
   const { state, setState } = useGameStore();
   const [step, setStep] = useState<Step>(state.currentVote ? "pickVoter" : "open");
   const [selectedVoterId, setSelectedVoterId] = useState<PlayerId | null>(null);
   const [targetId, setTargetId] = useState<PlayerId | null>(null);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [swapFirstId, setSwapFirstId] = useState<PlayerId | "">("");
-  const [swapSecondId, setSwapSecondId] = useState<PlayerId | "">("");
+  const [plannedItem, setPlannedItem] = useState<PlannedItem | null>(null);
+  const [bagOpen, setBagOpen] = useState(false);
   const [message, setMessage] = useState("");
   const presentPlayers = state.players.filter((player) => state.attendance[player.id]);
   const remainingPlayers = state.currentVote
@@ -30,7 +47,6 @@ export function VoteFlow() {
     : presentPlayers;
   const voter = state.players.find((player) => player.id === selectedVoterId) ?? null;
   const inventory = selectedVoterId ? state.inventories[selectedVoterId] ?? [] : [];
-  const selectedItem = inventory.find((item) => item.id === selectedItemId) ?? null;
   const openCost = useMemo(
     () =>
       calculateVoteCost(
@@ -42,16 +58,6 @@ export function VoteFlow() {
     [presentPlayers.length, state.config, state.voteCostState.accumulatedSkippedMultiplier, state.voteCostState.nextVoteMultiplier],
   );
 
-  function startVote() {
-    try {
-      setState((current) => openVote(current));
-      setStep("pickVoter");
-      setMessage("");
-    } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : "เปิดโหวตไม่สำเร็จ");
-    }
-  }
-
   function submitBallot() {
     if (!selectedVoterId || !targetId) return;
     try {
@@ -59,16 +65,17 @@ export function VoteFlow() {
         submitVoteTurn(current, {
           voterId: selectedVoterId,
           targetId,
-          doubleItemId: selectedItem?.type === "double" ? selectedItem.id : undefined,
-          effectItem: selectedItem && effectItemTypes.includes(selectedItem.type)
-            ? {
-                id: selectedItem.id,
-                type: selectedItem.type as Exclude<VoteItemType, "double">,
-                targetId,
-                firstTargetId: swapFirstId || undefined,
-                secondTargetId: swapSecondId || undefined,
-              }
-            : undefined,
+          doubleItemId: plannedItem?.type === "double" ? plannedItem.id : undefined,
+          effectItem:
+            plannedItem && plannedItem.type !== "double"
+              ? {
+                  id: plannedItem.id,
+                  type: plannedItem.type,
+                  targetId: plannedItem.type === "remove" ? plannedItem.targetId : undefined,
+                  firstTargetId: plannedItem.type === "swap" ? plannedItem.firstTargetId : undefined,
+                  secondTargetId: plannedItem.type === "swap" ? plannedItem.secondTargetId : undefined,
+                }
+              : undefined,
         }),
       );
       setStep("curtain");
@@ -81,9 +88,8 @@ export function VoteFlow() {
   function resetTurn() {
     setSelectedVoterId(null);
     setTargetId(null);
-    setSelectedItemId(null);
-    setSwapFirstId("");
-    setSwapSecondId("");
+    setPlannedItem(null);
+    setBagOpen(false);
     setStep("pickVoter");
   }
 
@@ -99,9 +105,21 @@ export function VoteFlow() {
         <p className="scene-lead">โหวตครบทุกคนแล้วถึงจะเปิดผล ใครโดนเสียงถล่มถึงเกณฑ์... ได้รู้กัน 🕵️‍♀️</p>
         {message && <p className="form-error">{message}</p>}
         <div className="button-row">
-          <GameButton onClick={startVote}>💰 วางเหรียญครบแล้ว — เปิดโหวต!</GameButton>
           <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>
             ยังก่อน กลับ Home
+          </GameButton>
+          <GameButton
+            onClick={() => {
+              try {
+                setState((current) => openVote(current));
+                setStep("pickVoter");
+                setMessage("");
+              } catch (caught) {
+                setMessage(caught instanceof Error ? caught.message : "เปิดโหวตไม่สำเร็จ");
+              }
+            }}
+          >
+            💰 วางเหรียญครบแล้ว — เปิดโหวต!
           </GameButton>
         </div>
       </section>
@@ -154,69 +172,167 @@ export function VoteFlow() {
       <h2>🗳️ คูหาลับของ {voter?.name ?? "คุณ"}</h2>
       <p className="big-callout">แตะหน้าคนที่คุณสงสัยว่าเป็นสายลับ — ไม่มีใครรู้ว่าคุณเลือกใคร</p>
       {message && <p className="form-error">{message}</p>}
-      <h3>🎯 เป้าหมายของคุณ</h3>
       <div className="player-grid player-grid--compact">
         {presentPlayers.map((player) => (
           <PlayerCard key={player.id} player={player} selected={targetId === player.id} onClick={() => setTargetId(player.id)} />
         ))}
       </div>
-      <h3>🎒 ของลับในกระเป๋า {inventory.length === 0 ? "— ว่างเปล่า (สุ่มได้จากตู้กาชา)" : "— ใช้ตอนนี้ ไม่มีใครเห็น"}</h3>
-      <div className="item-strip">
-        <GameButton variant={selectedItemId === null ? "primary" : "paper"} onClick={() => setSelectedItemId(null)}>
-          ไม่ใช้ไอเทม
-        </GameButton>
-        {inventory.map((item) => (
-          <GameButton key={item.id} variant={selectedItemId === item.id ? "primary" : "paper"} onClick={() => setSelectedItemId(item.id)}>
-            {labelItem(item.type)}
-          </GameButton>
-        ))}
-      </div>
-      {selectedItem?.type === "swap" && <SwapPicker players={presentPlayers} first={swapFirstId} second={swapSecondId} onFirst={setSwapFirstId} onSecond={setSwapSecondId} />}
+      {plannedItem && (
+        <p className="planned-item">
+          🎒 จะใช้: <b>{labelItem(plannedItem.type)}</b>
+          {plannedItem.type === "remove" && ` → ลบเสียง ${presentPlayers.find((p) => p.id === plannedItem.targetId)?.name ?? ""}`}
+          {plannedItem.type === "swap" &&
+            ` → สลับ ${presentPlayers.find((p) => p.id === plannedItem.firstTargetId)?.name ?? ""} ↔ ${presentPlayers.find((p) => p.id === plannedItem.secondTargetId)?.name ?? ""}`}
+          <button type="button" className="planned-item__cancel" onClick={() => setPlannedItem(null)}>✕ ไม่ใช้แล้ว</button>
+        </p>
+      )}
       <div className="button-row">
-        <GameButton disabled={!targetId} onClick={submitBallot}>🔒 หย่อนบัตรลงหีบ</GameButton>
         <GameButton variant="paper" onClick={resetTurn}>ย้อนกลับ</GameButton>
+        <GameButton variant="paper" onClick={() => setBagOpen(true)}>
+          🎒 กระเป๋าไอเทม ({inventory.length})
+        </GameButton>
+        <GameButton disabled={!targetId} onClick={submitBallot}>🔒 หย่อนบัตรลงหีบ</GameButton>
       </div>
+
+      {bagOpen && (
+        <ItemBagModal
+          inventory={inventory}
+          players={presentPlayers}
+          planned={plannedItem}
+          onPlan={(planned) => {
+            setPlannedItem(planned);
+            setBagOpen(false);
+          }}
+          onClose={() => setBagOpen(false)}
+        />
+      )}
     </section>
   );
 }
 
-function labelItem(type: VoteItemType): string {
-  return itemCatalog.find((item) => item.type === type)?.label ?? type;
-}
-
-function SwapPicker({
+// กระเป๋าไอเทมในคูหา — เลือกไอเทม → อ่านคำอธิบาย → เลือกเป้า (ถ้าต้องมี) → ยืนยัน
+function ItemBagModal({
+  inventory,
   players,
-  first,
-  second,
-  onFirst,
-  onSecond,
+  planned,
+  onPlan,
+  onClose,
 }: {
+  inventory: VoteItem[];
   players: Player[];
-  first: PlayerId | "";
-  second: PlayerId | "";
-  onFirst: (playerId: PlayerId | "") => void;
-  onSecond: (playerId: PlayerId | "") => void;
+  planned: PlannedItem | null;
+  onPlan: (planned: PlannedItem | null) => void;
+  onClose: () => void;
 }) {
+  const [openedItem, setOpenedItem] = useState<VoteItem | null>(null);
+  const [pickedIds, setPickedIds] = useState<PlayerId[]>([]);
+  const [confirming, setConfirming] = useState(false);
+
+  function resetDetail() {
+    setOpenedItem(null);
+    setPickedIds([]);
+    setConfirming(false);
+  }
+
+  // จอเลือกไอเทมในกระเป๋า
+  if (!openedItem) {
+    return (
+      <div className="overlay" onClick={onClose}>
+        <div className="admin-menu bag-modal" onClick={(event) => event.stopPropagation()}>
+          <h2>🎒 กระเป๋าไอเทมลับ</h2>
+          {inventory.length === 0 ? (
+            <p className="confirm-modal__body">กระเป๋าว่างเปล่า... ไอเทมสุ่มได้จากตู้กาชาเท่านั้น</p>
+          ) : (
+            <>
+              <p className="confirm-modal__body">แตะไอเทมเพื่อดูว่ามันทำอะไร — ใช้ได้ตาละ 1 ชิ้น ไม่มีใครเห็นว่าคุณใช้</p>
+              <div className="bag-grid">
+                {inventory.map((item) => (
+                  <button key={item.id} type="button" className="bag-item" onClick={() => setOpenedItem(item)}>
+                    <img src={itemCardAssets[item.type]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                    <span>{labelItem(item.type)}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {planned && (
+            <GameButton variant="paper" onClick={() => onPlan(null)}>✕ ยกเลิกไอเทมที่เลือกไว้ ({labelItem(planned.type)})</GameButton>
+          )}
+          <div className="button-row">
+            <GameButton onClick={onClose}>ปิดกระเป๋า</GameButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const type = openedItem.type;
+  const needsOne = type === "remove";
+  const needsTwo = type === "swap";
+  const readyToConfirm = needsOne ? pickedIds.length === 1 : needsTwo ? pickedIds.length === 2 : true;
+  const pickedNames = pickedIds.map((id) => players.find((p) => p.id === id)?.name ?? "");
+
+  function togglePick(playerId: PlayerId) {
+    setPickedIds((current) => {
+      if (current.includes(playerId)) return current.filter((id) => id !== playerId);
+      const limit = needsTwo ? 2 : 1;
+      return current.length >= limit ? [...current.slice(1), playerId] : [...current, playerId];
+    });
+    setConfirming(false);
+  }
+
+  function confirmUse() {
+    if (type === "double") onPlan({ id: openedItem!.id, type: "double" });
+    else if (type === "remove") onPlan({ id: openedItem!.id, type: "remove", targetId: pickedIds[0] });
+    else if (type === "swap") onPlan({ id: openedItem!.id, type: "swap", firstTargetId: pickedIds[0], secondTargetId: pickedIds[1] });
+    else if (type === "reduceThreshold") onPlan({ id: openedItem!.id, type: "reduceThreshold" });
+    else onPlan({ id: openedItem!.id, type: "protectThreshold" });
+  }
+
   return (
-    <div className="swap-picker">
-      <label>
-        สลับคนที่ 1
-        <select value={first} onChange={(event) => onFirst(event.target.value)}>
-          <option value="">เลือกคน</option>
-          {players.map((player) => (
-            <option key={player.id} value={player.id}>{player.name}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        สลับคนที่ 2
-        <select value={second} onChange={(event) => onSecond(event.target.value)}>
-          <option value="">เลือกคน</option>
-          {players.map((player) => (
-            <option key={player.id} value={player.id}>{player.name}</option>
-          ))}
-        </select>
-      </label>
+    <div className="overlay" onClick={resetDetail}>
+      <div className="admin-menu bag-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="bag-detail__head">
+          <img src={itemCardAssets[type]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+          <h2>{labelItem(type)}</h2>
+        </div>
+        <p className="confirm-modal__body">{itemDescriptions[type]}</p>
+
+        {(needsOne || needsTwo) && (
+          <>
+            <p className="bag-detail__pick-label">
+              {needsOne ? "แตะเลือก 1 คนที่จะโดนลบเสียง" : `แตะเลือก 2 คนที่จะสลับผลกัน (เลือกแล้ว ${pickedIds.length}/2)`}
+            </p>
+            <div className="player-grid player-grid--pick bag-detail__grid">
+              {players.map((player) => (
+                <PlayerCard key={player.id} player={player} selected={pickedIds.includes(player.id)} onClick={() => togglePick(player.id)} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {confirming ? (
+          <div className="button-row">
+            <GameButton variant="paper" onClick={() => setConfirming(false)}>ยกเลิก</GameButton>
+            <GameButton
+              onClick={confirmUse}
+            >
+              {type === "swap"
+                ? `ยืนยันสลับ ${pickedNames[0]} ↔ ${pickedNames[1]}`
+                : type === "remove"
+                  ? `ยืนยันลบเสียง ${pickedNames[0]}`
+                  : `ยืนยันใช้ ${labelItem(type)}`}
+            </GameButton>
+          </div>
+        ) : (
+          <div className="button-row">
+            <GameButton variant="paper" onClick={resetDetail}>← กลับกระเป๋า</GameButton>
+            <GameButton disabled={!readyToConfirm} onClick={() => setConfirming(true)}>
+              ใช้ไอเทมนี้
+            </GameButton>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

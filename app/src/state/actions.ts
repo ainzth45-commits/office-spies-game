@@ -89,8 +89,9 @@ export function startNewGameRound(state: GameState): GameState {
     );
   }
   const fresh = createInitialGameState();
+  // กลับไปหน้าแตะโลโก้ (boot) — ให้ความรู้สึก "เกมใหม่จริงๆ" ตั้งแต่จอแรก
   return log(
-    { ...fresh, phase: "home", players: state.players, config: state.config, settings: state.settings },
+    { ...fresh, phase: "boot", players: state.players, config: state.config, settings: state.settings },
     "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด",
   );
 }
@@ -460,6 +461,8 @@ export function finalizeVoteRound(state: GameState): GameState {
       phase: "voteResult",
       shield: result.shieldConsumed ? { ...state.shield, consumed: true } : state.shield,
       lastVoteResult: { roundId: state.currentVote.id, paidCost: state.currentVote.paidCost, refundAmount, result },
+      // ปิดหีบรอบนี้ทิ้งเลย — ไม่งั้นวันถัดไปเข้าหน้าโหวตจะเจอหีบเก่าค้าง เปิดโหวตใหม่ไม่ได้ (บั๊กที่เจ้านายเจอ)
+      currentVote: null,
     },
     "คำนวณผลโหวต",
   );

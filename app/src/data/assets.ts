@@ -34,7 +34,7 @@ export const gameAssets = {
 
   // ตราผลโหวต + เบ็ดเตล็ดแฟ้มคดี
   voteWinStamp: `${BASE}/vote-win-stamp.webp?v=3`,
-  voteLoseStamp: `${BASE}/vote-lose-stamp.webp?v=3`,
+  voteLoseStamp: `${BASE}/vote-lose-stamp.webp?v=4`, // v=4: โทนครีม/แดงอิฐ มองเห็นบนพื้นน้ำเงิน (codex)
   clueCardFrame: `${BASE}/clue-card-frame.webp?v=3`,
   spyPoolBanner: `${BASE}/spy-pool-banner.webp?v=3`,
 
@@ -49,6 +49,9 @@ export const gameAssets = {
   tutVoteOutcome: `${BASE}/tut-vote-outcome.webp?v=3`,
   // ฉากชี้ตัวสายลับคนที่ 2
   tutGuessSecondSpy: `${BASE}/tut-guess-second-spy.webp?v=1`,
+
+  // สายข่าวเยาะเย้ย — โผล่ตอนซื้อเบาะแสแล้วกองเล็กเกิน ไม่มีข้อมูลขาย (กับดักตามดีไซน์)
+  clueNoInfo: `${BASE}/clue-no-info.webp?v=1`,
 
   // ชุดไอคอน UI ธีมเกมแทนอิโมจิ (codex 2026-07-03)
   iconHome: `${BASE}/icon-home.webp?v=1`,
