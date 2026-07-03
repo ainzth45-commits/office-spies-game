@@ -81,6 +81,38 @@ textarea {
   background-position: top center;
 }
 
+/* หน้าเปิดเว็บ — โลโก้ใหญ่กลางจอ แตะเพื่อเข้าเกม */
+.boot-splash { display: grid; place-items: center; }
+.boot-logo-btn {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 3dvh, 28px);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+.boot-logo-btn__img {
+  width: min(880px, 88vw);
+  max-height: 62dvh;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.28));
+  animation: boot-breathe 2.6s ease-in-out infinite;
+}
+.boot-logo-btn:active .boot-logo-btn__img { transform: scale(0.97); }
+.boot-logo-btn__hint {
+  color: #ffe9b6;
+  font-weight: 900;
+  font-size: clamp(16px, 2.6dvh, 22px);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: reel-pulse 1.4s ease-in-out infinite;
+}
+@keyframes boot-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
 .boot-card {
   width: min(720px, 100%);
   border: 4px solid #fbf7ef;
@@ -1454,7 +1486,8 @@ h1 {
   height: clamp(96px, 15dvh, 145px);
 }
 .vote-ballot .player-card__photo,
-.player-grid--compact .player-card__photo {
+.player-grid--compact .player-card__photo,
+.player-grid--pick .player-card__photo {
   /* รูปพนักงานเป็นแนวตั้ง ใบหน้าอยู่ช่วงบน — เลื่อนจุดตัดขึ้นให้เห็นหน้าเต็ม ไม่ใช่หน้าผาก */
   object-position: 50% 18%;
 }

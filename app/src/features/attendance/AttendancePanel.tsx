@@ -6,7 +6,7 @@ export function AttendancePanel() {
   return (
     <section className="scene-panel">
       <h2>คนมา / คนลา วันนี้</h2>
-      <div className="player-grid">
+      <div className="player-grid player-grid--pick">
         {state.players.map((player) => {
           const present = state.attendance[player.id];
           return (
