@@ -7,10 +7,9 @@ import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { AttendancePanel } from "../attendance/AttendancePanel";
 import { BackupPanel } from "../backup/BackupPanel";
-import { QuickRules } from "../rules/QuickRules";
 import { SettingsPanel } from "../settings/SettingsPanel";
 
-type ActivePanel = "attendance" | "settings" | "backup" | "rules" | "admin" | null;
+type ActivePanel = "attendance" | "settings" | "backup" | "admin" | null;
 
 type DockItem = {
   key: string;
@@ -57,7 +56,35 @@ export function HomeHub() {
   return (
     <main className="home-screen">
       <div className="home-topbar">
-        <button type="button" className="chip-btn" onClick={() => setActivePanel("rules")}>❓ กฎย่อ</button>
+        {/* เริ่มรอบใหม่ (ล้างกระดาน) — มุมซ้ายบน ไม่เด่น + ยืนยัน 2 จังหวะ */}
+        <div className="home-topbar__left">
+          <button
+            type="button"
+            className={`chip-btn home-reset${confirmReset ? " home-reset--armed" : ""}`}
+            onClick={() => {
+              if (!confirmReset) {
+                setConfirmReset(true);
+                setResetError("");
+                return;
+              }
+              try {
+                setState((current) => startNewGameRound(current));
+                setConfirmReset(false);
+              } catch (caught) {
+                setResetError(caught instanceof Error ? caught.message : "เริ่มรอบใหม่ไม่สำเร็จ");
+                setConfirmReset(false);
+              }
+            }}
+          >
+            {confirmReset ? "⚠️ ล้างกระดานทั้งเกม? กดอีกครั้ง" : "🔄 เริ่มรอบใหม่"}
+          </button>
+          {resetError && <p className="home-reset__error">{resetError}</p>}
+          {!resetError && quizBankLow && (
+            <p className="home-reset__error">
+              📚 คลังโจทย์เหลือ {quizRemaining}/{state.config.quizMinRemainingToStart} — รีเซตคลังในตั้งค่าก่อนเริ่มรอบใหม่
+            </p>
+          )}
+        </div>
         <button
           type="button"
           className="chip-btn"
@@ -115,33 +142,6 @@ export function HomeHub() {
             </GameButton>
           )}
         </div>
-        {/* เริ่มรอบใหม่ = ล้างกระดานทั้งเกม — นานๆ กดที เลยเป็นปุ่มเล็กจางๆ + ยืนยัน 2 จังหวะ */}
-        <button
-          type="button"
-          className={`home-reset${confirmReset ? " home-reset--armed" : ""}`}
-          onClick={() => {
-            if (!confirmReset) {
-              setConfirmReset(true);
-              setResetError("");
-              return;
-            }
-            try {
-              setState((current) => startNewGameRound(current));
-              setConfirmReset(false);
-            } catch (caught) {
-              setResetError(caught instanceof Error ? caught.message : "เริ่มรอบใหม่ไม่สำเร็จ");
-              setConfirmReset(false);
-            }
-          }}
-        >
-          {confirmReset ? "⚠️ ล้างกระดานทั้งเกมจริงไหม? กดอีกครั้งเพื่อยืนยัน" : "🔄 เริ่มรอบใหม่ (ล้างกระดานทั้งหมด)"}
-        </button>
-        {resetError && <p className="home-reset__error">{resetError}</p>}
-        {!resetError && quizBankLow && (
-          <p className="home-reset__error">
-            📚 คลังโจทย์เหลือ {quizRemaining} ข้อ (ต่ำกว่าเกณฑ์ {state.config.quizMinRemainingToStart}) — รีเซตคลังในตั้งค่าก่อน จึงจะเริ่มรอบใหม่ได้
-          </p>
-        )}
       </div>
 
       <nav className="home-dock" aria-label="เมนูหลัก">
@@ -207,7 +207,6 @@ export function HomeHub() {
           </div>
         </div>
       )}
-      {activePanel === "rules" && <QuickRules onClose={() => setActivePanel(null)} />}
     </main>
   );
 }

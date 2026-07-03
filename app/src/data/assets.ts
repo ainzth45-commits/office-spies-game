@@ -47,6 +47,8 @@ export const gameAssets = {
   tutVoteCast: `${BASE}/tut-vote-cast.webp?v=3`,
   tutVoteThreshold: `${BASE}/tut-vote-threshold.webp?v=3`,
   tutVoteOutcome: `${BASE}/tut-vote-outcome.webp?v=3`,
+  // ฉากชี้ตัวสายลับคนที่ 2 (รอ codex เจน — ระหว่างนี้ tutorial ใช้ fallbackImage แทน)
+  tutGuessSecondSpy: `${BASE}/tut-guess-second-spy.webp?v=1`,
 
   // ไอคอนแอป (Add to Home Screen) + ไอคอน dock เมนูหน้าโฮม
   appIcon: `${BASE}/app-icon.webp?v=3`,

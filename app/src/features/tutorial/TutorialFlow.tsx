@@ -28,12 +28,24 @@ export function TutorialFlow() {
             src={scene.image}
             alt=""
             aria-hidden="true"
-            onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
+            onError={(event) => {
+              // รูปหลักยังไม่มี (เช่น รอ codex เจน) → สลับไปรูปสำรอง ถ้าไม่มีค่อยซ่อน
+              const img = event.currentTarget;
+              if (scene.fallbackImage && img.src !== scene.fallbackImage && !img.src.endsWith(scene.fallbackImage)) {
+                img.src = scene.fallbackImage;
+                return;
+              }
+              img.style.visibility = "hidden";
+            }}
           />
         </div>
         <div className="tutorial-text">
           <h2>{scene.title}</h2>
-          <p className="big-callout">{scene.narration}</p>
+          <ul className="tutorial-lines">
+            {scene.lines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </div>
       </div>
 

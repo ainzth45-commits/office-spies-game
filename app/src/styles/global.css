@@ -1703,6 +1703,26 @@ h1 {
 .practice-cell:active { transform: translateY(2px) scale(0.95); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2); }
 .practice-sim { color: #ffd66b; font-weight: 800; font-size: 0.72em; }
 
+/* เนื้อหาสอนเล่น — บรรทัดสั้นๆ อ่านทีละวรรค */
+.tutorial-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(8px, 1.6dvh, 14px);
+}
+.tutorial-lines li {
+  border: 3px solid rgba(251, 247, 239, 0.4);
+  border-radius: 14px;
+  background: rgba(24, 33, 63, 0.6);
+  color: #fbf7ef;
+  font-weight: 800;
+  font-size: clamp(15px, 2.4dvh, 20px);
+  line-height: 1.45;
+  padding: clamp(8px, 1.6dvh, 14px) 16px;
+  text-align: left;
+}
+
 /* หน้ากติกาโจทย์เชาว์ — อ่านสบายก่อนเริ่มจับเวลา */
 .quiz-intro__head {
   display: flex;
@@ -1969,31 +1989,32 @@ h1 {
 .player-card--dimmed .player-card__photo-wrap { background: linear-gradient(140deg, #9aa0b0, #6b7180); }
 .player-card--dimmed .player-card__code { background: #6b7180; }
 
-/* เริ่มรอบใหม่ = ปุ่มเล็กจางๆ ใต้ CTA หลัก (destructive นานๆ ใช้ที ไม่ต้องเด่น) */
-.home-reset {
-  margin-top: clamp(4px, 0.8dvh, 8px);
-  border: none;
-  background: transparent;
-  color: rgba(251, 247, 239, 0.55);
-  font-weight: 800;
-  font-size: clamp(12px, 1.7dvh, 14px);
-  text-decoration: underline dotted rgba(251, 247, 239, 0.4);
-  text-underline-offset: 4px;
-  cursor: pointer;
-  padding: 4px 10px;
+/* เริ่มรอบใหม่ (ล้างกระดาน) — ชิปมุมซ้ายบน จางกว่าปุ่มอื่น (destructive นานๆ ใช้ที) */
+.home-topbar__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 48vw;
 }
-.home-reset:hover { color: rgba(251, 247, 239, 0.85); }
-.home-reset--armed {
-  color: #ffb5a8;
-  text-decoration-color: #e94f37;
+.chip-btn.home-reset {
+  background: rgba(245, 233, 208, 0.55);
+  border-color: rgba(32, 38, 63, 0.55);
+  font-size: clamp(12px, 1.6dvh, 14px);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+}
+.chip-btn.home-reset--armed {
+  background: #e94f37;
+  border-color: #7a1f12;
+  color: #fff;
   animation: reel-pulse 0.8s ease-in-out infinite;
 }
 .home-reset__error {
-  margin: 2px 0 0;
+  margin: 0;
   color: #ffb5a8;
   font-weight: 800;
-  font-size: clamp(12px, 1.7dvh, 14px);
-  text-align: center;
+  font-size: clamp(11px, 1.6dvh, 13px);
+  text-align: left;
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
 }
 
