@@ -15,6 +15,7 @@ import {
   endWorkingDay,
   enterRoleReveal,
   finalizeVoteRound,
+  finishRefund,
   markFinalDay,
   openVote,
   resetGame,
@@ -424,5 +425,41 @@ describe("game actions", () => {
     expect(next.lastGuessResult).toBeNull();
     expect(next.lastVoteResult).toBeNull();
     expect(rolesAssigned(next)).toBe(true);
+
+    // เงื่อนไขจบเกมข้อ 2: ชี้ผิดใน "วันสุดท้าย" ไม่มีรอบให้แก้ตัว → สายลับชนะทันที
+    const finalDayPending = { ...pending, manualDay: { ...pending.manualDay, isFinalDay: true } };
+    const ended = acknowledgeWrongGuess(finalDayPending, () => 0);
+    expect(ended.phase).toBe("ended");
+    expect(ended.endWinner).toBe("spies");
+  });
+
+  it("ends with a spy win when the final-day vote round closes without a catch", () => {
+    let state = openVote(createInitialGameState());
+    state = { ...state, manualDay: { ...state.manualDay, index: 6, isFinalDay: true } };
+    for (const voter of state.currentVote!.presentPlayerIds) {
+      state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
+    }
+    state = finalizeVoteRound(state); // ไม่มีสายลับถูกจับ (ไม่มีใครเป็นสปายในเกมสด)
+    expect(state.lastVoteResult?.result.publicResult).not.toBe("caughtSpy");
+    state = advanceFromVoteResult(state);
+    if (state.phase === "refund") state = finishRefund(state);
+    state = advanceFromPostVoteClue(state);
+
+    expect(state.phase).toBe("ended");
+    expect(state.endWinner).toBe("spies");
+  });
+
+  it("keeps the game going when a mid-game vote round closes without a catch", () => {
+    let state = openVote(createInitialGameState()); // วันเล่นที่ 1
+    for (const voter of state.currentVote!.presentPlayerIds) {
+      state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
+    }
+    state = finalizeVoteRound(state);
+    state = advanceFromVoteResult(state);
+    if (state.phase === "refund") state = finishRefund(state);
+    state = advanceFromPostVoteClue(state);
+
+    expect(state.phase).toBe("home");
+    expect(state.endWinner).toBeNull();
   });
 });

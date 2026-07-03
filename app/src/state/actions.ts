@@ -531,10 +531,20 @@ export function finishRefund(state: GameState): GameState {
   return log({ ...state, phase: "postVoteClue" }, "จัดสรรเหรียญคืนแล้ว");
 }
 
+function onFinalDay(state: GameState): boolean {
+  return state.manualDay.isFinalDay || state.manualDay.index >= state.config.maxGameDays;
+}
+
 export function advanceFromPostVoteClue(state: GameState): GameState {
   if (!state.lastVoteResult) throw new Error("ยังไม่มีผลโหวตล่าสุด");
-  const phase = state.lastVoteResult.result.publicResult === "caughtSpy" ? "guess" : "home";
-  return log({ ...state, phase }, "เดินหน้าหลังช่วงเบาะแส");
+  if (state.lastVoteResult.result.publicResult === "caughtSpy") {
+    return log({ ...state, phase: "guess" }, "เดินหน้าหลังช่วงเบาะแส");
+  }
+  // เงื่อนไขจบเกมข้อ 2: โหวตรอบวันสุดท้ายจบแล้วยังจับสายลับไม่ได้ → สายลับชนะทันที
+  if (onFinalDay(state)) {
+    return log({ ...state, phase: "ended", endWinner: "spies" }, "โหวตวันสุดท้ายจับไม่ได้ — สายลับชนะ");
+  }
+  return log({ ...state, phase: "home" }, "เดินหน้าหลังช่วงเบาะแส");
 }
 
 export function resolveSecondSpyGuess(state: GameState, guessedPlayerId: PlayerId, random: RandomSource = Math.random): GameState {
@@ -560,8 +570,15 @@ export function resolveSecondSpyGuess(state: GameState, guessedPlayerId: PlayerI
 }
 
 // ทีมรับทราบว่าชี้ผิดแล้ว → สุ่มบทบาทใหม่ เริ่มรอบถัดไป
+// ยกเว้นวันสุดท้าย: ไม่มีวันให้เล่นต่อ = จับไม่ครบ 2 คน → สายลับชนะ (เงื่อนไขจบเกมข้อ 2)
 export function acknowledgeWrongGuess(state: GameState, random: RandomSource = Math.random): GameState {
   if (!state.lastGuessResult || state.lastGuessResult.correct) throw new Error("ไม่มีผลชี้ผิดค้างอยู่");
+  if (onFinalDay(state)) {
+    return log(
+      { ...state, phase: "ended", endWinner: "spies", lastGuessResult: null },
+      "ชี้ผิดในวันสุดท้าย — สายลับชนะ",
+    );
+  }
   return assignNewRoles(
     { ...state, phase: "roleReveal", lastGuessResult: null, lastVoteResult: null, currentVote: null },
     random,
