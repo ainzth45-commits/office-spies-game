@@ -2,16 +2,15 @@ import { useState } from "react";
 import { playClick, setSoundEnabled } from "../../audio/sounds";
 import { gachaIconAssets, gameAssets } from "../../data/assets";
 import { calculateVoteCost } from "../../domain/economy";
-import { canStartNewDay, enterRoleReveal, remainingQuizCount, startNewDay, startNewGameRound } from "../../state/actions";
+import { canStartNewDay, enterRoleReveal, markFinalDay, remainingQuizCount, startNewDay, startNewGameRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { AttendancePanel } from "../attendance/AttendancePanel";
 import { BackupPanel } from "../backup/BackupPanel";
-import { ManualDayPanel } from "../day/ManualDayPanel";
 import { QuickRules } from "../rules/QuickRules";
 import { SettingsPanel } from "../settings/SettingsPanel";
 
-type ActivePanel = "day" | "attendance" | "settings" | "backup" | "rules" | "admin" | null;
+type ActivePanel = "attendance" | "settings" | "backup" | "rules" | "admin" | null;
 
 type DockItem = {
   key: string;
@@ -25,6 +24,7 @@ export function HomeHub() {
   const { state, setState } = useGameStore();
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmEndGame, setConfirmEndGame] = useState(false);
   const [resetError, setResetError] = useState("");
   const quizRemaining = remainingQuizCount();
   const quizBankLow = quizRemaining < state.config.quizMinRemainingToStart;
@@ -100,8 +100,18 @@ export function HomeHub() {
               📅 เริ่มวันใหม่ (ไปวันที่ {state.manualDay.index + 1})
             </GameButton>
           ) : (
-            <GameButton className="home-cta" onClick={() => setActivePanel("day")}>
-              🔒 วันสุดท้ายแล้ว — จบเกม/รีเซต
+            <GameButton
+              className="home-cta"
+              onClick={() => {
+                if (!confirmEndGame) {
+                  setConfirmEndGame(true);
+                  return;
+                }
+                setConfirmEndGame(false);
+                setState(markFinalDay);
+              }}
+            >
+              {confirmEndGame ? "⚠️ จบเกมเลยนะ? กดอีกครั้งเพื่อยืนยัน" : "🏁 วันสุดท้ายแล้ว — จบเกม & ดูผลตัดสิน"}
             </GameButton>
           )}
         </div>
@@ -163,18 +173,30 @@ export function HomeHub() {
             <div className="admin-menu__grid">
               <GameButton variant="paper" onClick={() => setActivePanel("settings")}>ตั้งค่าเกม</GameButton>
               <GameButton variant="paper" onClick={() => setActivePanel("attendance")}>คนมา/คนลา</GameButton>
-              <GameButton variant="paper" onClick={() => setActivePanel("day")}>คุมวัน</GameButton>
               <GameButton variant="paper" onClick={() => setActivePanel("backup")}>Backup</GameButton>
+              <GameButton
+                variant="danger"
+                onClick={() => {
+                  if (!confirmEndGame) {
+                    setConfirmEndGame(true);
+                    return;
+                  }
+                  setConfirmEndGame(false);
+                  setActivePanel(null);
+                  setState(markFinalDay);
+                }}
+              >
+                {confirmEndGame ? "⚠️ กดอีกครั้งเพื่อยืนยันจบเกม" : "🏁 จบเกมฉุกเฉิน (สายลับชนะ)"}
+              </GameButton>
             </div>
-            <GameButton onClick={() => setActivePanel(null)}>ปิด</GameButton>
+            <GameButton onClick={() => { setConfirmEndGame(false); setActivePanel(null); }}>ปิด</GameButton>
           </div>
         </div>
       )}
 
-      {(activePanel === "day" || activePanel === "attendance" || activePanel === "settings" || activePanel === "backup") && (
+      {(activePanel === "attendance" || activePanel === "settings" || activePanel === "backup") && (
         <div className="overlay" onClick={() => setActivePanel(null)}>
           <div className="overlay-sheet" onClick={(event) => event.stopPropagation()}>
-            {activePanel === "day" && <ManualDayPanel />}
             {activePanel === "attendance" && <AttendancePanel />}
             {activePanel === "settings" && <SettingsPanel />}
             {activePanel === "backup" && <BackupPanel />}

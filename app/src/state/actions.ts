@@ -163,31 +163,6 @@ export function endWorkingDay(state: GameState, nextLabel: string): GameState {
   );
 }
 
-export function restDay(state: GameState, nextLabel: string): GameState {
-  return log(
-    {
-      ...state,
-      phase: "home",
-      manualDay: {
-        ...state.manualDay,
-        index: state.manualDay.index + 1,
-        label: nextLabel,
-        openedVoteToday: false,
-        history: [
-          ...state.manualDay.history,
-          {
-            actionId: newActionId(),
-            kind: "rest-day",
-            label: nextLabel,
-            voteCostMultiplierAfter: state.voteCostState.accumulatedSkippedMultiplier,
-          },
-        ],
-      },
-      dailyUsage: resetDailyUsageFor(state, state.manualDay.index + 1),
-    },
-    "พักวันโดยไม่เพิ่มค่าโหวต",
-  );
-}
 
 // เริ่มวันใหม่ได้ไหม (ยังไม่ถึงวันสุดท้าย)
 export function canStartNewDay(state: GameState): boolean {
@@ -207,21 +182,6 @@ export function startNewDay(state: GameState, nextLabel?: string): GameState {
   return advanced;
 }
 
-// รีเซตเกมใหม่ (จบเกมเดิม เริ่มนับวันที่ 1) — เก็บ config/settings/รายชื่อ/คนมา-ลา ไว้
-export function resetGame(state: GameState): GameState {
-  const fresh = createInitialGameState();
-  return log(
-    {
-      ...fresh,
-      phase: "home",
-      players: state.players,
-      config: state.config,
-      settings: state.settings,
-      attendance: state.attendance,
-    },
-    "รีเซตเกมใหม่",
-  );
-}
 
 export function markFinalDay(state: GameState): GameState {
   if (state.endWinner) return state;

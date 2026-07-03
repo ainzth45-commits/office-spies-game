@@ -18,9 +18,7 @@ import {
   finishRefund,
   markFinalDay,
   openVote,
-  resetGame,
   resolveSecondSpyGuess,
-  restDay,
   rolesAssigned,
   startNewDay,
   startNewGameRound,
@@ -83,22 +81,7 @@ describe("game actions", () => {
     expect(() => startNewGameRound(state)).toThrow("รีเซตคลังโจทย์");
   });
 
-  it("resetGame returns to day 1 but keeps config and players", () => {
-    let state = startNewDay(startNewDay(createInitialGameState())); // day 3
-    state = { ...state, config: { ...state.config, gachaSpinCost: 99 } };
-    const reset = resetGame(state);
-    expect(reset.manualDay.index).toBe(1);
-    expect(reset.manualDay.isFinalDay).toBe(false);
-    expect(reset.phase).toBe("home");
-    expect(reset.config.gachaSpinCost).toBe(99); // config คงไว้
-    expect(reset.players).toEqual(state.players);
-  });
 
-  it("rest day does not increase vote cost multiplier", () => {
-    const state = restDay(createInitialGameState(), "พักวันพุธ");
-    expect(state.voteCostState.accumulatedSkippedMultiplier).toBe(1);
-    expect(state.manualDay.label).toBe("พักวันพุธ");
-  });
 
   it("opening a vote resets skipped multiplier and marks the day", () => {
     const skipped = endWorkingDay(createInitialGameState(), "วันเล่นที่ 2");
