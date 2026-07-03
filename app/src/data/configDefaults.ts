@@ -17,10 +17,10 @@ export const defaultConfig: GameConfig = {
   inventoryLimit: 2,
   quizCorrectReward: 10,
   quizWrongPenaltyPerPlayer: 3,
-  // โหมดชิล (เคาะ 2026-07-03): รางวัลลด 1 ทุก 10 วิ เหลือต่ำสุด 1 · เกิน 60 วิ ตอบผิดเสียขั้น 2
-  quizRewardDecaySec: 10,
+  // สเกลเร่งเร้า (เคาะ 2026-07-04): รางวัลลด 1 ทุก 5 วิ เหลือต่ำสุด 1 · เกิน 30 วิ ตอบผิดเสียขั้น 2
+  quizRewardDecaySec: 5,
   quizRewardMin: 1,
-  quizPenaltyTierSec: 60,
+  quizPenaltyTierSec: 30,
   quizWrongPenaltyLate: 6,
   gachaSpinCost: 4,
   gachaCoinSelfGain: 8,

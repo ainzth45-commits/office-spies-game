@@ -226,8 +226,8 @@ describe("game actions", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
     const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
-    // 35 วิ → ลด 3 ขั้น (default decay 10 วิ/ขั้น จาก 10 → 7)
-    const state = answerPendingQuiz(pending, question.answer, nowMs + 35_000);
+    // 17 วิ → ลด 3 ขั้น (default decay 5 วิ/ขั้น จาก 10 → 7)
+    const state = answerPendingQuiz(pending, question.answer, nowMs + 17_000);
     expect(state.pendingQuizResult?.message).toContain("รับ 7 เหรียญ");
   });
 

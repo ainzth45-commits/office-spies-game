@@ -52,7 +52,12 @@ export function migrateConfig(saved: LegacyGameState["config"]): GameConfig {
   delete merged.itemPrices;
   delete merged.itemDailyLimits;
   delete merged.gachaDailyLimitPerPlayer;
-  return merged as GameConfig;
+  // สเกลเวลาโจทย์เชาว์รุ่นแรก (10วิ/60วิ) ถูกเจ้านายปรับเป็น 5วิ/30วิ — เซฟที่ยังถือค่ารุ่นแรก
+  // (ไม่มีใครตั้งใจปรับเอง ฟีเจอร์เพิ่งออกวันเดียว) อัปเป็นค่าใหม่ให้อัตโนมัติ
+  const config = merged as GameConfig;
+  if (config.quizRewardDecaySec === 10) config.quizRewardDecaySec = 5;
+  if (config.quizPenaltyTierSec === 60) config.quizPenaltyTierSec = 30;
+  return config;
 }
 
 export function migrateGameState(raw: GameState): GameState {

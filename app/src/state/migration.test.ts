@@ -26,8 +26,19 @@ describe("migration from pre-rework saves", () => {
     expect("grantItem" in migrated.gachaWeights).toBe(false);
     expect("itemPrices" in migrated).toBe(false);
     expect("gachaDailyLimitPerPlayer" in migrated).toBe(false);
-    // quiz timing ใหม่เติมจาก default
-    expect(migrated.quizRewardDecaySec).toBe(10);
+    // quiz timing ใหม่เติมจาก default (สเกล 5วิ/30วิ)
+    expect(migrated.quizRewardDecaySec).toBe(5);
+    expect(migrated.quizPenaltyTierSec).toBe(30);
+  });
+
+  it("upgrades first-generation quiz timing (10s/60s) to the new 5s/30s scale", () => {
+    const migrated = migrateConfig({ ...defaultConfig, quizRewardDecaySec: 10, quizPenaltyTierSec: 60 });
+    expect(migrated.quizRewardDecaySec).toBe(5);
+    expect(migrated.quizPenaltyTierSec).toBe(30);
+    // ค่าที่ซุปตั้งเองแบบอื่น (ไม่ใช่ค่ารุ่นแรก) ต้องไม่ถูกแตะ
+    const custom = migrateConfig({ ...defaultConfig, quizRewardDecaySec: 8, quizPenaltyTierSec: 45 });
+    expect(custom.quizRewardDecaySec).toBe(8);
+    expect(custom.quizPenaltyTierSec).toBe(45);
   });
 
   it("keeps already-migrated weights untouched", () => {
