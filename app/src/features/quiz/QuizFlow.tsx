@@ -42,6 +42,7 @@ export function QuizFlow() {
         </h2>
         {question && <p className="scene-lead">{question.question}</p>}
         <p className="big-callout">{result.message}</p>
+        {question?.explanation && <p className="quiz-explain">💡 {question.explanation}</p>}
         <div className="button-row">
           <GameButton onClick={() => setState((current) => dismissQuizResult(current))}>กลับ Home</GameButton>
         </div>

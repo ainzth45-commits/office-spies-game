@@ -127,6 +127,8 @@ export interface QuizQuestion {
   choiceA: string;
   choiceB: string;
   answer: "A" | "B";
+  // เหตุผลสั้นๆ ว่าทำไมเฉลยถึงถูก — โชว์ตอนเฉลยทั้งเกมจริงและโหมดฝึก
+  explanation: string;
 }
 
 export interface GameState {

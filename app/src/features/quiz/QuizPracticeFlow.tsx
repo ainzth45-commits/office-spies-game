@@ -79,6 +79,7 @@ export function QuizPracticeFlow() {
             ถ้าเป็นเกมจริง: {correct ? `ได้ ${reward} เหรียญ` : `ทุกคนเสีย ${penalty} เหรียญ`} (ใช้เวลา {Math.round(elapsedSec)} วิ)
           </small>
         </p>
+        {question.explanation && <p className="quiz-explain">💡 {question.explanation}</p>}
         <div className="button-row">
           <GameButton variant="paper" onClick={() => setVerdict(null)}>← กลับ</GameButton>
           <GameButton variant="paper" onClick={openRandom}>🎲 สุ่ม</GameButton>

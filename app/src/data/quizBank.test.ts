@@ -29,6 +29,20 @@ describe("quizBank", () => {
     }
   });
 
+  it("ทุกข้อมีคำอธิบายเฉลย (explanation) ที่ไม่ว่างและไม่ยาวเกิน", () => {
+    for (const q of quizBank) {
+      expect(q.explanation.trim().length, `${q.id} ไม่มีคำอธิบาย`).toBeGreaterThan(5);
+      expect(q.explanation.length, `${q.id} คำอธิบายยาวเกิน`).toBeLessThanOrEqual(160);
+    }
+  });
+
+  it("สัดส่วนหมวด: คณิตรวม (คิดเร็ว+ประยุกต์+อนุกรม) ต้องไม่เกิน 1 ใน 4", () => {
+    const mathCount = quizBank.filter((q) =>
+      ["คณิตคิดเร็ว", "คณิตประยุกต์", "อนุกรม/ลำดับ"].includes(q.category),
+    ).length;
+    expect(mathCount).toBeLessThanOrEqual(50);
+  });
+
   it("แต่ละระดับความยากมีอย่างน้อย 40 ข้อ", () => {
     const count = (d: string) => quizBank.filter((q) => q.difficulty === d).length;
     expect(count("easy")).toBeGreaterThanOrEqual(40);
