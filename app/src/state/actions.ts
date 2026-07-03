@@ -78,6 +78,23 @@ export function startNewRound(state: GameState, random: RandomSource = Math.rand
   return assignNewRoles(state, random);
 }
 
+// เริ่มเกมรอบใหม่จากศูนย์ — ทุกอย่างกลับค่าเริ่มต้น (วัน 1, ไอเทม, เกราะ, บทบาท, ตัวคูณ, ประวัติ)
+// สิ่งที่คงไว้: การตั้งค่าเกมของซุป (config) + settings เครื่อง + รายชื่อผู้เล่น
+// สิ่งที่ "ไม่" รีเซต: คลังโจทย์เชาว์ (localStorage) — และถ้าคลังเหลือต่ำกว่าเกณฑ์ ห้ามเริ่ม ต้องไปรีเซตคลังก่อน
+export function startNewGameRound(state: GameState): GameState {
+  const remaining = remainingQuizCount();
+  if (remaining < state.config.quizMinRemainingToStart) {
+    throw new Error(
+      `คลังโจทย์เหลือ ${remaining} ข้อ (ต้องมีอย่างน้อย ${state.config.quizMinRemainingToStart}) — กด "รีเซตคลังโจทย์" ในตั้งค่าก่อนเริ่มรอบใหม่`,
+    );
+  }
+  const fresh = createInitialGameState();
+  return log(
+    { ...fresh, phase: "home", players: state.players, config: state.config, settings: state.settings },
+    "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด",
+  );
+}
+
 // เข้าหน้าดูบทบาท: ถ้ายังไม่เคยสุ่มสายลับเลย (ทุกคน normal) ให้สุ่มก่อนอัตโนมัติ
 // กันบั๊ก "เกมใหม่ไม่มีใครเป็นสปาย" — ถ้าสุ่มแล้วก็แค่เปิดดู (ไม่สุ่มซ้ำ ผู้เล่นจะได้บทบาทเดิม)
 export function enterRoleReveal(state: GameState, random: RandomSource = Math.random): GameState {

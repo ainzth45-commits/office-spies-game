@@ -73,6 +73,7 @@ const CATEGORIES: Category[] = [
       { key: "quizWrongPenaltyPerPlayer", label: "โทษตอบผิด/คน (ขั้น 1)", min: 0, max: 10, unit: " เหรียญ" },
       { key: "quizPenaltyTierSec", label: "เข้าโซนโทษแรงเมื่อเกิน", min: 15, max: 180, step: 5, unit: " วิ" },
       { key: "quizWrongPenaltyLate", label: "โทษตอบผิด/คน (ขั้น 2)", min: 0, max: 20, unit: " เหรียญ" },
+      { key: "quizMinRemainingToStart", label: "คลังขั้นต่ำก่อนเริ่มรอบใหม่", min: 0, max: 200, step: 5, unit: " ข้อ" },
     ],
   },
 ];

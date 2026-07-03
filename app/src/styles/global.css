@@ -1671,6 +1671,21 @@ h1 {
 .practice-sim { color: #ffd66b; font-weight: 800; font-size: 0.72em; }
 
 /* หน้ากติกาโจทย์เชาว์ — อ่านสบายก่อนเริ่มจับเวลา */
+.quiz-intro__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 24px);
+  margin-bottom: clamp(8px, 1.6dvh, 16px);
+}
+.quiz-intro__head h2 { margin: 0; }
+.quiz-intro__icon {
+  width: clamp(72px, 13dvh, 120px);
+  height: clamp(72px, 13dvh, 120px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 24px rgba(246, 196, 83, 0.35));
+  animation: gacha-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
 .quiz-intro h2 { margin-bottom: clamp(10px, 2dvh, 20px); }
 .quiz-rules {
   list-style: none;
@@ -1710,9 +1725,23 @@ h1 {
   flex: 1 1 auto;
   min-height: 0;
 }
+/* ตอนโชว์ของ: ตู้กับกรอบผล "สูงเท่ากัน" วางคู่ชิดกันกลางจอเป็นภาพเดียว */
+.gacha-stage--split .gacha-machine,
+.gacha-scene .gacha-result,
+.gacha-scene .gacha-reel {
+  height: clamp(280px, 44dvh, 400px);
+}
 .gacha-stage--split .gacha-machine {
-  width: min(210px, 26dvh); /* ตอนโชว์ของ ตู้หลบซ้ายตัวเล็กลง ให้ของเป็นพระเอก */
-  transform: rotate(-3deg);
+  width: auto;
+  aspect-ratio: 1; /* สูงเท่ากรอบผล → กว้างตามสัดส่วนจัตุรัส */
+  margin: 0;
+  transform: rotate(-2deg);
+}
+.gacha-scene .gacha-result,
+.gacha-scene .gacha-reel {
+  display: grid;
+  align-content: center;
+  justify-items: center;
 }
 
 /* showcase: กรอบเวทีมีสปอตไลต์ทอง — ใช้ทั้งตอนหมุน (reel) และตอนเฉลย (result) */
@@ -1907,7 +1936,35 @@ h1 {
 .player-card--dimmed .player-card__photo-wrap { background: linear-gradient(140deg, #9aa0b0, #6b7180); }
 .player-card--dimmed .player-card__code { background: #6b7180; }
 
-/* home: ปุ่ม action 2 อัน (เริ่มรอบใหม่ + เริ่มวันใหม่) */
+/* เริ่มรอบใหม่ = ปุ่มเล็กจางๆ ใต้ CTA หลัก (destructive นานๆ ใช้ที ไม่ต้องเด่น) */
+.home-reset {
+  margin-top: clamp(4px, 0.8dvh, 8px);
+  border: none;
+  background: transparent;
+  color: rgba(251, 247, 239, 0.55);
+  font-weight: 800;
+  font-size: clamp(12px, 1.7dvh, 14px);
+  text-decoration: underline dotted rgba(251, 247, 239, 0.4);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  padding: 4px 10px;
+}
+.home-reset:hover { color: rgba(251, 247, 239, 0.85); }
+.home-reset--armed {
+  color: #ffb5a8;
+  text-decoration-color: #e94f37;
+  animation: reel-pulse 0.8s ease-in-out infinite;
+}
+.home-reset__error {
+  margin: 2px 0 0;
+  color: #ffb5a8;
+  font-weight: 800;
+  font-size: clamp(12px, 1.7dvh, 14px);
+  text-align: center;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* home: ปุ่ม action หลัก */
 .home-actions {
   display: flex;
   flex-wrap: wrap;

@@ -72,6 +72,8 @@ export interface GameConfig {
   quizRewardMin: number;
   quizPenaltyTierSec: number;
   quizWrongPenaltyLate: number;
+  // เริ่มรอบใหม่ได้ต่อเมื่อคลังโจทย์เหลืออย่างน้อยเท่านี้ (กันโจทย์หมดกลางเกม)
+  quizMinRemainingToStart: number;
   gachaSpinCost: number;
   gachaCoinSelfGain: number;
   gachaCoinAllGain: number;

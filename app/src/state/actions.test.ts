@@ -23,6 +23,7 @@ import {
   restDay,
   rolesAssigned,
   startNewDay,
+  startNewGameRound,
   startNewRound,
   startPendingQuiz,
   submitVoteTurn,
@@ -50,6 +51,36 @@ describe("game actions", () => {
     expect(state.manualDay.isFinalDay).toBe(true);
     expect(canStartNewDay(state)).toBe(false);
     expect(() => startNewDay(state)).toThrow();
+  });
+
+  it("startNewGameRound wipes the board but keeps config/settings/players", () => {
+    let state = startNewDay(startNewDay(createInitialGameState())); // day 3
+    state = assignGachaItem(applyGachaOutcome(state, "itemSwap"), "C001");
+    state = {
+      ...state,
+      config: { ...state.config, gachaSpinCost: 9 },
+      shield: { slot: "spyA", exists: true, consumed: false },
+      voteCostState: { accumulatedSkippedMultiplier: 2.25, nextVoteMultiplier: 1.5 },
+      settings: { ...state.settings, soundEnabled: false },
+    };
+
+    const fresh = startNewGameRound(state);
+    expect(fresh.manualDay.index).toBe(1);
+    expect(fresh.inventories.C001).toHaveLength(0);
+    expect(fresh.shield).toEqual({ slot: null, exists: false, consumed: false });
+    expect(fresh.voteCostState).toEqual({ accumulatedSkippedMultiplier: 1, nextVoteMultiplier: 1 });
+    expect(rolesAssigned(fresh)).toBe(false); // บทบาทว่าง — ไปสุ่มตอนกดเปิดบทบาท
+    expect(fresh.phase).toBe("home");
+    // ของที่ต้องรอด: ตั้งค่าเกมของซุป + settings เครื่อง + ผู้เล่น
+    expect(fresh.config.gachaSpinCost).toBe(9);
+    expect(fresh.settings.soundEnabled).toBe(false);
+    expect(fresh.players).toEqual(state.players);
+  });
+
+  it("startNewGameRound is blocked when the quiz bank is below the minimum", () => {
+    // ใน jsdom คลังยังเต็ม 200 — ตั้งเกณฑ์สูงกว่าคลังเพื่อจำลองคลังต่ำกว่าเกณฑ์
+    const state = { ...createInitialGameState(), config: { ...createInitialGameState().config, quizMinRemainingToStart: 201 } };
+    expect(() => startNewGameRound(state)).toThrow("รีเซตคลังโจทย์");
   });
 
   it("resetGame returns to day 1 but keeps config and players", () => {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { gachaIconAssets } from "../../data/assets";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty } from "../../domain/types";
@@ -68,7 +69,16 @@ export function QuizFlow() {
     return (
       <section className="scene-panel quiz-scene quiz-intro">
         <p className="eyebrow">🎁 ได้โจทย์เชาว์ฟรีจากกาชา!</p>
-        <h2>กติกาโจทย์เชาว์</h2>
+        <div className="quiz-intro__head">
+          <img
+            className="quiz-intro__icon"
+            src={gachaIconAssets.grantQuiz}
+            alt=""
+            aria-hidden="true"
+            onError={(event) => { event.currentTarget.style.display = "none"; }}
+          />
+          <h2>กติกาโจทย์เชาว์</h2>
+        </div>
         <ul className="quiz-rules">
           <li>❓ มีคำตอบ <b>2 ตัวเลือก (A/B)</b> — เลือกตอบได้ครั้งเดียว</li>
           <li>⏱ เวลาเริ่มนับทันทีที่กดปุ่มด้านล่าง <b>ยิ่งตอบไว เหรียญยิ่งเยอะ</b></li>

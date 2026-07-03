@@ -2,7 +2,7 @@ import { useState } from "react";
 import { playClick, setSoundEnabled } from "../../audio/sounds";
 import { gachaIconAssets, gameAssets } from "../../data/assets";
 import { calculateVoteCost } from "../../domain/economy";
-import { canStartNewDay, enterRoleReveal, startNewDay, startNewRound } from "../../state/actions";
+import { canStartNewDay, enterRoleReveal, remainingQuizCount, startNewDay, startNewGameRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { AttendancePanel } from "../attendance/AttendancePanel";
@@ -24,6 +24,10 @@ type DockItem = {
 export function HomeHub() {
   const { state, setState } = useGameStore();
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const quizRemaining = remainingQuizCount();
+  const quizBankLow = quizRemaining < state.config.quizMinRemainingToStart;
   const presentCount = Object.values(state.attendance).filter(Boolean).length;
   const voteCost = calculateVoteCost(
     presentCount,
@@ -91,19 +95,43 @@ export function HomeHub() {
           </div>
         </div>
         <div className="home-actions">
-          <GameButton className="home-cta" onClick={() => setState((current) => startNewRound(current))}>
-            🎲 เริ่มรอบใหม่ · สุ่มสายลับ
-          </GameButton>
           {canStartNewDay(state) ? (
-            <GameButton variant="paper" className="home-cta home-cta--day" onClick={() => setState((current) => startNewDay(current))}>
+            <GameButton className="home-cta" onClick={() => setState((current) => startNewDay(current))}>
               📅 เริ่มวันใหม่ (ไปวันที่ {state.manualDay.index + 1})
             </GameButton>
           ) : (
-            <GameButton variant="paper" className="home-cta home-cta--day" onClick={() => setActivePanel("day")}>
+            <GameButton className="home-cta" onClick={() => setActivePanel("day")}>
               🔒 วันสุดท้ายแล้ว — จบเกม/รีเซต
             </GameButton>
           )}
         </div>
+        {/* เริ่มรอบใหม่ = ล้างกระดานทั้งเกม — นานๆ กดที เลยเป็นปุ่มเล็กจางๆ + ยืนยัน 2 จังหวะ */}
+        <button
+          type="button"
+          className={`home-reset${confirmReset ? " home-reset--armed" : ""}`}
+          onClick={() => {
+            if (!confirmReset) {
+              setConfirmReset(true);
+              setResetError("");
+              return;
+            }
+            try {
+              setState((current) => startNewGameRound(current));
+              setConfirmReset(false);
+            } catch (caught) {
+              setResetError(caught instanceof Error ? caught.message : "เริ่มรอบใหม่ไม่สำเร็จ");
+              setConfirmReset(false);
+            }
+          }}
+        >
+          {confirmReset ? "⚠️ ล้างกระดานทั้งเกมจริงไหม? กดอีกครั้งเพื่อยืนยัน" : "🔄 เริ่มรอบใหม่ (ล้างกระดานทั้งหมด)"}
+        </button>
+        {resetError && <p className="home-reset__error">{resetError}</p>}
+        {!resetError && quizBankLow && (
+          <p className="home-reset__error">
+            📚 คลังโจทย์เหลือ {quizRemaining} ข้อ (ต่ำกว่าเกณฑ์ {state.config.quizMinRemainingToStart}) — รีเซตคลังในตั้งค่าก่อน จึงจะเริ่มรอบใหม่ได้
+          </p>
+        )}
       </div>
 
       <nav className="home-dock" aria-label="เมนูหลัก">

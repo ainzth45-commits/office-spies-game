@@ -55,6 +55,7 @@ function allNonNegativeNumbers(config: GameConfig): number[] {
     config.quizRewardMin,
     config.quizPenaltyTierSec,
     config.quizWrongPenaltyLate,
+    config.quizMinRemainingToStart,
     config.gachaSpinCost,
     config.gachaCoinSelfGain,
     config.gachaCoinAllGain,

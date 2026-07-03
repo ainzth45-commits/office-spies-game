@@ -22,6 +22,7 @@ export const defaultConfig: GameConfig = {
   quizRewardMin: 1,
   quizPenaltyTierSec: 30,
   quizWrongPenaltyLate: 6,
+  quizMinRemainingToStart: 50,
   gachaSpinCost: 4,
   gachaCoinSelfGain: 8,
   gachaCoinAllGain: 3,
