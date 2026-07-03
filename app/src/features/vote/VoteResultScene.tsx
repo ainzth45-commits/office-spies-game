@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { playDrum, playFanfare, playLose } from "../../audio/sounds";
 import { gameAssets } from "../../data/assets";
 import { advanceFromVoteResult, finalizeVoteRound } from "../../state/actions";
@@ -9,6 +9,14 @@ export function VoteResultScene() {
   const { state, setState } = useGameStore();
   const result = state.lastVoteResult?.result ?? null;
   const winner = result?.winnerId ? state.players.find((player) => player.id === result.winnerId) : null;
+  // นับถอยหลังลุ้นก่อนเฉลย: null = ยังไม่เริ่ม · 3..2..1 · แล้วค่อย finalize
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timers = useRef<number[]>([]);
+
+  useEffect(() => () => {
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [];
+  }, []);
 
   const publicResult = result?.publicResult;
   useEffect(() => {
@@ -17,13 +25,38 @@ export function VoteResultScene() {
     else playLose();
   }, [publicResult]);
 
+  function startReveal() {
+    playDrum();
+    setCountdown(3);
+    [2, 1].forEach((value, index) => {
+      timers.current.push(window.setTimeout(() => { playDrum(); setCountdown(value); }, (index + 1) * 900));
+    });
+    timers.current.push(
+      window.setTimeout(() => {
+        setCountdown(null);
+        setState((current) => finalizeVoteRound(current));
+      }, 3 * 900),
+    );
+  }
+
   if (!result) {
+    if (countdown !== null) {
+      return (
+        <section className="scene-panel result-scene result-scene--countdown">
+          <p className="eyebrow">🥁 เปิดหีบใน...</p>
+          <div className="reveal-countdown" key={countdown}>{countdown}</div>
+          <p className="scene-lead">ห้ามกะพริบตา!</p>
+        </section>
+      );
+    }
     return (
       <section className="scene-panel">
+        <img className="scene-hero" src={gameAssets.ballotBox} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
         <h2>ถึงเวลาเฉลย!</h2>
-        <p className="big-callout">ปิดปากเงียบ 🤫 ระบบนับคะแนนลับให้แล้ว — จะประกาศแค่ "ผล" ไม่บอกจำนวนเสียงของใคร พร้อมรวมตัวหน้าจอใหญ่แล้วกดเปิดผลเลย</p>
+        <p className="big-callout">ทุกคนพร้อมหรือยัง? เปิดแล้วไม่มีย้อน 🤫</p>
+        <p className="scene-lead">จะประกาศแค่ "ผล" — ไม่มีใครรู้ว่าใครโหวตใคร กี่เสียง</p>
         <div className="button-row">
-          <GameButton onClick={() => { playDrum(); setState((current) => finalizeVoteRound(current)); }}>เปิดผลโหวต</GameButton>
+          <GameButton onClick={startReveal}>🥁 เปิดผลโหวต!</GameButton>
         </div>
       </section>
     );
@@ -31,10 +64,10 @@ export function VoteResultScene() {
 
   const title =
     result.publicResult === "caughtSpy"
-      ? "จับสปายได้!"
+      ? "โดนจับแล้ว!"
       : result.publicResult === "caughtInnocent"
-        ? "จับผิดคน!"
-        : "โหวตพลาด!";
+        ? "โป๊ะแตก... จับผิดคน!"
+        : "สายลับรอดไปได้!";
 
   return (
     <div className="reveal-stage">
@@ -47,9 +80,9 @@ export function VoteResultScene() {
       />
       <h2>{title}</h2>
       <p className="big-callout">
-        {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 ทีมได้สิทธิ์ทายสายลับคนที่สองต่อเลย` : null}
-        {result.publicResult === "caughtInnocent" && winner ? `${winner.name} เป็นพนักงานบริสุทธิ์ 😅 เหรียญที่จ่ายไปเตรียมคืนที่ซุป` : null}
-        {result.publicResult === "failed" ? "ครั้งนี้ยังจับใครไม่ได้! เหรียญที่ลงไปได้คืนที่ซุป ไว้ตั้งหลักลองใหม่วันหลังนะ 🔍" : null}
+        {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 แต่อีกคนยังลอยนวล... ทีมได้สิทธิ์ชี้ตัวต่อทันที` : null}
+        {result.publicResult === "caughtInnocent" && winner ? `${winner.name} เป็นพนักงานดีๆ นี่เอง 😅 ซุปเตรียมคืนเหรียญปลอบใจให้ทีม` : null}
+        {result.publicResult === "failed" ? "เสียงแตกเกินไป จับใครไม่ได้ 🕶 เหรียญคืนที่ซุป — พรุ่งนี้เอาใหม่ อย่าให้มันรอดอีก" : null}
       </p>
       {result.spyPoolReveal && (
         <div
@@ -57,13 +90,13 @@ export function VoteResultScene() {
           style={{ backgroundImage: `url(${gameAssets.spyPoolBanner})` }}
         >
           <p className="spy-pool-banner__text">
-            🔎 เบาะแสฟรี: กองผู้ถูกโหวต {result.spyPoolReveal.total} คน มีสายลับซ่อนอยู่ {result.spyPoolReveal.spies} คน — เอาไปคุยกันต่อได้เลย
+            🔎 ข่าวกรองหลุดมา: ในกองคนถูกโหวต {result.spyPoolReveal.total} คน มีสายลับปนอยู่ {result.spyPoolReveal.spies} คน!
           </p>
         </div>
       )}
       <div className="button-row">
         <GameButton onClick={() => setState(advanceFromVoteResult)}>
-          {result.publicResult === "caughtInnocent" ? "ไปต่อ: คืนเหรียญที่ซุป" : "ไปต่อ: ซื้อเบาะแส"}
+          {result.publicResult === "caughtInnocent" ? "ไปต่อ ➜ รับเหรียญคืน" : "ไปต่อ ➜ ล่าเบาะแส"}
         </GameButton>
       </div>
     </section>

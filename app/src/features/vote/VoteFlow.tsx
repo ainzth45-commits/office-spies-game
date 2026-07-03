@@ -87,17 +87,21 @@ export function VoteFlow() {
     setStep("pickVoter");
   }
 
+  const votedCount = state.currentVote?.submittedVoterIds.length ?? 0;
+  const totalCount = state.currentVote?.presentPlayerIds.length ?? presentPlayers.length;
+
   if (step === "open") {
     return (
       <section className="scene-panel">
         <img className="scene-hero" src={gameAssets.ballotBox} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
-        <h2>เปิดโหวตวันนี้</h2>
-        <p className="big-callout">รวมเหรียญจ่ายที่ซุป: {openCost} เหรียญ</p>
+        <h2>📢 เปิดคดีล่าสายลับ!</h2>
+        <p className="big-callout">ค่าเปิดโหวตรอบนี้ {openCost} เหรียญ — ทั้งทีมช่วยกันลงขัน วางที่ซุปให้ครบ</p>
+        <p className="scene-lead">โหวตครบทุกคนแล้วถึงจะเปิดผล ใครโดนเสียงถล่มถึงเกณฑ์... ได้รู้กัน 🕵️‍♀️</p>
         {message && <p className="form-error">{message}</p>}
         <div className="button-row">
-          <GameButton onClick={startVote}>ยืนยันว่าจ่ายครบแล้ว</GameButton>
+          <GameButton onClick={startVote}>💰 วางเหรียญครบแล้ว — เปิดโหวต!</GameButton>
           <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>
-            กลับ Home
+            ยังก่อน กลับ Home
           </GameButton>
         </div>
       </section>
@@ -108,18 +112,19 @@ export function VoteFlow() {
     if (remainingPlayers.length === 0) {
       return (
         <section className="scene-panel">
-          <h2>โหวตครบแล้ว</h2>
-          <p className="big-callout">พร้อมประกาศผลบนจอใหญ่</p>
+          <h2>🔒 ครบทุกเสียงแล้ว!</h2>
+          <p className="big-callout">หีบคะแนนปิดผนึกเรียบร้อย ไม่มีใครแก้ได้อีก</p>
+          <p className="scene-lead">เรียกทุกคนมารวมหน้าจอ... ถึงเวลารู้กันว่าใครโดน</p>
           <div className="button-row">
-            <GameButton onClick={() => setState((current) => ({ ...current, phase: "voteResult" }))}>ไปหน้าประกาศผล</GameButton>
+            <GameButton onClick={() => setState((current) => ({ ...current, phase: "voteResult" }))}>📣 ไปเปิดผลกัน!</GameButton>
           </div>
         </section>
       );
     }
     return (
       <PlayerPicker
-        title={`เลือกผู้โหวต (${state.currentVote?.submittedVoterIds.length ?? 0}/${state.currentVote?.presentPlayerIds.length ?? presentPlayers.length})`}
-        lead="เดินมาลงคะแนนทีละคน 🗳️ เลือกชื่อตัวเอง คนอื่นห้ามแอบดูว่าโหวตใคร"
+        title={`ใครยังไม่ลงคะแนน? (ลงแล้ว ${votedCount}/${totalCount})`}
+        lead="เดินมารับเครื่องทีละคน 🤫 แตะชื่อตัวเอง — คนอื่นห้ามเดินตามมาดู!"
         players={remainingPlayers}
         onPick={(playerId) => {
           setSelectedVoterId(playerId);
@@ -130,25 +135,32 @@ export function VoteFlow() {
   }
 
   if (step === "confirm" && voter) {
-    return <ConfirmPlayer player={voter} actionLabel="ลงคะแนนลับ" onBack={resetTurn} onConfirm={() => setStep("ballot")} />;
+    return <ConfirmPlayer player={voter} actionLabel="ใช่ฉันเอง — เข้าคูหา" onBack={resetTurn} onConfirm={() => setStep("ballot")} />;
   }
 
   if (step === "curtain") {
-    return <HandOffCurtain message="ส่งเครื่องให้ผู้โหวตคนถัดไป" onContinue={resetTurn} />;
+    return (
+      <HandOffCurtain
+        message="คว่ำเครื่อง แล้วส่งต่อ"
+        sub={`ลงคะแนนแล้ว ${votedCount}/${totalCount} · เหลืออีก ${totalCount - votedCount} เสียง`}
+        hint="เสียงคุณถูกเก็บเข้าหีบแล้ว 🤐 ใครถามก็ยิ้มอย่างเดียวพอ"
+        onContinue={resetTurn}
+      />
+    );
   }
 
   return (
     <section className="scene-panel vote-ballot">
-      <h2>ลงคะแนนลับ</h2>
-      {voter && <p className="big-callout">{voter.name} เลือกเป้าหมายและไอเทมที่จะใช้</p>}
+      <h2>🗳️ คูหาลับของ {voter?.name ?? "คุณ"}</h2>
+      <p className="big-callout">แตะหน้าคนที่คุณสงสัยว่าเป็นสายลับ — ไม่มีใครรู้ว่าคุณเลือกใคร</p>
       {message && <p className="form-error">{message}</p>}
-      <h3>เลือกเป้าหมาย</h3>
+      <h3>🎯 เป้าหมายของคุณ</h3>
       <div className="player-grid player-grid--compact">
         {presentPlayers.map((player) => (
           <PlayerCard key={player.id} player={player} selected={targetId === player.id} onClick={() => setTargetId(player.id)} />
         ))}
       </div>
-      <h3>กระเป๋าไอเทม</h3>
+      <h3>🎒 ของลับในกระเป๋า {inventory.length === 0 ? "— ว่างเปล่า (สุ่มได้จากตู้กาชา)" : "— ใช้ตอนนี้ ไม่มีใครเห็น"}</h3>
       <div className="item-strip">
         <GameButton variant={selectedItemId === null ? "primary" : "paper"} onClick={() => setSelectedItemId(null)}>
           ไม่ใช้ไอเทม
@@ -161,7 +173,7 @@ export function VoteFlow() {
       </div>
       {selectedItem?.type === "swap" && <SwapPicker players={presentPlayers} first={swapFirstId} second={swapSecondId} onFirst={setSwapFirstId} onSecond={setSwapSecondId} />}
       <div className="button-row">
-        <GameButton disabled={!targetId} onClick={submitBallot}>ยืนยันโหวต</GameButton>
+        <GameButton disabled={!targetId} onClick={submitBallot}>🔒 หย่อนบัตรลงหีบ</GameButton>
         <GameButton variant="paper" onClick={resetTurn}>ย้อนกลับ</GameButton>
       </div>
     </section>

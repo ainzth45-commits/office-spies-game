@@ -8,10 +8,10 @@ export function RefundScene() {
 
   return (
     <section className="scene-panel">
-      <h2>จัดสรรเหรียญคืน</h2>
-      <p className="big-callout">คืน {refund} เหรียญให้ทีมเลือกผู้ถือเงินไปจัดสรรต่อ</p>
+      <h2>💸 เหรียญปลอบใจ</h2>
+      <p className="big-callout">จับผิดคนไปหน่อย... ซุปคืนให้ {refund} เหรียญ — เดินไปรับแล้วแบ่งกันเองในทีม</p>
       <div className="button-row">
-        <GameButton onClick={() => setState(finishRefund)}>จัดสรรแล้ว ไปซื้อเบาะแส</GameButton>
+        <GameButton onClick={() => setState(finishRefund)}>รับเหรียญแล้ว ไปล่าเบาะแสต่อ ➜</GameButton>
       </div>
     </section>
   );

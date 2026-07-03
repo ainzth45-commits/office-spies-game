@@ -315,6 +315,40 @@ h1 {
   font-size: 86px;
 }
 
+/* ความคืบหน้าบนม่านส่งเครื่อง — ช็อตรอที่คนทั้งวงเห็นว่าเหลืออีกกี่เสียง */
+.handoff-curtain__sub {
+  margin: 0;
+  border: 3px solid rgba(251, 247, 239, 0.5);
+  border-radius: 999px;
+  background: rgba(24, 33, 63, 0.7);
+  color: #ffd66b;
+  font-weight: 1000;
+  font-size: clamp(16px, 2.6dvh, 22px);
+  padding: 8px 22px;
+}
+
+/* นับถอยหลังเปิดผลโหวต — ช็อตลุ้นก่อนตราปั๊ม */
+.result-scene--countdown {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(8px, 2dvh, 18px);
+  min-height: min(60dvh, 480px);
+}
+.reveal-countdown {
+  font-size: clamp(120px, 28dvh, 240px);
+  font-weight: 1000;
+  line-height: 1;
+  color: #f6c453;
+  text-shadow: 0 10px 0 rgba(0, 0, 0, 0.35);
+  animation: countdown-pop 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes countdown-pop {
+  0% { transform: scale(2.2); opacity: 0; }
+  35% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.92); opacity: 0.9; }
+}
+
 .handoff-curtain h2 {
   margin: 0;
   font-size: clamp(42px, 7vw, 84px);
@@ -1336,10 +1370,15 @@ h1 {
   align-content: start;
   margin: 0;
 }
-/* การ์ดเป้าหมายเตี้ยลง → 11 ใบ 2 แถว พอดีโซนกริดโดยไม่ต้องเลื่อน */
+/* การ์ดเป้าหมาย: สูงพอเห็นหน้าเต็ม (รูปแนวตั้ง จัดโฟกัสช่วงใบหน้า) → 11 ใบ 2 แถว พอดีจอ */
 .vote-ballot .player-card__photo-wrap {
   aspect-ratio: auto;
-  height: clamp(72px, 11vh, 110px);
+  height: clamp(96px, 15dvh, 145px);
+}
+.vote-ballot .player-card__photo,
+.player-grid--compact .player-card__photo {
+  /* รูปพนักงานเป็นแนวตั้ง ใบหน้าอยู่ช่วงบน — เลื่อนจุดตัดขึ้นให้เห็นหน้าเต็ม ไม่ใช่หน้าผาก */
+  object-position: 50% 18%;
 }
 .vote-ballot .item-strip { margin: clamp(4px, 0.8vh, 10px) 0; }
 .vote-ballot .button-row { margin-top: clamp(4px, 0.8vh, 10px); }
