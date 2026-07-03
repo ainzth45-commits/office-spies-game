@@ -24,6 +24,7 @@ export function HomeHub() {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmEndGame, setConfirmEndGame] = useState(false);
+  const [confirmNewDay, setConfirmNewDay] = useState(false);
   const [resetError, setResetError] = useState("");
   const quizRemaining = remainingQuizCount();
   const quizBankLow = quizRemaining < state.config.quizMinRemainingToStart;
@@ -123,7 +124,7 @@ export function HomeHub() {
         </div>
         <div className="home-actions">
           {canStartNewDay(state) ? (
-            <GameButton className="home-cta" onClick={() => setState((current) => startNewDay(current))}>
+            <GameButton className="home-cta" onClick={() => setConfirmNewDay(true)}>
               📅 เริ่มวันใหม่ (ไปวันที่ {state.manualDay.index + 1})
             </GameButton>
           ) : (
@@ -165,6 +166,33 @@ export function HomeHub() {
           </button>
         ))}
       </nav>
+
+      {confirmNewDay && (
+        <div className="overlay" onClick={() => setConfirmNewDay(false)}>
+          <div className="admin-menu confirm-modal" onClick={(event) => event.stopPropagation()}>
+            <img
+              className="confirm-modal__mascot"
+              src={gameAssets.mascotDetective}
+              alt=""
+              aria-hidden="true"
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
+            <h2>📅 ขึ้นวันเล่นที่ {state.manualDay.index + 1}?</h2>
+            <p className="confirm-modal__body">
+              ปิดคดีของ{state.manualDay.label}แล้วเดินหน้าต่อ
+              {!state.manualDay.openedVoteToday && (
+                <><br />⚠️ วันนี้ยังไม่ได้เปิดโหวตนะ — ข้ามไปเลย ค่าเปิดโหวตวันถัดไปจะแพงขึ้น ×1.5</>
+              )}
+            </p>
+            <div className="button-row">
+              <GameButton onClick={() => { setConfirmNewDay(false); setState((current) => startNewDay(current)); }}>
+                ✅ ยืนยัน ขึ้นวันใหม่
+              </GameButton>
+              <GameButton variant="paper" onClick={() => setConfirmNewDay(false)}>ยังก่อน</GameButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activePanel === "admin" && (
         <div className="overlay" onClick={() => setActivePanel(null)}>

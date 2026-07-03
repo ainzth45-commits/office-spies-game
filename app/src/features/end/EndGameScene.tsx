@@ -29,27 +29,48 @@ export function EndGameScene() {
           ))}
         </div>
       )}
-      <section className="scene-panel result-scene">
-        <img
-          className="end-scene__art"
-          src={teamWon ? gameAssets.endTeamWin : gameAssets.endSpyWin}
-          alt=""
-          onError={(event) => { event.currentTarget.style.display = "none"; }}
-        />
-        <h2>{teamWon ? "🏆 ปิดคดีสำเร็จ! ทีมชนะ!" : "🕶 สายลับชนะ! รอดไปได้ทั้งเกม"}</h2>
-        <p className="big-callout">
-          {teamWon
-            ? `จับสายลับได้ครบทั้งคู่ในวันเล่นที่ ${state.manualDay.index} — สมกับเป็นทีมนักสืบ!`
-            : `แฝงตัวรอดมาได้ถึงวันเล่นที่ ${state.manualDay.index} ทีมจับไม่ได้สักคน...`}
-        </p>
-        {spies.length > 0 && (
-          <p className="end-scene__spies">
-            🎭 เฉลย — สายลับรอบนี้คือ <b>{spies.map((spy) => spy.name).join(" และ ")}</b>
-            {teamWon ? " โดนรวบเรียบร้อย" : " เนียนมากทั้งคู่ ปรบมือให้"}
-          </p>
-        )}
-        <div className="button-row">
-          <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>กลับ Home</GameButton>
+      <section className="scene-panel result-scene end-scene">
+        <div className="end-scene__cols">
+          <div className="end-scene__left">
+            <img
+              className="end-scene__art"
+              src={teamWon ? gameAssets.endTeamWin : gameAssets.endSpyWin}
+              alt=""
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
+          </div>
+          <div className="end-scene__right">
+            <h2>{teamWon ? "🏆 ปิดคดีสำเร็จ! ทีมชนะ!" : "🕶 สายลับชนะ! รอดไปได้ทั้งเกม"}</h2>
+            <p className="big-callout">
+              {teamWon
+                ? `จับสายลับได้ครบทั้งคู่ในวันเล่นที่ ${state.manualDay.index} — สมกับเป็นทีมนักสืบ!`
+                : `แฝงตัวรอดมาได้ถึงวันเล่นที่ ${state.manualDay.index} ทีมจับไม่ได้ครบ...`}
+            </p>
+            {spies.length > 0 && (
+              <>
+                <p className="end-scene__spies">
+                  🎭 เฉลย — สายลับรอบนี้คือ{teamWon ? " (โดนรวบเรียบร้อย)" : " (เนียนมากทั้งคู่ ปรบมือให้)"}
+                </p>
+                <div className={`end-scene__spy-cards${teamWon ? " end-scene__spy-cards--caught" : ""}`}>
+                  {spies.map((spy) => (
+                    <div key={spy.id} className="end-spy-card">
+                      <img
+                        className="end-spy-card__photo"
+                        src={spy.imageUrl}
+                        alt={spy.name}
+                        onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
+                      />
+                      <b>{spy.name}</b>
+                      {teamWon && <span className="end-spy-card__stamp">จับแล้ว</span>}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            <div className="button-row">
+              <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>กลับ Home</GameButton>
+            </div>
+          </div>
         </div>
       </section>
     </div>

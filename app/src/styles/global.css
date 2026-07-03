@@ -441,15 +441,109 @@ h1 {
   100% { transform: translateY(106dvh) rotate(720deg); opacity: 0.4; }
 }
 
-/* สรุปเฉลยสายลับตอนจบเกม */
+/* popup ยืนยันธีมเกม (ขึ้นวันใหม่ ฯลฯ) — กันมือลั่น */
+.confirm-modal {
+  display: grid;
+  justify-items: center;
+  gap: clamp(8px, 1.6dvh, 14px);
+  text-align: center;
+}
+.confirm-modal__mascot {
+  height: clamp(80px, 16dvh, 140px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
+}
+.confirm-modal h2 { margin: 0; color: #f6c453; }
+.confirm-modal__body {
+  margin: 0;
+  color: #fbf7ef;
+  font-weight: 800;
+  font-size: clamp(15px, 2.3dvh, 19px);
+  line-height: 1.6;
+}
+
+/* ฉากจบเกม — ภาพซ้าย เนื้อหาขวา จบจอเดียว + เฉลยหน้าสายลับ */
+.end-scene {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: clamp(14px, 2.4dvh, 24px) 28px;
+}
+.end-scene__cols {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 3vw, 40px);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.end-scene__left { flex: 0 1 auto; min-width: 0; }
+.end-scene .end-scene__art {
+  max-height: clamp(220px, 52dvh, 460px);
+  max-width: 38vw;
+  object-fit: contain;
+}
+.end-scene__right {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: clamp(8px, 1.6dvh, 16px);
+}
+.end-scene h2 { margin: 0; font-size: clamp(24px, 4.4dvh, 40px); text-align: center; }
+.end-scene .big-callout { font-size: clamp(15px, 2.4dvh, 20px); padding: 10px 18px; }
+.end-scene .button-row { margin: 0; }
+
 .end-scene__spies {
   margin: 0;
   text-align: center;
   color: #c9cede;
   font-weight: 800;
-  font-size: clamp(15px, 2.3dvh, 19px);
+  font-size: clamp(14px, 2.2dvh, 18px);
 }
-.end-scene__spies b { color: #ffd66b; }
+.end-scene__spy-cards {
+  display: flex;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 24px);
+}
+.end-spy-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  border: 3px solid #fbf7ef;
+  border-radius: 18px;
+  background: rgba(24, 33, 63, 0.7);
+  padding: 10px 14px;
+  color: #ffe9b6;
+  font-size: clamp(13px, 2dvh, 17px);
+}
+.end-spy-card__photo {
+  width: clamp(84px, 17dvh, 140px);
+  height: clamp(84px, 17dvh, 140px);
+  object-fit: cover;
+  object-position: 50% 18%;
+  border-radius: 12px;
+}
+/* ทีมชนะ = สายลับโดนรวบ → รูปกลายเป็นสีเทา + ตราจับแล้ว */
+.end-scene__spy-cards--caught .end-spy-card__photo {
+  filter: grayscale(1) contrast(0.95) brightness(0.9);
+}
+.end-spy-card__stamp {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-14deg);
+  border: 3px solid #e94f37;
+  border-radius: 8px;
+  color: #e94f37;
+  background: rgba(251, 247, 239, 0.85);
+  font-weight: 1000;
+  font-size: clamp(13px, 2dvh, 17px);
+  padding: 2px 10px;
+  letter-spacing: 1px;
+}
 
 .handoff-curtain h2 {
   margin: 0;
