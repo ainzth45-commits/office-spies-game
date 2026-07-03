@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { gachaIconAssets } from "../../data/assets";
+import { gachaIconAssets, gameAssets } from "../../data/assets";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty } from "../../domain/types";
 import { answerPendingQuiz, dismissQuizResult, startPendingQuiz } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 
 const difficultyLabel: Record<QuizDifficulty, string> = {
   easy: "🟢 ง่าย",
@@ -104,7 +105,7 @@ export function QuizFlow() {
     <section className="scene-panel quiz-scene">
       <p className="eyebrow">โจทย์ฟรีจากกาชา · {question.category} · {difficultyLabel[question.difficulty]}</p>
       <div className={`quiz-timer${late ? " quiz-timer--late" : ""}`}>
-        <span className="quiz-timer__clock">⏱ {formatClock(elapsedSec)}</span>
+        <span className="quiz-timer__clock"><ThemedIcon className="chip-icon" src={gameAssets.iconTimer} emoji="⏱" /> {formatClock(elapsedSec)}</span>
         <span className="quiz-timer__reward">
           {late ? `⚠️ โซนโทษแรง — ตอบผิดทุกคนเสีย ${penalty}` : `ตอบถูกตอนนี้ได้ ${reward} เหรียญ`}
         </span>

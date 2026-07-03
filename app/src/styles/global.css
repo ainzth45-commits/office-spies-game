@@ -1211,6 +1211,21 @@ h1 {
 }
 .chip-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22); }
 
+/* ไอคอนธีมเกมในปุ่ม/ชิป (แทนอิโมจิ) */
+.chip-icon {
+  width: 1.35em;
+  height: 1.35em;
+  object-fit: contain;
+  vertical-align: -0.32em;
+  display: inline-block;
+}
+.handoff-curtain__spot-icon {
+  width: clamp(84px, 16dvh, 140px);
+  height: clamp(84px, 16dvh, 140px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+}
+
 /* ปุ่ม Home ประจำทุกหน้า (ยกเว้นโฮม/บูต) — ตำแหน่งเดียวกันเสมอ มุมซ้ายบน */
 .home-chip {
   position: fixed;

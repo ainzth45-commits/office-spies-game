@@ -1,4 +1,6 @@
+import { gameAssets } from "../../data/assets";
 import { GameButton } from "./GameButton";
+import { ThemedIcon } from "./ThemedIcon";
 
 export function HandOffCurtain({
   message,
@@ -13,7 +15,7 @@ export function HandOffCurtain({
 }) {
   return (
     <section className="handoff-curtain">
-      <div className="handoff-curtain__spotlight">🔎</div>
+      <div className="handoff-curtain__spotlight"><ThemedIcon className="handoff-curtain__spot-icon" src={gameAssets.iconMagnifierSpot} emoji="🔎" /></div>
       <h2>{message}</h2>
       {sub && <p className="handoff-curtain__sub">{sub}</p>}
       <p>{hint ?? "ส่ง iPad ให้คนถัดไป แล้วค่อยกดปุ่ม"}</p>

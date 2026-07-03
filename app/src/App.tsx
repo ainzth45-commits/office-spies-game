@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { playClick, setSoundEnabled } from "./audio/sounds";
+import { gameAssets } from "./data/assets";
+import { ThemedIcon } from "./ui/components/ThemedIcon";
 import { BootScreen } from "./features/boot/BootScreen";
 import { EndGameScene } from "./features/end/EndGameScene";
 import { GachaFlow } from "./features/gacha/GachaFlow";
@@ -43,7 +45,7 @@ function AppRouter() {
             className="chip-btn home-chip"
             onClick={() => setState((current) => ({ ...current, phase: "home" }))}
           >
-            🏠 Home
+            <ThemedIcon className="chip-icon" src={gameAssets.iconHome} emoji="🏠" /> Home
           </button>
           <button
             type="button"
@@ -56,7 +58,11 @@ function AppRouter() {
               setState((current) => ({ ...current, settings: { ...current.settings, soundEnabled: next } }));
             }}
           >
-            {state.settings.soundEnabled ? "🔊" : "🔇"}
+            <ThemedIcon
+              className="chip-icon"
+              src={state.settings.soundEnabled ? gameAssets.iconSoundOn : gameAssets.iconSoundOff}
+              emoji={state.settings.soundEnabled ? "🔊" : "🔇"}
+            />
           </button>
         </>
       )}

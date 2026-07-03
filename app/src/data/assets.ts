@@ -17,7 +17,7 @@ export const gameAssets = {
 
   // การ์ดบทบาท (ดีฟอลต์ = เวอร์ชันผู้หญิง ให้ตรงกับพนักงานจริงที่เป็นผู้หญิงทั้งหมด)
   roleNormal: `${BASE}/role-normal.webp?v=3`,
-  roleSpy: `${BASE}/role-spy.webp?v=3`,
+  roleSpy: `${BASE}/role-spy.webp?v=4`, // v=4: เวอร์ชันกวนๆ ทะเล้น (codex 2026-07-03)
   // archive เวอร์ชันผู้ชายเดิม — เก็บไว้เผื่อระบบเลือกเพศคาแรกเตอร์ในอนาคต (ยังไม่ใช้งานตอนนี้)
   roleNormalMale: `${BASE}/role-normal-male.webp?v=3`,
   roleSpyMale: `${BASE}/role-spy-male.webp?v=3`,
@@ -47,8 +47,16 @@ export const gameAssets = {
   tutVoteCast: `${BASE}/tut-vote-cast.webp?v=3`,
   tutVoteThreshold: `${BASE}/tut-vote-threshold.webp?v=3`,
   tutVoteOutcome: `${BASE}/tut-vote-outcome.webp?v=3`,
-  // ฉากชี้ตัวสายลับคนที่ 2 (รอ codex เจน — ระหว่างนี้ tutorial ใช้ fallbackImage แทน)
+  // ฉากชี้ตัวสายลับคนที่ 2
   tutGuessSecondSpy: `${BASE}/tut-guess-second-spy.webp?v=1`,
+
+  // ชุดไอคอน UI ธีมเกมแทนอิโมจิ (codex 2026-07-03)
+  iconHome: `${BASE}/icon-home.webp?v=1`,
+  iconSoundOn: `${BASE}/icon-sound-on.webp?v=1`,
+  iconSoundOff: `${BASE}/icon-sound-off.webp?v=1`,
+  iconReset: `${BASE}/icon-reset.webp?v=1`,
+  iconTimer: `${BASE}/icon-timer.webp?v=1`,
+  iconMagnifierSpot: `${BASE}/icon-magnifier-spot.webp?v=1`,
 
   // ไอคอนแอป (Add to Home Screen) + ไอคอน dock เมนูหน้าโฮม
   appIcon: `${BASE}/app-icon.webp?v=3`,

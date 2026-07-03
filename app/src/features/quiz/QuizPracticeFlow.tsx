@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { gameAssets } from "../../data/assets";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty, QuizQuestion } from "../../domain/types";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 
 // โหมดฝึกเชาว์ — สนามซ้อมล้วนๆ ไม่แตะระบบเกมเลย (ไม่บันทึกประวัติ ไม่แจกเหรียญ เข้าซ้ำได้เรื่อยๆ)
 // state ทั้งหมดอยู่ในคอมโพเนนต์ · จับเวลา "เสมือนจริง" ใช้สูตรเดียวกับโจทย์จริงเป๊ะ
@@ -102,7 +104,7 @@ export function QuizPracticeFlow() {
           🏋️ โหมดฝึกเชาว์ · ข้อ {Number(question.id.slice(1))} · {question.category} · {difficultyLabel[question.difficulty]}
         </p>
         <div className={`quiz-timer${late ? " quiz-timer--late" : ""}`}>
-          <span className="quiz-timer__clock">⏱ {formatClock(elapsedSec)}</span>
+          <span className="quiz-timer__clock"><ThemedIcon className="chip-icon" src={gameAssets.iconTimer} emoji="⏱" /> {formatClock(elapsedSec)}</span>
           <span className="quiz-timer__reward">
             {late ? `⚠️ โซนโทษแรง — ตอบผิดทุกคนเสีย ${penalty}` : `ตอบถูกตอนนี้ได้ ${reward} เหรียญ`}
           </span>

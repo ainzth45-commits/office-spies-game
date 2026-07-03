@@ -5,6 +5,7 @@ import { calculateVoteCost } from "../../domain/economy";
 import { canStartNewDay, enterRoleReveal, markFinalDay, remainingQuizCount, startNewDay, startNewGameRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 import { AttendancePanel } from "../attendance/AttendancePanel";
 import { BackupPanel } from "../backup/BackupPanel";
 import { SettingsPanel } from "../settings/SettingsPanel";
@@ -77,7 +78,11 @@ export function HomeHub() {
               }
             }}
           >
-            {confirmReset ? "⚠️ ล้างกระดานทั้งเกม? กดอีกครั้ง" : "🔄 เริ่มรอบใหม่"}
+            {confirmReset ? (
+              "⚠️ ล้างกระดานทั้งเกม? กดอีกครั้ง"
+            ) : (
+              <><ThemedIcon className="chip-icon" src={gameAssets.iconReset} emoji="🔄" /> เริ่มรอบใหม่</>
+            )}
           </button>
           {resetError && <p className="home-reset__error">{resetError}</p>}
           {!resetError && quizBankLow && (
@@ -97,7 +102,12 @@ export function HomeHub() {
             setState((current) => ({ ...current, settings: { ...current.settings, soundEnabled: next } }));
           }}
         >
-          {state.settings.soundEnabled ? "🔊 เสียง" : "🔇 ปิด"}
+          <ThemedIcon
+            className="chip-icon"
+            src={state.settings.soundEnabled ? gameAssets.iconSoundOn : gameAssets.iconSoundOff}
+            emoji={state.settings.soundEnabled ? "🔊" : "🔇"}
+          />{" "}
+          {state.settings.soundEnabled ? "เสียง" : "ปิด"}
         </button>
       </div>
 
