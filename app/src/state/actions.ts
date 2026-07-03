@@ -490,6 +490,10 @@ export function finalizeVoteRound(state: GameState): GameState {
 
 export function advanceFromVoteResult(state: GameState): GameState {
   if (!state.lastVoteResult) throw new Error("ยังไม่มีผลโหวตล่าสุด");
+  // วันสุดท้ายโหวตแพ้ = จบเลย — ไม่ต้องแวะคืนเหรียญ/เบาะแส (เกมจบแล้ว ไม่มีรอบให้ใช้ข้อมูลต่อ)
+  if (state.lastVoteResult.result.publicResult !== "caughtSpy" && onFinalDay(state)) {
+    return log({ ...state, phase: "ended", endWinner: "spies" }, "โหวตวันสุดท้ายจับไม่ได้ — สายลับชนะ");
+  }
   const phase = state.lastVoteResult.result.publicResult === "caughtInnocent" ? "refund" : "postVoteClue";
   return log({ ...state, phase }, "เดินหน้าหลังประกาศผลโหวต");
 }

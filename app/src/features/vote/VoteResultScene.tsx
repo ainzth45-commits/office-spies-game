@@ -99,7 +99,11 @@ export function VoteResultScene() {
       )}
       <div className="button-row">
         <GameButton onClick={() => setState(advanceFromVoteResult)}>
-          {result.publicResult === "caughtInnocent" ? "ไปต่อ ➜ รับเหรียญคืน" : "ไปต่อ ➜ ล่าเบาะแส"}
+          {result.publicResult !== "caughtSpy" && (state.manualDay.isFinalDay || state.manualDay.index >= state.config.maxGameDays)
+            ? "หมดวันแล้ว... ไปดูผลตัดสิน 🏁"
+            : result.publicResult === "caughtInnocent"
+              ? "ไปต่อ ➜ รับเหรียญคืน"
+              : "ไปต่อ ➜ ล่าเบาะแส"}
         </GameButton>
       </div>
     </section>

@@ -441,9 +441,8 @@ describe("game actions", () => {
     }
     state = finalizeVoteRound(state); // ไม่มีสายลับถูกจับ (ไม่มีใครเป็นสปายในเกมสด)
     expect(state.lastVoteResult?.result.publicResult).not.toBe("caughtSpy");
+    // วันสุดท้ายโหวตแพ้ = จบทันที ไม่แวะคืนเหรียญ/เบาะแส
     state = advanceFromVoteResult(state);
-    if (state.phase === "refund") state = finishRefund(state);
-    state = advanceFromPostVoteClue(state);
 
     expect(state.phase).toBe("ended");
     expect(state.endWinner).toBe("spies");
