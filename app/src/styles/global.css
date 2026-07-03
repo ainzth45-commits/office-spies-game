@@ -349,6 +349,76 @@ h1 {
   100% { transform: scale(0.92); opacity: 0.9; }
 }
 
+/* ปุ่มกดค้างดูบทบาท — ใหญ่ กดถนัด ปล่อยแล้วปิดทันที */
+.role-reveal--cover {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(10px, 2dvh, 20px);
+  min-height: min(60dvh, 480px);
+}
+.role-hold-btn {
+  border: 5px solid #20263f;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #f6c453, #eaa93c);
+  color: #20263f;
+  font-weight: 1000;
+  font-size: clamp(20px, 3.4dvh, 30px);
+  padding: clamp(22px, 5dvh, 44px) clamp(36px, 6vw, 72px);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  touch-action: none; /* กัน scroll/long-press menu ระหว่างกดค้าง */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.role-hold-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28); }
+.role-hold-hint {
+  margin: clamp(6px, 1.2dvh, 12px) 0 0;
+  text-align: center;
+  color: #ffe9b6;
+  font-weight: 900;
+  animation: reel-pulse 1s ease-in-out infinite;
+}
+
+/* confetti ฉากทีมชนะ */
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  overflow: hidden;
+}
+.confetti__piece {
+  position: absolute;
+  top: -4dvh;
+  left: calc((var(--i) * 3.83%) + 1%);
+  width: 12px;
+  height: 20px;
+  border-radius: 3px;
+  background: #f6c453;
+  animation: confetti-fall 3.2s linear infinite;
+  animation-delay: calc(var(--i) * -0.37s);
+}
+.confetti__piece:nth-child(3n) { background: #e94f37; width: 10px; height: 16px; }
+.confetti__piece:nth-child(3n + 1) { background: #3dcca1; }
+.confetti__piece:nth-child(4n) { background: #7ea6ff; height: 24px; }
+@keyframes confetti-fall {
+  0% { transform: translateY(-6dvh) rotate(0deg); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(106dvh) rotate(720deg); opacity: 0.4; }
+}
+
+/* สรุปเฉลยสายลับตอนจบเกม */
+.end-scene__spies {
+  margin: 0;
+  text-align: center;
+  color: #c9cede;
+  font-weight: 800;
+  font-size: clamp(15px, 2.3dvh, 19px);
+}
+.end-scene__spies b { color: #ffd66b; }
+
 .handoff-curtain h2 {
   margin: 0;
   font-size: clamp(42px, 7vw, 84px);
@@ -1020,6 +1090,14 @@ h1 {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 10px);
   left: calc(env(safe-area-inset-left, 0px) + 12px);
+  z-index: 40;
+}
+
+/* ปุ่มเสียงคู่กัน — มุมขวาบน (หน้าโฮมมีของตัวเองใน topbar อยู่แล้ว) */
+.sound-chip {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  right: calc(env(safe-area-inset-right, 0px) + 12px);
   z-index: 40;
 }
 

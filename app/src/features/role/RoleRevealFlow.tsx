@@ -14,6 +14,10 @@ export function RoleRevealFlow() {
   const { state, setState } = useGameStore();
   const [step, setStep] = useState<Step>("pick");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(null);
+  // กดค้างถึงเห็นการ์ด — ปล่อยนิ้ว/วางเครื่อง = ซ่อนทันที ไม่มีทางค้างให้คนอื่นเห็น
+  const [holding, setHolding] = useState(false);
+  // จดว่าใครเปิดดูไปแล้วบ้าง (เฉพาะรอบการเวียนนี้) — โชว์คืบหน้าให้ทั้งวงเห็น
+  const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const player = state.players.find((candidate) => candidate.id === selectedPlayerId) ?? null;
   const role = selectedPlayerId ? state.roles[selectedPlayerId] : "normal";
   const partnerId = selectedPlayerId ? findSpyPartner(state.roles, selectedPlayerId) : null;
@@ -22,9 +26,9 @@ export function RoleRevealFlow() {
   if (step === "pick") {
     return (
       <PlayerPicker
-        title="เลือกชื่อตัวเองเพื่อดูบทบาท"
-        lead="เดินมาที่เครื่องทีละคน 🕵️ คนอื่นห้ามแอบดู — ดูเสร็จกดปิดก่อนส่งต่อ"
-        players={state.players}
+        title={`ใครยังไม่ดูบทบาท? (ดูแล้ว ${viewedIds.size}/${state.players.length})`}
+        lead="เดินมาที่เครื่องทีละคน 🕵️ แตะชื่อตัวเอง — คนอื่นห้ามแอบมอง"
+        players={state.players.filter((candidate) => !viewedIds.has(candidate.id))}
         onPick={(playerId) => {
           setSelectedPlayerId(playerId);
           setStep("confirm");
@@ -34,11 +38,29 @@ export function RoleRevealFlow() {
   }
 
   if (step === "confirm" && player) {
-    return <ConfirmPlayer player={player} actionLabel="ดูบทบาท" onBack={() => setStep("pick")} onConfirm={() => setStep("reveal")} />;
+    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — เปิดแฟ้มลับ" onBack={() => setStep("pick")} onConfirm={() => { setHolding(false); setStep("reveal"); }} />;
   }
 
   if (step === "curtain") {
-    return <HandOffCurtain message="ส่งเครื่องให้คนถัดไป" onContinue={() => setStep("pick")} />;
+    if (viewedIds.size >= state.players.length) {
+      return (
+        <section className="scene-panel">
+          <h2>✅ รู้ตัวกันครบทุกคนแล้ว</h2>
+          <p className="big-callout">สายลับ 2 คนแฝงอยู่ในวงเรียบร้อย... เกมเริ่มแล้วนับจากนี้ 🤫</p>
+          <div className="button-row">
+            <GameButton onClick={() => setState((current) => ({ ...current, phase: "home" }))}>กลับ Home เริ่มเกม!</GameButton>
+          </div>
+        </section>
+      );
+    }
+    return (
+      <HandOffCurtain
+        message="ปิดแฟ้มแล้ว ส่งเครื่องต่อ"
+        sub={`ดูบทบาทแล้ว ${viewedIds.size}/${state.players.length} คน`}
+        hint="หน้านิ่งเข้าไว้ 😐 อย่าให้ใครจับสีหน้าได้"
+        onContinue={() => setStep("pick")}
+      />
+    );
   }
 
   const isSpy = role !== "normal";
@@ -46,8 +68,42 @@ export function RoleRevealFlow() {
   const showShield = isSpy && state.shield.exists && !state.shield.consumed && state.shield.slot === role;
   const hasAside = showPartner || showShield;
 
+  // ยังไม่กดค้าง → โชว์แผ่นปิดแฟ้ม (ปล่อยนิ้วเมื่อไหร่ก็กลับมาหน้านี้)
+  if (!holding) {
+    return (
+      <section className="scene-panel role-reveal role-reveal--cover">
+        <h2>แฟ้มลับของ {player?.name ?? "คุณ"}</h2>
+        <p className="big-callout">👇 กดปุ่มค้างไว้เพื่อเปิดดู — ปล่อยนิ้วเมื่อไหร่ แฟ้มปิดทันที</p>
+        <button
+          type="button"
+          className="role-hold-btn"
+          onPointerDown={(event) => { event.preventDefault(); setHolding(true); }}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          🕵️ กดค้างเพื่อดูบทบาท
+        </button>
+        <div className="button-row">
+          <GameButton
+            variant="paper"
+            onClick={() => {
+              if (selectedPlayerId) setViewedIds((current) => new Set(current).add(selectedPlayerId));
+              setStep("curtain");
+            }}
+          >
+            ดูเสร็จแล้ว — ปิดแฟ้ม ส่งต่อ
+          </GameButton>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="scene-panel role-reveal">
+    <section
+      className="scene-panel role-reveal"
+      onPointerUp={() => setHolding(false)}
+      onPointerCancel={() => setHolding(false)}
+      onPointerLeave={() => setHolding(false)}
+    >
       <div className={`role-reveal__cols${hasAside ? "" : " role-reveal__cols--solo"}`}>
         <div className="role-reveal__main">
           <div className="role-portrait">
@@ -91,12 +147,7 @@ export function RoleRevealFlow() {
         )}
       </div>
 
-      <div className="button-row">
-        <GameButton onClick={() => setStep("curtain")}>ปิดบทบาท</GameButton>
-        <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>
-          กลับ Home
-        </GameButton>
-      </div>
+      <p className="role-hold-hint">✊ กดค้างอยู่ — ปล่อยนิ้วเมื่อไหร่ แฟ้มปิดทันที</p>
     </section>
   );
 }

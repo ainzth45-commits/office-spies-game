@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { playDrum, playFanfare, playLose } from "../../audio/sounds";
+import { buzz } from "../../ui/haptics";
 import { gameAssets } from "../../data/assets";
 import { advanceFromVoteResult, finalizeVoteRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
@@ -23,13 +24,15 @@ export function VoteResultScene() {
     if (!publicResult) return;
     if (publicResult === "caughtSpy") playFanfare();
     else playLose();
+    buzz(publicResult === "caughtSpy" ? [80, 60, 80, 60, 200] : [250]); // ตราปั๊มกระแทก (บน iPad จะเงียบ — WebKit ไม่รองรับ vibrate)
   }, [publicResult]);
 
   function startReveal() {
     playDrum();
+    buzz(60);
     setCountdown(3);
     [2, 1].forEach((value, index) => {
-      timers.current.push(window.setTimeout(() => { playDrum(); setCountdown(value); }, (index + 1) * 900));
+      timers.current.push(window.setTimeout(() => { playDrum(); buzz(60); setCountdown(value); }, (index + 1) * 900));
     });
     timers.current.push(
       window.setTimeout(() => {

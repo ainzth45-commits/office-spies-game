@@ -158,6 +158,8 @@ export interface GameState {
   lastVoteResult: VoteRoundResult | null;
   lastClueResult: PostVoteClueState | null;
   lastGachaResult: GachaResultState | null;
+  // ผลการชี้ตัวสายลับคนที่สอง — ค้างไว้ให้จอเฉลยโชว์ก่อนเดินเกมต่อ
+  lastGuessResult: { guessedId: PlayerId; correct: boolean } | null;
   endWinner: EndWinner | null;
 }
 

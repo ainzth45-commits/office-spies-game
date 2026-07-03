@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { setSoundEnabled } from "./audio/sounds";
+import { playClick, setSoundEnabled } from "./audio/sounds";
 import { BootScreen } from "./features/boot/BootScreen";
 import { EndGameScene } from "./features/end/EndGameScene";
 import { GachaFlow } from "./features/gacha/GachaFlow";
@@ -37,13 +37,28 @@ function AppRouter() {
   return (
     <div className="app-frame">
       {hydrated && state.phase !== "home" && state.phase !== "boot" && (
-        <button
-          type="button"
-          className="chip-btn home-chip"
-          onClick={() => setState((current) => ({ ...current, phase: "home" }))}
-        >
-          🏠 Home
-        </button>
+        <>
+          <button
+            type="button"
+            className="chip-btn home-chip"
+            onClick={() => setState((current) => ({ ...current, phase: "home" }))}
+          >
+            🏠 Home
+          </button>
+          <button
+            type="button"
+            className="chip-btn sound-chip"
+            aria-label={state.settings.soundEnabled ? "ปิดเสียง" : "เปิดเสียง"}
+            onClick={() => {
+              const next = !state.settings.soundEnabled;
+              setSoundEnabled(next);
+              if (next) playClick();
+              setState((current) => ({ ...current, settings: { ...current.settings, soundEnabled: next } }));
+            }}
+          >
+            {state.settings.soundEnabled ? "🔊" : "🔇"}
+          </button>
+        </>
       )}
       {renderPhase(hydrated, state)}
     </div>

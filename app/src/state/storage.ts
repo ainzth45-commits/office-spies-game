@@ -85,6 +85,7 @@ export function migrateGameState(raw: GameState): GameState {
     lastVoteResult: state.lastVoteResult ?? null,
     lastClueResult: state.lastClueResult ?? null,
     lastGachaResult: state.lastGachaResult ?? null,
+    lastGuessResult: state.lastGuessResult ?? null,
   };
   delete (migrated as GameState & { usedQuizIds?: string[] }).usedQuizIds;
   return migrated;

@@ -8,6 +8,7 @@ import { applyGachaOutcome, assignGachaItem } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { PlayerCard } from "../../ui/components/PlayerCard";
+import { buzz } from "../../ui/haptics";
 import { GachaPoolModal } from "./GachaPoolModal";
 
 const ALL_OUTCOMES = Object.keys(gachaIconAssets) as GachaOutcome[];
@@ -69,6 +70,7 @@ export function GachaFlow() {
             const next = applyGachaOutcome(current, outcome);
             setReelOutcome(next.lastGachaResult?.outcome ?? outcome);
             playCoin();
+            buzz([50, 40, 140]); // แคปซูลป๊อป (iPad เงียบ — WebKit ไม่รองรับ vibrate)
             return next;
           } catch (caught) {
             setAssignError(caught instanceof Error ? caught.message : "หมุนกาชาไม่สำเร็จ");

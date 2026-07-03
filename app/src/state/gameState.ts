@@ -36,6 +36,7 @@ export function createInitialGameState(): GameState {
     lastVoteResult: null,
     lastClueResult: null,
     lastGachaResult: null,
+    lastGuessResult: null,
     endWinner: null,
   };
 }

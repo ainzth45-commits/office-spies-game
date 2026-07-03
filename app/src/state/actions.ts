@@ -546,8 +546,24 @@ export function resolveSecondSpyGuess(state: GameState, guessedPlayerId: PlayerI
   const remainingSpyId = Object.entries(state.roles).find(([, role]) => role === remainingRole)?.[0];
 
   if (guessedPlayerId === remainingSpyId) {
-    return log({ ...state, phase: "ended", endWinner: "team" }, "ทีมทายสปายคนที่สองถูก");
+    return log(
+      { ...state, phase: "ended", endWinner: "team", lastGuessResult: { guessedId: guessedPlayerId, correct: true } },
+      "ทีมทายสปายคนที่สองถูก",
+    );
   }
 
-  return assignNewRoles({ ...state, phase: "roleReveal", lastVoteResult: null, currentVote: null }, random);
+  // ชี้ผิด — ค้างจอเฉลยไว้ก่อน (phase ยังเป็น guess) ให้ทีมได้เห็นว่าพลาด แล้วค่อยกดไปสุ่มรอบใหม่
+  return log(
+    { ...state, lastGuessResult: { guessedId: guessedPlayerId, correct: false } },
+    `ทีมชี้ ${playerName(state, guessedPlayerId)} — ไม่ใช่สายลับ`,
+  );
+}
+
+// ทีมรับทราบว่าชี้ผิดแล้ว → สุ่มบทบาทใหม่ เริ่มรอบถัดไป
+export function acknowledgeWrongGuess(state: GameState, random: RandomSource = Math.random): GameState {
+  if (!state.lastGuessResult || state.lastGuessResult.correct) throw new Error("ไม่มีผลชี้ผิดค้างอยู่");
+  return assignNewRoles(
+    { ...state, phase: "roleReveal", lastGuessResult: null, lastVoteResult: null, currentVote: null },
+    random,
+  );
 }

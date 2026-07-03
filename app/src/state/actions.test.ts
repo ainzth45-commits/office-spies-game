@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultConfig } from "../data/configDefaults";
 import {
+  acknowledgeWrongGuess,
   answerPendingQuiz,
   advanceFromPostVoteClue,
   advanceFromVoteResult,
@@ -385,5 +386,43 @@ describe("game actions", () => {
 
     expect(state.phase).toBe("ended");
     expect(state.endWinner).toBe("team");
+  });
+
+  it("wrong second-spy guess shows a verdict first, then reshuffles on acknowledge", () => {
+    const roles = { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const };
+    const fixture = {
+      ...createInitialGameState(),
+      roles,
+      phase: "guess" as const,
+      lastVoteResult: {
+        roundId: "round-1",
+        paidCost: 33,
+        refundAmount: 0,
+        result: {
+          publicResult: "caughtSpy" as const,
+          winnerId: "C001",
+          winnerIsSpy: true,
+          shieldConsumed: false,
+          adjustedCounts: {},
+          votedPool: [],
+          notVotedPool: [],
+          spiesInPoolCount: 0,
+          spyPoolReveal: null,
+          threshold: 8,
+          blockedMessages: [],
+        },
+      },
+    };
+
+    const pending = resolveSecondSpyGuess(fixture, "C003");
+    // ชี้ผิด: ค้างจอเฉลยก่อน ไม่เด้งหนีทันที
+    expect(pending.phase).toBe("guess");
+    expect(pending.lastGuessResult).toEqual({ guessedId: "C003", correct: false });
+
+    const next = acknowledgeWrongGuess(pending, () => 0);
+    expect(next.phase).toBe("roleReveal");
+    expect(next.lastGuessResult).toBeNull();
+    expect(next.lastVoteResult).toBeNull();
+    expect(rolesAssigned(next)).toBe(true);
   });
 });
