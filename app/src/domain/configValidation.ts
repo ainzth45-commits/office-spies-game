@@ -48,7 +48,6 @@ function allNonNegativeNumbers(config: GameConfig): number[] {
     config.spyPoolRevealMinVoted,
     config.votedClueMinVoted,
     config.notVotedClueMaxCards,
-    config.inventoryLimit,
     config.quizCorrectReward,
     config.quizWrongPenaltyPerPlayer,
     config.quizRewardDecaySec,

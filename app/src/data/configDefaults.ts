@@ -14,7 +14,6 @@ export const defaultConfig: GameConfig = {
   notVotedClueMaxCards: 4,
   reduceThresholdPercent: 0.25,
   weakenedReduceThresholdPercent: 0.12,
-  inventoryLimit: 2,
   quizCorrectReward: 10,
   quizWrongPenaltyPerPlayer: 3,
   // สเกลเร่งเร้า (เคาะ 2026-07-04): รางวัลลด 1 ทุก 5 วิ เหลือต่ำสุด 1 · เกิน 30 วิ ตอบผิดเสียขั้น 2

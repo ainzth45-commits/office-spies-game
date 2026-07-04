@@ -219,12 +219,9 @@ export function resetConfig(state: GameState): GameState {
 }
 
 // ไอเทมเข้ากระเป๋าได้ทางเดียว: กาชาแจก (ร้านลับถูกถอดออกจากเกมแล้ว)
+// ไม่มีลิมิตต่อคน — ของได้จากการสุ่มเท่านั้น มีกี่ชิ้นก็สะสมได้
 export function grantVoteItem(state: GameState, playerId: PlayerId, type: VoteItemType): GameState {
   const inventory = state.inventories[playerId] ?? [];
-  if (inventory.length >= state.config.inventoryLimit) {
-    throw new Error(`กระเป๋าของ ${playerName(state, playerId)} เต็ม เลือกคนอื่น`);
-  }
-
   return log(
     {
       ...state,
@@ -290,16 +287,8 @@ export function applyGachaOutcome(
     message = `ค่าเปิดโหวตครั้งหน้า x${state.config.gachaVoteMultiplierDown}`;
   } else if (isGachaItemOutcome(outcome)) {
     const itemType = gachaItemOutcomeToItemType[outcome];
-    const someoneHasRoom = state.players.some(
-      (player) => (state.inventories[player.id] ?? []).length < state.config.inventoryLimit,
-    );
-    if (someoneHasRoom) {
-      message = `ได้ไอเทม ${itemLabel(itemType)}! ซุปกดเลือกว่าใส่กระเป๋าใคร`;
-      next = { ...next, pendingGachaGrant: { itemType, message } };
-    } else {
-      // กันเกมค้าง: ทุกกระเป๋าเต็มหมด → แจกเหรียญแทน (เหรียญจริง ซุปจัดการมือ)
-      message = `ได้ไอเทม ${itemLabel(itemType)} แต่กระเป๋าเต็มทั้งออฟฟิศ — ซุปแจก ${state.config.gachaCoinAllGain} เหรียญให้คนที่หมุนแทน`;
-    }
+    message = `ได้ไอเทม ${itemLabel(itemType)}! ซุปกดเลือกว่าใส่กระเป๋าใคร`;
+    next = { ...next, pendingGachaGrant: { itemType, message } };
   } else if (outcome === "grantQuiz") {
     const question = pickUnusedQuizQuestion(options.random ?? Math.random);
     if (!question) {

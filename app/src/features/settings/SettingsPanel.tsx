@@ -48,7 +48,6 @@ const CATEGORIES: Category[] = [
     fields: [
       { key: "reduceThresholdPercent", label: "R ลดเกณฑ์", min: 0, max: 0.5, step: 0.01 },
       { key: "weakenedReduceThresholdPercent", label: "R เมื่อโดน P กัน", min: 0, max: 0.5, step: 0.01 },
-      { key: "inventoryLimit", label: "ลิมิตกระเป๋าไอเทม", min: 1, max: 5, unit: " ชิ้น" },
     ],
   },
   {

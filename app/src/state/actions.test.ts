@@ -172,24 +172,15 @@ describe("game actions", () => {
     expect(assigned.inventories.C002).toMatchObject([{ type: "swap", source: "gacha", publicKnown: true }]);
   });
 
-  it("assignGachaItem rejects a full inventory but keeps the grant pending for someone else", () => {
+  it("inventories are unlimited — one player can stack any number of items", () => {
     let state = createInitialGameState();
     state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
-    state = assignGachaItem(applyGachaOutcome(state, "itemRemove"), "C001"); // C001 เต็ม (limit 2)
-    const spun = applyGachaOutcome(state, "itemSwap");
+    state = assignGachaItem(applyGachaOutcome(state, "itemRemove"), "C001");
+    state = assignGachaItem(applyGachaOutcome(state, "itemSwap"), "C001");
+    state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
 
-    expect(() => assignGachaItem(spun, "C001")).toThrow("เต็ม");
-    const assigned = assignGachaItem(spun, "C002");
-    expect(assigned.inventories.C002.map((item) => item.type)).toEqual(["swap"]);
-  });
-
-  it("item outcome falls back to a coin message when every inventory is full", () => {
-    let state = createInitialGameState();
-    state = { ...state, config: { ...state.config, inventoryLimit: 0 } };
-    const spun = applyGachaOutcome(state, "itemSwap");
-
-    expect(spun.pendingGachaGrant).toBeNull();
-    expect(spun.lastGachaResult?.message).toContain("กระเป๋าเต็มทั้งออฟฟิศ");
+    expect(state.inventories.C001.map((item) => item.type)).toEqual(["double", "remove", "swap", "double"]);
+    expect(state.pendingGachaGrant).toBeNull();
   });
 
   it("gacha spins are unlimited (no daily cap, no player binding)", () => {

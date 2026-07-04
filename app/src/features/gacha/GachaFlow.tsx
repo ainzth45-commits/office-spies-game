@@ -123,13 +123,11 @@ export function GachaFlow() {
         <div className="player-grid player-grid--pick player-grid--compact">
           {state.players.map((player) => {
             const count = (state.inventories[player.id] ?? []).length;
-            const full = count >= state.config.inventoryLimit;
             return (
               <PlayerCard
                 key={player.id}
                 player={player}
-                dimmed={full}
-                badge={`${count}/${state.config.inventoryLimit}`}
+                badge={count > 0 ? `🎒${count}` : undefined}
                 onClick={() => assignTo(player.id)}
               />
             );

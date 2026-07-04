@@ -64,7 +64,6 @@ export interface GameConfig {
   notVotedClueMaxCards: number;
   reduceThresholdPercent: number;
   weakenedReduceThresholdPercent: number;
-  inventoryLimit: number;
   quizCorrectReward: number;
   quizWrongPenaltyPerPlayer: number;
   // กลไกเวลาโจทย์เชาว์: รางวัลลดตามเวลา + โทษ 2 ขั้น
