@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { playFanfare, playLose } from "../../audio/sounds";
 import { gameAssets } from "../../data/assets";
+import { finishGameToBoot } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { buzz } from "../../ui/haptics";
@@ -69,7 +70,8 @@ export function EndGameScene() {
               </>
             )}
             <div className="button-row">
-              <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>กลับ Home</GameButton>
+              {/* จบเกมทุกกรณี = ล้างกระดานกลับหน้าโลโก้ (เจ้านายเคาะ) — ไม่มีทางกลับ home ของเกมเก่า */}
+              <GameButton onClick={() => setState((current) => finishGameToBoot(current))}>🏁 ปิดคดี — กลับหน้าแรก</GameButton>
             </div>
           </div>
         </div>

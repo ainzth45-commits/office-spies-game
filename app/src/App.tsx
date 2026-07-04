@@ -35,6 +35,12 @@ function AppRouter() {
   useEffect(() => {
     preloadAllGameAssets();
   }, []);
+  // iPad: กดค้างแล้ว Safari เด้งเมนู (คัดลอก/แชร์รูป) — ปิดทิ้ง ให้ทุกสัมผัสเป็นของเกมล้วนๆ
+  useEffect(() => {
+    const block = (event: Event) => event.preventDefault();
+    document.addEventListener("contextmenu", block);
+    return () => document.removeEventListener("contextmenu", block);
+  }, []);
   // บอกฉากปัจจุบันให้ html canvas สลับภาพพื้นหลังตาม (global.css: html[data-scene=...])
   // — แถบ safe-area ล่างบน iPad ที่เลเยอร์ fixed ทาไม่ถึง จะโชว์ภาพฉากเดียวกันแทนสีพื้น
   useEffect(() => {

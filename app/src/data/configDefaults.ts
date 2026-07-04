@@ -31,6 +31,7 @@ export const defaultConfig: GameConfig = {
   gachaVoteMultiplierUp: 1.5,
   gachaVoteMultiplierDown: 0.5,
   // 14 ช่อง รวม 100 — ไอเทมแตกรายใบ (ร้านลับถูกถอด กาชาคือทางเดียวได้ไอเทม)
+  // เจ้านายเคาะ 2026-07-04: โจทย์เชาว์แต้มสูงสุด (ลุ้นสุด) · เกราะหายากสุด 3%
   gachaWeights: {
     selfGain: 12,
     selfLoseAll: 8,
@@ -38,13 +39,13 @@ export const defaultConfig: GameConfig = {
     poorGain: 8,
     allLose: 8,
     voteUp: 8,
-    voteDown: 7,
+    voteDown: 8,
     itemDouble: 3,
     itemRemove: 3,
     itemSwap: 3,
     itemReduce: 3,
     itemProtect: 3,
-    grantQuiz: 16,
-    spyShield: 8,
+    grantQuiz: 20,
+    spyShield: 3,
   },
 };

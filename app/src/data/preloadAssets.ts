@@ -3,7 +3,14 @@ import { defaultPlayers } from "./players";
 
 // โหลดรูปทั้งเกมไว้เบื้องหลังตั้งแต่เปิดแอป — เข้าหน้าไหนรูปก็พร้อมทันที ไม่ต้องรอโหลด
 // ไล่ทีละชุด (จำกัดพร้อมกัน 4 รูป) กันแย่งแบนด์วิดท์กับหน้าที่กำลังแสดงอยู่
+// หน้าโลโก้ (BootScreen) ใช้ progress จากที่นี่กั้นไม่ให้เข้าเกมก่อนรูปครบ
 let started = false;
+let lanesRunning = false;
+let delayTimerId: number | null = null;
+const queue: string[] = [];
+let total = 0;
+let loadedCount = 0;
+const listeners = new Set<() => void>();
 
 export function preloadAllGameAssets(): void {
   if (started) return; // กันเรียกซ้ำ (StrictMode/re-render)
@@ -15,21 +22,50 @@ export function preloadAllGameAssets(): void {
     ...Object.values(itemCardAssets),
     ...defaultPlayers.map((player) => player.imageUrl),
   ];
-  const queue = [...new Set(urls)];
-
-  const loadNext = () => {
-    const url = queue.shift();
-    if (!url) return;
-    const img = new Image();
-    img.decoding = "async";
-    // โหลดต่อไม่ว่าสำเร็จหรือพัง (รูปพังมี onError fallback ในแต่ละหน้าอยู่แล้ว)
-    img.onload = loadNext;
-    img.onerror = loadNext;
-    img.src = url;
-  };
+  queue.push(...new Set(urls));
+  total = queue.length;
 
   // เริ่มหลังปล่อยให้หน้าแรกวาดเสร็จก่อน แล้วค่อยลากที่เหลือเข้ามาเงียบๆ
-  window.setTimeout(() => {
-    for (let lane = 0; lane < 4; lane += 1) loadNext();
-  }, 800);
+  delayTimerId = window.setTimeout(startLanes, 800);
+}
+
+// ผู้เล่นกดโลโก้แล้วต้องรอ — ข้าม delay ปล่อยเลนโหลดทันที
+export function boostPreload(): void {
+  if (!started) preloadAllGameAssets();
+  startLanes();
+}
+
+export function getPreloadProgress(): { loaded: number; total: number } {
+  return { loaded: loadedCount, total };
+}
+
+export function subscribePreload(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function startLanes() {
+  if (lanesRunning) return;
+  lanesRunning = true;
+  if (delayTimerId !== null) {
+    window.clearTimeout(delayTimerId);
+    delayTimerId = null;
+  }
+  for (let lane = 0; lane < 4; lane += 1) loadNext();
+}
+
+function loadNext() {
+  const url = queue.shift();
+  if (!url) return;
+  const img = new Image();
+  img.decoding = "async";
+  // นับต่อไม่ว่าสำเร็จหรือพัง (รูปพังมี onError fallback ในแต่ละหน้าอยู่แล้ว) — progress ต้องถึง 100% เสมอ ไม่ค้าง
+  const done = () => {
+    loadedCount += 1;
+    for (const listener of listeners) listener();
+    loadNext();
+  };
+  img.onload = done;
+  img.onerror = done;
+  img.src = url;
 }

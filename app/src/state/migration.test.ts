@@ -46,6 +46,20 @@ describe("migration from pre-rework saves", () => {
     expect(migrated.gachaWeights.itemSwap).toBe(7);
   });
 
+  it("upgrades saves still holding the pre-2026-07-04 default weights to the new default set", () => {
+    const oldDefaults = {
+      selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 7,
+      itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 16, spyShield: 8,
+    };
+    const migrated = migrateConfig({ ...defaultConfig, gachaWeights: oldDefaults });
+    expect(migrated.gachaWeights.spyShield).toBe(3);
+    expect(migrated.gachaWeights.grantQuiz).toBe(20);
+    // ชุดที่ซุปปรับมือเอง (ไม่ตรง default เดิมเป๊ะ) ต้องไม่ถูกแตะ
+    const custom = migrateConfig({ ...defaultConfig, gachaWeights: { ...oldDefaults, spyShield: 10 } });
+    expect(custom.gachaWeights.spyShield).toBe(10);
+    expect(custom.gachaWeights.grantQuiz).toBe(16);
+  });
+
   it("moves a game stranded on the removed shop phase back home and fills new fields", () => {
     const legacy = {
       ...createInitialGameState(),

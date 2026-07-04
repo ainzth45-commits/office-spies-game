@@ -47,16 +47,27 @@ export function migrateConfig(saved: LegacyGameState["config"]): GameConfig {
   } else {
     gachaWeights = { ...defaultConfig.gachaWeights, ...savedWeights };
   }
-  // ตัด field ที่ถอดออกจากเกม (itemPrices/itemDailyLimits/gachaDailyLimitPerPlayer) ด้วยการสร้างจาก default
+  // ตัด field ที่ถอดออกจากเกม (itemPrices/itemDailyLimits/gachaDailyLimitPerPlayer/inventoryLimit) ด้วยการสร้างจาก default
   const merged = { ...defaultConfig, ...saved, gachaWeights } as GameConfig & Record<string, unknown>;
   delete merged.itemPrices;
   delete merged.itemDailyLimits;
   delete merged.gachaDailyLimitPerPlayer;
+  delete merged.inventoryLimit;
   // สเกลเวลาโจทย์เชาว์รุ่นแรก (10วิ/60วิ) ถูกเจ้านายปรับเป็น 5วิ/30วิ — เซฟที่ยังถือค่ารุ่นแรก
   // (ไม่มีใครตั้งใจปรับเอง ฟีเจอร์เพิ่งออกวันเดียว) อัปเป็นค่าใหม่ให้อัตโนมัติ
   const config = merged as GameConfig;
   if (config.quizRewardDecaySec === 10) config.quizRewardDecaySec = 5;
   if (config.quizPenaltyTierSec === 60) config.quizPenaltyTierSec = 30;
+  // อัตรากาชารุ่นก่อน 2026-07-04 (เกราะ 8/เชาว์ 16) → รุ่นใหม่เจ้านายเคาะ (เกราะ 3/เชาว์ 20)
+  // อัปให้เฉพาะเซฟที่ยังถือชุด default เดิมเป๊ะ (ไม่มีใครตั้งใจปรับเอง) — ชุดที่ปรับมือแล้วไม่แตะ
+  const oldDefaultWeights: Record<string, number> = {
+    selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 7,
+    itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 16, spyShield: 8,
+  };
+  const sameAsOldDefault = Object.keys(defaultConfig.gachaWeights).every(
+    (key) => (config.gachaWeights as Record<string, number>)[key] === oldDefaultWeights[key],
+  );
+  if (sameAsOldDefault) config.gachaWeights = { ...defaultConfig.gachaWeights };
   return config;
 }
 

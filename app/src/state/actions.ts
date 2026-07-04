@@ -96,6 +96,16 @@ export function startNewGameRound(state: GameState): GameState {
   );
 }
 
+// ปุ่มออกจากฉากจบเกม — ล้างกระดานกลับหน้าโลโก้เหมือนเริ่มรอบใหม่
+// ไม่เช็คเกณฑ์คลังโจทย์เหมือน startNewGameRound: เกมจบแล้วต้องออกได้เสมอ ห้ามค้างที่ฉากจบ
+export function finishGameToBoot(state: GameState): GameState {
+  const fresh = createInitialGameState();
+  return log(
+    { ...fresh, phase: "boot", players: state.players, config: state.config, settings: state.settings },
+    "จบเกม — ล้างกระดานกลับหน้าแรก",
+  );
+}
+
 // เข้าหน้าดูบทบาท: ถ้ายังไม่เคยสุ่มสายลับเลย (ทุกคน normal) ให้สุ่มก่อนอัตโนมัติ
 // กันบั๊ก "เกมใหม่ไม่มีใครเป็นสปาย" — ถ้าสุ่มแล้วก็แค่เปิดดู (ไม่สุ่มซ้ำ ผู้เล่นจะได้บทบาทเดิม)
 export function enterRoleReveal(state: GameState, random: RandomSource = Math.random): GameState {
@@ -360,17 +370,19 @@ export function dismissQuizResult(state: GameState): GameState {
   return { ...state, pendingQuizResult: null, phase: "home" };
 }
 
+// ไอเทม 1 ชิ้นที่ผู้โหวตกดใช้ในตานี้ — ใช้กี่ชิ้นก็ได้ต่อตา ยกเว้นโหวต 2 เสียงที่ซ้อนกันไม่ได้
+export interface VoteTurnItemUse {
+  id: string;
+  type: VoteItemType;
+  targetId?: PlayerId;
+  firstTargetId?: PlayerId;
+  secondTargetId?: PlayerId;
+}
+
 export interface VoteTurnInput {
   voterId: PlayerId;
   targetId: PlayerId;
-  doubleItemId?: string;
-  effectItem?: {
-    id: string;
-    type: Exclude<VoteItemType, "double">;
-    targetId?: PlayerId;
-    firstTargetId?: PlayerId;
-    secondTargetId?: PlayerId;
-  };
+  items?: VoteTurnItemUse[];
 }
 
 export function submitVoteTurn(state: GameState, input: VoteTurnInput): GameState {
@@ -383,18 +395,17 @@ export function submitVoteTurn(state: GameState, input: VoteTurnInput): GameStat
   const usedItems: UsedVoteItem[] = [];
   let doubleVote = false;
 
-  if (input.doubleItemId) {
-    const item = inventory.find((candidate) => candidate.id === input.doubleItemId && candidate.type === "double");
-    if (!item) throw new Error("ไม่พบไอเทมโหวต 2 เสียง");
-    doubleVote = true;
-    inventory = inventory.filter((candidate) => candidate.id !== input.doubleItemId);
-  }
-
-  if (input.effectItem) {
-    const item = inventory.find((candidate) => candidate.id === input.effectItem?.id && candidate.type === input.effectItem?.type);
+  for (const use of input.items ?? []) {
+    const item = inventory.find((candidate) => candidate.id === use.id && candidate.type === use.type);
     if (!item) throw new Error("ไม่พบไอเทมที่เลือกใช้");
-    usedItems.push(toUsedVoteItem(input.voterId, input.effectItem));
-    inventory = inventory.filter((candidate) => candidate.id !== input.effectItem?.id);
+    if (use.type === "double") {
+      // เสียงตัวเองคูณสองได้ครั้งเดียว — ใบที่สองไม่มีผลเพิ่ม เลยกันไว้ไม่ให้เสียของฟรี
+      if (doubleVote) throw new Error("โหวต 2 เสียงใช้ได้ตาละ 1 ใบ");
+      doubleVote = true;
+    } else {
+      usedItems.push(toUsedVoteItem(input.voterId, { ...use, type: use.type }));
+    }
+    inventory = inventory.filter((candidate) => candidate.id !== use.id);
   }
 
   const nextVote = {
@@ -416,7 +427,7 @@ export function submitVoteTurn(state: GameState, input: VoteTurnInput): GameStat
   );
 }
 
-function toUsedVoteItem(userId: PlayerId, item: NonNullable<VoteTurnInput["effectItem"]>): UsedVoteItem {
+function toUsedVoteItem(userId: PlayerId, item: VoteTurnItemUse & { type: Exclude<VoteItemType, "double"> }): UsedVoteItem {
   if (item.type === "remove") {
     if (!item.targetId) throw new Error("ต้องเลือกเป้าหมายของไอเทมลบเสียง");
     return { id: item.id, userId, type: "remove", targetId: item.targetId };

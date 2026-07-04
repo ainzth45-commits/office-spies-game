@@ -343,10 +343,47 @@ describe("game actions", () => {
     let state = assignGachaItem(applyGachaOutcome(createInitialGameState(), "itemDouble"), "C001");
     state = openVote(state);
     const itemId = state.inventories.C001[0].id;
-    state = submitVoteTurn(state, { voterId: "C001", targetId: "C002", doubleItemId: itemId });
+    state = submitVoteTurn(state, { voterId: "C001", targetId: "C002", items: [{ id: itemId, type: "double" }] });
 
     expect(state.currentVote?.votes[0]).toMatchObject({ voterId: "C001", targetId: "C002", doubleVote: true });
     expect(state.inventories.C001).toHaveLength(0);
+  });
+
+  it("allows several items in one turn (double + remove + reduce) but rejects a second double", () => {
+    let state = createInitialGameState();
+    state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
+    state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
+    state = assignGachaItem(applyGachaOutcome(state, "itemRemove"), "C001");
+    state = assignGachaItem(applyGachaOutcome(state, "itemReduce"), "C001");
+    state = openVote(state);
+    const ids = Object.fromEntries(state.inventories.C001.map((item) => [item.id, item.type]));
+    const byType = (type: string) => Object.keys(ids).filter((id) => ids[id] === type);
+    const [doubleA, doubleB] = byType("double");
+
+    expect(() =>
+      submitVoteTurn(state, {
+        voterId: "C001",
+        targetId: "C002",
+        items: [
+          { id: doubleA, type: "double" },
+          { id: doubleB, type: "double" },
+        ],
+      }),
+    ).toThrow("ตาละ 1 ใบ");
+
+    state = submitVoteTurn(state, {
+      voterId: "C001",
+      targetId: "C002",
+      items: [
+        { id: doubleA, type: "double" },
+        { id: byType("remove")[0], type: "remove", targetId: "C003" },
+        { id: byType("reduceThreshold")[0], type: "reduceThreshold" },
+      ],
+    });
+
+    expect(state.currentVote?.votes[0]).toMatchObject({ doubleVote: true });
+    expect(state.currentVote?.usedItems.map((item) => item.type).sort()).toEqual(["reduceThreshold", "remove"]);
+    expect(state.inventories.C001.map((item) => item.type)).toEqual(["double"]);
   });
 
   it("skipping the clue forfeits it for the round — no buying later", () => {

@@ -38,7 +38,7 @@ export function VoteFlow() {
   const [step, setStep] = useState<Step>(state.currentVote ? "pickVoter" : "open");
   const [selectedVoterId, setSelectedVoterId] = useState<PlayerId | null>(null);
   const [targetId, setTargetId] = useState<PlayerId | null>(null);
-  const [plannedItem, setPlannedItem] = useState<PlannedItem | null>(null);
+  const [plannedItems, setPlannedItems] = useState<PlannedItem[]>([]);
   const [bagOpen, setBagOpen] = useState(false);
   const [message, setMessage] = useState("");
   const presentPlayers = state.players.filter((player) => state.attendance[player.id]);
@@ -65,17 +65,13 @@ export function VoteFlow() {
         submitVoteTurn(current, {
           voterId: selectedVoterId,
           targetId,
-          doubleItemId: plannedItem?.type === "double" ? plannedItem.id : undefined,
-          effectItem:
-            plannedItem && plannedItem.type !== "double"
-              ? {
-                  id: plannedItem.id,
-                  type: plannedItem.type,
-                  targetId: plannedItem.type === "remove" ? plannedItem.targetId : undefined,
-                  firstTargetId: plannedItem.type === "swap" ? plannedItem.firstTargetId : undefined,
-                  secondTargetId: plannedItem.type === "swap" ? plannedItem.secondTargetId : undefined,
-                }
-              : undefined,
+          items: plannedItems.map((planned) => ({
+            id: planned.id,
+            type: planned.type,
+            targetId: planned.type === "remove" ? planned.targetId : undefined,
+            firstTargetId: planned.type === "swap" ? planned.firstTargetId : undefined,
+            secondTargetId: planned.type === "swap" ? planned.secondTargetId : undefined,
+          })),
         }),
       );
       setStep("curtain");
@@ -88,7 +84,7 @@ export function VoteFlow() {
   function resetTurn() {
     setSelectedVoterId(null);
     setTargetId(null);
-    setPlannedItem(null);
+    setPlannedItems([]);
     setBagOpen(false);
     setStep("pickVoter");
   }
@@ -207,30 +203,36 @@ export function VoteFlow() {
           <PlayerCard key={player.id} player={player} selected={targetId === player.id} onClick={() => setTargetId(player.id)} />
         ))}
       </div>
-      {plannedItem && (
-        <p className="planned-item">
-          🎒 จะใช้: <b>{labelItem(plannedItem.type)}</b>
-          {plannedItem.type === "remove" && ` → ลบเสียง ${presentPlayers.find((p) => p.id === plannedItem.targetId)?.name ?? ""}`}
-          {plannedItem.type === "swap" &&
-            ` → สลับ ${presentPlayers.find((p) => p.id === plannedItem.firstTargetId)?.name ?? ""} ↔ ${presentPlayers.find((p) => p.id === plannedItem.secondTargetId)?.name ?? ""}`}
-          <button type="button" className="planned-item__cancel" onClick={() => setPlannedItem(null)}>✕ ไม่ใช้แล้ว</button>
+      {plannedItems.map((planned) => (
+        <p key={planned.id} className="planned-item">
+          🎒 จะใช้: <b>{labelItem(planned.type)}</b>
+          {planned.type === "remove" && ` → ลบเสียง ${presentPlayers.find((p) => p.id === planned.targetId)?.name ?? ""}`}
+          {planned.type === "swap" &&
+            ` → สลับ ${presentPlayers.find((p) => p.id === planned.firstTargetId)?.name ?? ""} ↔ ${presentPlayers.find((p) => p.id === planned.secondTargetId)?.name ?? ""}`}
+          <button
+            type="button"
+            className="planned-item__cancel"
+            onClick={() => setPlannedItems((current) => current.filter((item) => item.id !== planned.id))}
+          >
+            ✕ ไม่ใช้แล้ว
+          </button>
         </p>
-      )}
+      ))}
       <div className="button-row">
         <GameButton variant="paper" onClick={resetTurn}>ย้อนกลับ</GameButton>
         <GameButton variant="paper" onClick={() => setBagOpen(true)}>
-          🎒 กระเป๋าไอเทม ({inventory.length})
+          🎒 กระเป๋าไอเทม ({inventory.length - plannedItems.length})
         </GameButton>
         <GameButton disabled={!targetId} onClick={submitBallot}>🔒 หย่อนบัตรลงหีบ</GameButton>
       </div>
 
       {bagOpen && (
         <ItemBagModal
-          inventory={inventory}
+          inventory={inventory.filter((item) => !plannedItems.some((planned) => planned.id === item.id))}
           players={presentPlayers}
-          planned={plannedItem}
+          hasDoublePlanned={plannedItems.some((planned) => planned.type === "double")}
           onPlan={(planned) => {
-            setPlannedItem(planned);
+            setPlannedItems((current) => [...current, planned]);
             setBagOpen(false);
           }}
           onClose={() => setBagOpen(false)}
@@ -241,17 +243,18 @@ export function VoteFlow() {
 }
 
 // กระเป๋าไอเทมในคูหา — เลือกไอเทม → อ่านคำอธิบาย → เลือกเป้า (ถ้าต้องมี) → ยืนยัน
+// ใช้ได้หลายชิ้นต่อตา (ยกเว้นโหวต 2 เสียงซ้อนใบที่สองไม่ได้) — ชิ้นที่เลือกไปแล้วถูกกรองออกจากกระเป๋าโดยผู้เรียก
 function ItemBagModal({
   inventory,
   players,
-  planned,
+  hasDoublePlanned,
   onPlan,
   onClose,
 }: {
   inventory: VoteItem[];
   players: Player[];
-  planned: PlannedItem | null;
-  onPlan: (planned: PlannedItem | null) => void;
+  hasDoublePlanned: boolean;
+  onPlan: (planned: PlannedItem) => void;
   onClose: () => void;
 }) {
   const [openedItem, setOpenedItem] = useState<VoteItem | null>(null);
@@ -274,19 +277,25 @@ function ItemBagModal({
             <p className="confirm-modal__body">กระเป๋าว่างเปล่า... ไอเทมสุ่มได้จากตู้กาชาเท่านั้น</p>
           ) : (
             <>
-              <p className="confirm-modal__body">แตะไอเทมเพื่อดูว่ามันทำอะไร — ใช้ได้ตาละ 1 ชิ้น ไม่มีใครเห็นว่าคุณใช้</p>
+              <p className="confirm-modal__body">แตะไอเทมเพื่อดูว่ามันทำอะไร — ใช้กี่ชิ้นก็ได้ในตานี้ ไม่มีใครเห็นว่าคุณใช้</p>
               <div className="bag-grid">
-                {inventory.map((item) => (
-                  <button key={item.id} type="button" className="bag-item" onClick={() => setOpenedItem(item)}>
-                    <img src={itemCardAssets[item.type]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
-                    <span>{labelItem(item.type)}</span>
-                  </button>
-                ))}
+                {inventory.map((item) => {
+                  const doubleBlocked = item.type === "double" && hasDoublePlanned;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="bag-item"
+                      disabled={doubleBlocked}
+                      onClick={() => setOpenedItem(item)}
+                    >
+                      <img src={itemCardAssets[item.type]} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                      <span>{doubleBlocked ? `${labelItem(item.type)} (ใช้ได้ตาละ 1 ใบ)` : labelItem(item.type)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </>
-          )}
-          {planned && (
-            <GameButton variant="paper" onClick={() => onPlan(null)}>✕ ยกเลิกไอเทมที่เลือกไว้ ({labelItem(planned.type)})</GameButton>
           )}
           <div className="button-row">
             <GameButton onClick={onClose}>ปิดกระเป๋า</GameButton>

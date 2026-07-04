@@ -53,6 +53,28 @@ body {
   overscroll-behavior: none;
 }
 
+/* iPad: การแตะ/กดค้างต้องมีผลแค่ตามระบบเกมเท่านั้น
+   — ปิดครอบเลือกข้อความ (user-select) · ปิดเมนูกดค้างรูป แชร์/บันทึก (touch-callout, user-drag)
+   — touch-action: manipulation ตัดดีเลย์ double-tap zoom ของ Safari */
+html,
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+img {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+/* ช่องกรอกในตั้งค่ายังต้องเลือก/แก้ข้อความได้ */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 button,
 input,
 select,
@@ -107,6 +129,55 @@ textarea {
   font-size: clamp(16px, 2.6dvh, 22px);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   animation: reel-pulse 1.4s ease-in-out infinite;
+}
+
+/* หน้ารอโหลดรูปหลังแตะโลโก้ — แว่นขยายส่ายหาหลักฐาน + แถบคืบหน้าธีมแฟ้มคดี */
+.boot-loading {
+  display: grid;
+  place-items: center;
+  gap: clamp(10px, 2.4dvh, 22px);
+  width: min(560px, 88vw);
+}
+.boot-loading__logo {
+  width: min(340px, 38dvh);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4));
+}
+.boot-loading__mascot {
+  width: clamp(56px, 9dvh, 84px);
+  animation: loading-sweep 1.6s ease-in-out infinite;
+}
+.boot-loading__mascot--done {
+  animation: loading-found 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes loading-sweep {
+  0%, 100% { transform: translateX(-42px) rotate(-14deg); }
+  50% { transform: translateX(42px) rotate(14deg); }
+}
+@keyframes loading-found {
+  from { transform: scale(0.7) rotate(-14deg); }
+  to { transform: scale(1.15) rotate(0deg); }
+}
+.boot-loading__track {
+  width: 100%;
+  height: clamp(16px, 2.6dvh, 22px);
+  border: 3px solid #fbf7ef;
+  border-radius: 999px;
+  background: rgba(24, 33, 63, 0.85);
+  overflow: hidden;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+}
+.boot-loading__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d13f1e, #f2a03d);
+  transition: width 0.25s ease-out;
+}
+.boot-loading__label {
+  margin: 0;
+  color: #ffe9b6;
+  font-weight: 900;
+  font-size: clamp(15px, 2.4dvh, 21px);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 @keyframes boot-breathe {
   0%, 100% { transform: scale(1); }
@@ -1780,6 +1851,7 @@ span.end-spy-card__stamp-img {
   cursor: pointer;
 }
 .bag-item:active { transform: translateY(2px); }
+.bag-item:disabled { opacity: 0.45; pointer-events: none; }
 .bag-item img {
   width: clamp(84px, 15dvh, 130px);
   height: auto;
