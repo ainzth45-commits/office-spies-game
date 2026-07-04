@@ -34,8 +34,8 @@ export const gameAssets = {
 
   // ตราผลโหวต + เบ็ดเตล็ดแฟ้มคดี
   voteWinStamp: `${BASE}/vote-win-stamp.webp?v=3`,
-  // v=7: ภาพสำเร็จชิ้นเดียว — แผ่นป้ายจากจับได้! + ตัว "พลาด!" ฟอนต์ Kanit Black อบลงในภาพ (สะกดถูกแน่นอน)
-  voteLoseStamp: `${BASE}/vote-lose-stamp.webp?v=7`,
+  // v=8: ดีไซน์ต้นฉบับ (กรมท่า) เปลี่ยนหมึกเป็นแดงอิฐด้วย hue-rotate — สีเดิมจมกับพื้นการ์ดกรมท่า
+  voteLoseStamp: `${BASE}/vote-lose-stamp.webp?v=8`,
   // ตรา "จับแล้ว" สำหรับปั๊มทับรูปสายลับที่โดนรวบ (codex)
   stampCaught: `${BASE}/stamp-caught.webp?v=1`,
   clueCardFrame: `${BASE}/clue-card-frame.webp?v=3`,
