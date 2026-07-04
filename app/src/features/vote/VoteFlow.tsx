@@ -96,6 +96,36 @@ export function VoteFlow() {
   const votedCount = state.currentVote?.submittedVoterIds.length ?? 0;
   const totalCount = state.currentVote?.presentPlayerIds.length ?? presentPlayers.length;
 
+  // วันนี้โหวตจบไปแล้ว (หีบถูกเปิดผลแล้ว) → ห้ามเปิดรอบใหม่ ให้ย้อนดูผล/เบาะแสได้อย่างเดียว
+  if (state.manualDay.openedVoteToday && !state.currentVote && step === "open") {
+    const clueUsed = state.lastVoteResult ? Boolean(state.cluePurchasesByVoteRound[state.lastVoteResult.roundId]) : false;
+    return (
+      <section className="scene-panel">
+        <img className="scene-hero" src={gameAssets.ballotBox} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+        <h2>🔒 วันนี้ปิดหีบไปแล้ว</h2>
+        <p className="big-callout">โหวตได้วันละครั้งเดียว — อยากล่ารอบใหม่ ต้องขึ้นวันใหม่ก่อน</p>
+        {state.lastVoteResult && !state.lastClueResult && clueUsed && (
+          <p className="scene-lead">เบาะแสรอบนี้ถูกข้ามไปแล้ว — สายข่าวปิดร้าน กลับมาซื้อย้อนหลังไม่ได้</p>
+        )}
+        <div className="button-row">
+          <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "home" }))}>
+            กลับ Home
+          </GameButton>
+          {state.lastClueResult && (
+            <GameButton variant="paper" onClick={() => setState((current) => ({ ...current, phase: "postVoteClue" }))}>
+              🔎 ดูเบาะแสที่ซื้อไว้
+            </GameButton>
+          )}
+          {state.lastVoteResult && (
+            <GameButton onClick={() => setState((current) => ({ ...current, phase: "voteResult" }))}>
+              📊 ดูผลรอบนี้อีกครั้ง
+            </GameButton>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   if (step === "open") {
     return (
       <section className="scene-panel">

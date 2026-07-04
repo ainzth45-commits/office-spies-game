@@ -11,6 +11,21 @@ export function PostVoteClueScene() {
     .map((playerId) => state.players.find((player) => player.id === playerId))
     .filter((player) => Boolean(player));
   const nextLabel = state.lastVoteResult?.result.publicResult === "caughtSpy" ? "ไปต่อ ➜ ชี้ตัวสายลับคนที่สอง!" : "จบรอบนี้ กลับ Home";
+  const clueUsed = state.lastVoteResult ? Boolean(state.cluePurchasesByVoteRound[state.lastVoteResult.roundId]) : false;
+
+  // ข้ามไปแล้วรอบนี้ (ไม่ซื้อ) → หมดสิทธิ์ถาวร ห้ามวนกลับมาซื้อ
+  if (!state.lastClueResult && clueUsed) {
+    return (
+      <section className="scene-panel clue-scene">
+        <img className="scene-hero" src={gameAssets.magnifier} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+        <h2>สายข่าวปิดร้านแล้ว</h2>
+        <p className="big-callout">รอบนี้เลือกไม่ซื้อไปแล้ว — โอกาสผ่านไปคือผ่านไปเลย เจอกันรอบหน้า 🕶</p>
+        <div className="button-row">
+          <GameButton onClick={() => setState(advanceFromPostVoteClue)}>{nextLabel}</GameButton>
+        </div>
+      </section>
+    );
+  }
 
   // จ่ายแล้วแต่กองเล็กเกิน — โดนสายข่าวแกล้ง (กับดักตามดีไซน์: ไม่บอกล่วงหน้าว่ากองมีกี่คน)
   if (state.lastClueResult?.emptyPaid) {

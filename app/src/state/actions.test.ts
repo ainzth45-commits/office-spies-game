@@ -20,6 +20,7 @@ import {
   openVote,
   resolveSecondSpyGuess,
   rolesAssigned,
+  skipPostVoteClue,
   startNewDay,
   startNewGameRound,
   startNewRound,
@@ -355,6 +356,19 @@ describe("game actions", () => {
 
     expect(state.currentVote?.votes[0]).toMatchObject({ voterId: "C001", targetId: "C002", doubleVote: true });
     expect(state.inventories.C001).toHaveLength(0);
+  });
+
+  it("skipping the clue forfeits it for the round — no buying later", () => {
+    let state = openVote(createInitialGameState());
+    for (const voter of state.currentVote!.presentPlayerIds) {
+      state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
+    }
+    state = finalizeVoteRound(state);
+    const roundId = state.lastVoteResult!.roundId;
+    state = skipPostVoteClue(state);
+
+    expect(state.cluePurchasesByVoteRound[roundId]).toBe(true);
+    expect(() => buyPostVoteClue(state, "voted", () => 0)).toThrow("รอบนี้ซื้อเบาะแสไปแล้ว");
   });
 
   it("buys one public post-vote clue per vote round", () => {

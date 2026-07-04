@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { GameState } from "../domain/types";
 import { createInitialGameState } from "./gameState";
 import { loadGameState, saveGameState } from "./storage";
@@ -14,6 +14,11 @@ const GameStoreContext = createContext<GameStoreValue | null>(null);
 export function GameStoreProvider({ children }: { children: ReactNode }) {
   const [state, setRawState] = useState<GameState>(() => createInitialGameState());
   const [hydrated, setHydrated] = useState(false);
+  // เงา state ปัจจุบัน — ให้ setState รัน updater "ทันที" ในบริบทของคนเรียก
+  // (เดิมส่ง updater เข้า React แล้วไปรันตอน dispatch → action ที่ throw เช่น "วันนี้เปิดโหวตไปแล้ว"
+  //  ระเบิดนอก try/catch ของหน้าจอ → แอปขาวทั้งจอ)
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     loadGameState()
@@ -32,7 +37,9 @@ export function GameStoreProvider({ children }: { children: ReactNode }) {
       state,
       hydrated,
       setState: (updater) => {
-        setRawState((current) => (typeof updater === "function" ? updater(current) : updater));
+        const next = typeof updater === "function" ? updater(stateRef.current) : updater;
+        stateRef.current = next; // call ซ้อนใน tick เดียวกันยังเห็นค่าล่าสุด
+        setRawState(next);
       },
     }),
     [hydrated, state],

@@ -508,7 +508,12 @@ export function buyPostVoteClue(state: GameState, option: PostVoteClueOption, ra
 }
 
 export function skipPostVoteClue(state: GameState): GameState {
-  return advanceFromPostVoteClue(state);
+  // ข้าม = สละสิทธิ์ถาวรของรอบนี้ — ย้อนกลับมาซื้อทีหลังไม่ได้ (ใช้ธงเดียวกับซื้อแล้ว)
+  const roundId = state.lastVoteResult?.roundId;
+  const next = roundId
+    ? { ...state, cluePurchasesByVoteRound: { ...state.cluePurchasesByVoteRound, [roundId]: true } }
+    : state;
+  return advanceFromPostVoteClue(next);
 }
 
 export function finishRefund(state: GameState): GameState {
