@@ -48,9 +48,10 @@ function AppRouter() {
           <button
             type="button"
             className="chip-btn home-chip"
+            aria-label="กลับหน้า Home"
             onClick={() => setState((current) => ({ ...current, phase: "home" }))}
           >
-            <ThemedIcon className="chip-icon" src={gameAssets.iconHome} emoji="🏠" /> Home
+            <ThemedIcon className="chip-icon chip-icon--lg" src={gameAssets.iconHome} emoji="🏠" />
           </button>
           <button
             type="button"
