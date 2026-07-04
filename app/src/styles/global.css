@@ -1190,32 +1190,6 @@ h1 {
   width: min(220px, 26dvh);
   margin: 0 auto;
 }
-/* ตราพลาด: แผ่นเปล่า + ตัวอักษรจริงหมุนตามป้าย (ฟอนต์ไทยจาก AI เพี้ยน) */
-.vote-stamp-wrap {
-  position: relative;
-  width: min(220px, 26dvh);
-  margin: 0 auto;
-  animation: stamp-slam 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
-}
-.vote-stamp-wrap .vote-stamp { width: 100%; animation: none; }
-.vote-stamp-wrap__text {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  /* สไตล์เดียวกับป้ายจับได้!: ตัวแดงใหญ่เต็มแผ่น เงาครีมให้มีมิติ เอียงตามแผ่น */
-  transform: rotate(-12deg) translateY(-2%);
-  color: #d13f1e;
-  font-weight: 1000;
-  font-size: clamp(38px, 8dvh, 72px);
-  letter-spacing: 0;
-  opacity: 0.96;
-  text-shadow:
-    3px 3px 0 rgba(248, 224, 181, 0.95),
-    -2px -2px 0 rgba(248, 224, 181, 0.7),
-    0 5px 8px rgba(0, 0, 0, 0.18);
-  pointer-events: none;
-}
 /* ตราจับแล้วแบบรูป ปั๊มทับรูปสายลับ */
 img.end-spy-card__stamp-img {
   position: absolute;

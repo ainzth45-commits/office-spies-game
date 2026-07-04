@@ -84,16 +84,12 @@ export function VoteResultScene() {
           onError={(event) => { event.currentTarget.style.display = "none"; }}
         />
       ) : (
-        /* ตราพลาด: แผ่นตราเปล่า + ตัวอักษรจริงวางทับ (ฟอนต์ไทยจาก AI เพี้ยน เลยพิมพ์เองให้คม) */
-        <div className="vote-stamp-wrap">
-          <img
-            className="vote-stamp"
-            src={gameAssets.voteLoseStamp}
-            alt=""
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
-          />
-          <span className="vote-stamp-wrap__text" aria-hidden="true">พลาด!</span>
-        </div>
+        <img
+          className="vote-stamp"
+          src={gameAssets.voteLoseStamp}
+          alt=""
+          onError={(event) => { event.currentTarget.style.display = "none"; }}
+        />
       )}
       <h2>{title}</h2>
       <p className="big-callout">
