@@ -9,6 +9,7 @@ import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { PlayerCard } from "../../ui/components/PlayerCard";
 import { buzz } from "../../ui/haptics";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 import { GachaPoolModal } from "./GachaPoolModal";
 
 const ALL_OUTCOMES = Object.keys(gachaIconAssets) as GachaOutcome[];
@@ -151,7 +152,7 @@ export function GachaFlow() {
           {/* ปุ่มส่องของในตู้ — เกาะมุมขวาบนของการ์ดตู้ */}
           {!spinning && (
             <button type="button" className="pool-peek-btn" onClick={() => setShowPool(true)} aria-label="ดูของในตู้">
-              📦
+              <ThemedIcon className="pool-peek-btn__icon" src={gameAssets.dockGacha} emoji="📦" />
             </button>
           )}
           <img

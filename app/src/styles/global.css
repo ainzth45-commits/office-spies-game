@@ -1849,6 +1849,12 @@ h1 {
   place-items: center;
 }
 .pool-peek-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25); }
+.pool-peek-btn__icon {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  border-radius: 10px;
+}
 
 /* โชว์ไอเทมที่สุ่มได้ ใหญ่เต็มตา ก่อนกดใส่กระเป๋า */
 .gacha-assign__showcase {
