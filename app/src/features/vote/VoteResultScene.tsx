@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { playDrum, playFanfare, playLose } from "../../audio/sounds";
 import { buzz } from "../../ui/haptics";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 import { gameAssets } from "../../data/assets";
 import { advanceFromVoteResult, finalizeVoteRound } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
@@ -75,12 +76,25 @@ export function VoteResultScene() {
   return (
     <div className="reveal-stage">
     <section className="scene-panel result-scene">
-      <img
-        className="vote-stamp"
-        src={result.publicResult === "caughtSpy" ? gameAssets.voteWinStamp : gameAssets.voteLoseStamp}
-        alt=""
-        onError={(event) => { event.currentTarget.style.display = "none"; }}
-      />
+      {result.publicResult === "caughtSpy" ? (
+        <img
+          className="vote-stamp"
+          src={gameAssets.voteWinStamp}
+          alt=""
+          onError={(event) => { event.currentTarget.style.display = "none"; }}
+        />
+      ) : (
+        /* ตราพลาด: แผ่นตราเปล่า + ตัวอักษรจริงวางทับ (ฟอนต์ไทยจาก AI เพี้ยน เลยพิมพ์เองให้คม) */
+        <div className="vote-stamp-wrap">
+          <img
+            className="vote-stamp"
+            src={gameAssets.voteLoseStamp}
+            alt=""
+            onError={(event) => { event.currentTarget.style.display = "none"; }}
+          />
+          <span className="vote-stamp-wrap__text" aria-hidden="true">พลาด!</span>
+        </div>
+      )}
       <h2>{title}</h2>
       <p className="big-callout">
         {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 จับได้แล้ว 1 คน — อีกคนยังลอยนวล ทีมได้สิทธิ์ชี้ตัวต่อทันที` : null}
@@ -98,7 +112,7 @@ export function VoteResultScene() {
               onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
             />
             <b>{winner.name}</b>
-            <span className="end-spy-card__stamp">จับแล้ว</span>
+            <ThemedIcon className="end-spy-card__stamp-img" src={gameAssets.stampCaught} emoji="จับแล้ว" />
           </div>
         </div>
       )}

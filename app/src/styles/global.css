@@ -1190,6 +1190,53 @@ h1 {
   width: min(220px, 26dvh);
   margin: 0 auto;
 }
+/* ตราพลาด: แผ่นเปล่า + ตัวอักษรจริงหมุนตามป้าย (ฟอนต์ไทยจาก AI เพี้ยน) */
+.vote-stamp-wrap {
+  position: relative;
+  width: min(220px, 26dvh);
+  margin: 0 auto;
+  animation: stamp-slam 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.vote-stamp-wrap .vote-stamp { width: 100%; animation: none; }
+.vote-stamp-wrap__text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: rotate(-9deg);
+  color: #d6503a;
+  font-weight: 1000;
+  font-size: clamp(34px, 6.4dvh, 56px);
+  letter-spacing: 2px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+/* ตราจับแล้วแบบรูป ปั๊มทับรูปสายลับ */
+img.end-spy-card__stamp-img {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: 96%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
+}
+/* fallback ตอนรูปตราโหลดไม่ได้ — กลับไปใช้ป้ายข้อความเดิม */
+span.end-spy-card__stamp-img {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-14deg);
+  border: 3px solid #e94f37;
+  border-radius: 8px;
+  color: #e94f37;
+  background: rgba(251, 247, 239, 0.85);
+  font-weight: 1000;
+  font-size: clamp(13px, 2dvh, 17px);
+  padding: 2px 10px;
+  letter-spacing: 1px;
+}
 /* การ์ดสายลับที่เพิ่งโดนจับบนหน้าผล — ย่อมกว่าเวอร์ชันฉากจบ ให้หน้าผลจบจอเดียว */
 .result-caught-card .end-spy-card__photo {
   width: clamp(76px, 14dvh, 120px);
@@ -1831,29 +1878,28 @@ h1 {
   flex-shrink: 0;
 }
 
-/* ปุ่มส่องของในตู้ — มุมขวาบนของการ์ดตู้กาชา */
+/* ปุ่มส่องของในตู้ — ไอคอนกาชาลอยมุมขวาบนการ์ดตู้ (ไม่มีกรอบ ใหญ่เห็นชัด) */
 .pool-peek-btn {
   position: absolute;
-  top: -12px;
-  right: -12px;
+  top: -18px;
+  right: -18px;
   z-index: 2;
-  width: clamp(44px, 7dvh, 58px);
-  height: clamp(44px, 7dvh, 58px);
-  border: 3px solid #20263f;
-  border-radius: 50%;
-  background: #f5e9d0;
-  font-size: clamp(20px, 3.4dvh, 28px);
+  width: clamp(64px, 10.5dvh, 92px);
+  height: clamp(64px, 10.5dvh, 92px);
+  border: none;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
   display: grid;
   place-items: center;
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.35));
 }
-.pool-peek-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25); }
+.pool-peek-btn:active { transform: translateY(3px) scale(0.94); }
 .pool-peek-btn__icon {
-  width: 78%;
-  height: 78%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: 16px;
 }
 
 /* โชว์ไอเทมที่สุ่มได้ ใหญ่เต็มตา ก่อนกดใส่กระเป๋า */

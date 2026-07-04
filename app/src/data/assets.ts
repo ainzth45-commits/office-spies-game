@@ -34,7 +34,10 @@ export const gameAssets = {
 
   // ตราผลโหวต + เบ็ดเตล็ดแฟ้มคดี
   voteWinStamp: `${BASE}/vote-win-stamp.webp?v=3`,
-  voteLoseStamp: `${BASE}/vote-lose-stamp.webp?v=4`, // v=4: โทนครีม/แดงอิฐ มองเห็นบนพื้นน้ำเงิน (codex)
+  // v=5: แผ่นตราเปล่า (AI เจนตัวอักษรไทยเพี้ยน → แอปวางคำว่า "พลาด!" ด้วยฟอนต์จริงทับเอง)
+  voteLoseStamp: `${BASE}/vote-lose-stamp.webp?v=5`,
+  // ตรา "จับแล้ว" สำหรับปั๊มทับรูปสายลับที่โดนรวบ (codex)
+  stampCaught: `${BASE}/stamp-caught.webp?v=1`,
   clueCardFrame: `${BASE}/clue-card-frame.webp?v=3`,
   spyPoolBanner: `${BASE}/spy-pool-banner.webp?v=3`,
 

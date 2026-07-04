@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { playClick, setSoundEnabled } from "./audio/sounds";
 import { gameAssets } from "./data/assets";
+import { preloadAllGameAssets } from "./data/preloadAssets";
 import { ThemedIcon } from "./ui/components/ThemedIcon";
 import { BootScreen } from "./features/boot/BootScreen";
 import { EndGameScene } from "./features/end/EndGameScene";
@@ -30,6 +31,10 @@ function AppRouter() {
   useEffect(() => {
     setSoundEnabled(state.settings.soundEnabled);
   }, [state.settings.soundEnabled]);
+  // อุ่นรูปทั้งเกมไว้เบื้องหลังตั้งแต่เปิดแอป — เปลี่ยนหน้าแล้วรูปไม่ดีเลย์
+  useEffect(() => {
+    preloadAllGameAssets();
+  }, []);
   // บอกฉากปัจจุบันให้ html canvas สลับภาพพื้นหลังตาม (global.css: html[data-scene=...])
   // — แถบ safe-area ล่างบน iPad ที่เลเยอร์ fixed ทาไม่ถึง จะโชว์ภาพฉากเดียวกันแทนสีพื้น
   useEffect(() => {

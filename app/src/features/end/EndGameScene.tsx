@@ -4,6 +4,7 @@ import { gameAssets } from "../../data/assets";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { buzz } from "../../ui/haptics";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 
 const CONFETTI_PIECES = Array.from({ length: 26 }, (_, index) => index);
 
@@ -61,7 +62,7 @@ export function EndGameScene() {
                         onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                       />
                       <b>{spy.name}</b>
-                      {teamWon && <span className="end-spy-card__stamp">จับแล้ว</span>}
+                      {teamWon && <ThemedIcon className="end-spy-card__stamp-img" src={gameAssets.stampCaught} emoji="จับแล้ว" />}
                     </div>
                   ))}
                 </div>
