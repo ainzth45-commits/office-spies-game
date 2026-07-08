@@ -21,7 +21,8 @@ const CATEGORIES: Category[] = [
     title: "🎭 บทบาท & เวลาเกม",
     fields: [
       { key: "spyCount", label: "จำนวนสายลับ", min: 1, max: 4, unit: " คน" },
-      { key: "maxGameDays", label: "จำนวนวันต่อเกม", min: 3, max: 12, unit: " วัน" },
+      // เจ้านายเคาะ 1-6: บางรอบอยากเล่นสั้นๆ ไม่กี่วัน
+      { key: "maxGameDays", label: "จำนวนวันต่อเกม", min: 1, max: 6, unit: " วัน" },
     ],
   },
   {
