@@ -82,6 +82,10 @@ export interface GameConfig {
   gachaVoteMultiplierUp: number;
   gachaVoteMultiplierDown: number;
   gachaWeights: Record<GachaOutcome, number>;
+  // เปิด/ปิดของรายชิ้นในตู้ — ปิดแล้วช่องนั้นถูกถอด (น้ำหนัก 0) เปอร์เซ็นต์ที่เหลือเฉลี่ยใหม่อัตโนมัติ
+  gachaEnabled: Record<GachaOutcome, boolean>;
+  // ตัวคูณ "ความป่วน" เมื่อสปายเป็นคนหมุน — คูณน้ำหนักของผลที่ส่งผลเสีย (ดู SPY_BAD_GACHA_OUTCOMES)
+  spyGachaBadMultiplier: number;
 }
 
 export interface VoteItem {

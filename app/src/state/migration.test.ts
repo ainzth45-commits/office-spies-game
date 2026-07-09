@@ -46,18 +46,35 @@ describe("migration from pre-rework saves", () => {
     expect(migrated.gachaWeights.itemSwap).toBe(7);
   });
 
-  it("upgrades saves still holding the pre-2026-07-04 default weights to the new default set", () => {
-    const oldDefaults = {
+  it("upgrades saves holding any previous default weight set to the current default", () => {
+    const preJul4 = {
       selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 7,
       itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 16, spyShield: 8,
     };
-    const migrated = migrateConfig({ ...defaultConfig, gachaWeights: oldDefaults });
-    expect(migrated.gachaWeights.spyShield).toBe(3);
-    expect(migrated.gachaWeights.grantQuiz).toBe(20);
-    // ชุดที่ซุปปรับมือเอง (ไม่ตรง default เดิมเป๊ะ) ต้องไม่ถูกแตะ
-    const custom = migrateConfig({ ...defaultConfig, gachaWeights: { ...oldDefaults, spyShield: 10 } });
+    const jul4 = {
+      selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 8,
+      itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 20, spyShield: 3,
+    };
+    // ทั้งสองชุด default เก่า → อัปเป็น default ปัจจุบัน (เชาว์ 30 · เกราะ 2 · ทุกคนได้ 14)
+    for (const oldSet of [preJul4, jul4]) {
+      const migrated = migrateConfig({ ...defaultConfig, gachaWeights: oldSet });
+      expect(migrated.gachaWeights.grantQuiz).toBe(defaultConfig.gachaWeights.grantQuiz);
+      expect(migrated.gachaWeights.spyShield).toBe(defaultConfig.gachaWeights.spyShield);
+      expect(migrated.gachaWeights.allGain).toBe(defaultConfig.gachaWeights.allGain);
+    }
+    // ชุดที่ซุปปรับมือเอง (ไม่ตรง default เก่าใดๆ) ต้องไม่ถูกแตะ
+    const custom = migrateConfig({ ...defaultConfig, gachaWeights: { ...preJul4, spyShield: 10 } });
     expect(custom.gachaWeights.spyShield).toBe(10);
     expect(custom.gachaWeights.grantQuiz).toBe(16);
+  });
+
+  it("fills the new gacha fields (enabled toggles + spy multiplier) for old saves", () => {
+    const legacy = { ...defaultConfig } as Record<string, unknown>;
+    delete legacy.gachaEnabled;
+    delete legacy.spyGachaBadMultiplier;
+    const migrated = migrateConfig(legacy as unknown as Parameters<typeof migrateConfig>[0]);
+    expect(migrated.gachaEnabled.spyShield).toBe(true);
+    expect(migrated.spyGachaBadMultiplier).toBe(defaultConfig.spyGachaBadMultiplier);
   });
 
   it("moves a game stranded on the removed shop phase back home and fills new fields", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultConfig } from "../data/configDefaults";
 import type { GachaOutcome } from "./types";
-import { availableGachaWeights, normalizeGachaWeights, resolveGachaOutcome, selectWeightedGachaOutcome } from "./gachaEngine";
+import { applySpyChaosBias, availableGachaWeights, normalizeGachaWeights, resolveGachaOutcome, selectWeightedGachaOutcome, SPY_BAD_GACHA_OUTCOMES } from "./gachaEngine";
 
 describe("gacha engine", () => {
   it("selects an outcome by normalized weights", () => {
@@ -51,6 +51,42 @@ describe("gacha engine", () => {
     expect(weights.voteUp).toBe(0);
     expect(weights.voteDown).toBe(0);
     expect(weights.spyShield).toBe(defaultConfig.gachaWeights.spyShield);
+  });
+
+  it("disabled outcomes are zeroed out of the live pool", () => {
+    const weights = availableGachaWeights(defaultConfig.gachaWeights, {
+      shieldExists: false,
+      voteCostChangedToday: false,
+      disabled: ["grantQuiz", "spyShield"],
+    });
+    expect(weights.grantQuiz).toBe(0);
+    expect(weights.spyShield).toBe(0);
+    expect(weights.selfGain).toBe(defaultConfig.gachaWeights.selfGain);
+  });
+
+  it("spy chaos bias multiplies bad outcomes and leaves quiz/coins untouched", () => {
+    const biased = applySpyChaosBias(defaultConfig.gachaWeights, 2);
+    for (const outcome of SPY_BAD_GACHA_OUTCOMES) {
+      expect(biased[outcome]).toBe(defaultConfig.gachaWeights[outcome] * 2);
+    }
+    // โจทย์เชาว์ + เหรียญ ต้องไม่ถูกคูณ
+    expect(biased.grantQuiz).toBe(defaultConfig.gachaWeights.grantQuiz);
+    expect(biased.selfGain).toBe(defaultConfig.gachaWeights.selfGain);
+    expect(SPY_BAD_GACHA_OUTCOMES).not.toContain("grantQuiz");
+  });
+
+  it("spy chaos bias with multiplier 1 returns the weights unchanged", () => {
+    const weights = { ...defaultConfig.gachaWeights };
+    expect(applySpyChaosBias(weights, 1)).toBe(weights);
+  });
+
+  it("bias never resurrects a zeroed (disabled/locked) bad outcome", () => {
+    const live = availableGachaWeights(defaultConfig.gachaWeights, {
+      shieldExists: true, // เกราะถูกถอด → 0
+      voteCostChangedToday: false,
+    });
+    const biased = applySpyChaosBias(live, 3);
+    expect(biased.spyShield).toBe(0);
   });
 
   it("never selects an excluded outcome even at the top of the weight range", () => {

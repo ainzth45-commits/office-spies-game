@@ -58,16 +58,24 @@ export function migrateConfig(saved: LegacyGameState["config"]): GameConfig {
   const config = merged as GameConfig;
   if (config.quizRewardDecaySec === 10) config.quizRewardDecaySec = 5;
   if (config.quizPenaltyTierSec === 60) config.quizPenaltyTierSec = 30;
-  // อัตรากาชารุ่นก่อน 2026-07-04 (เกราะ 8/เชาว์ 16) → รุ่นใหม่เจ้านายเคาะ (เกราะ 3/เชาว์ 20)
-  // อัปให้เฉพาะเซฟที่ยังถือชุด default เดิมเป๊ะ (ไม่มีใครตั้งใจปรับเอง) — ชุดที่ปรับมือแล้วไม่แตะ
-  const oldDefaultWeights: Record<string, number> = {
-    selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 7,
-    itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 16, spyShield: 8,
-  };
-  const sameAsOldDefault = Object.keys(defaultConfig.gachaWeights).every(
-    (key) => (config.gachaWeights as Record<string, number>)[key] === oldDefaultWeights[key],
+  // อัตรากาชา default เคยเปลี่ยนหลายรอบ — เซฟที่ยังถือชุด default "รุ่นเก่า" เป๊ะ (ไม่มีใครตั้งใจปรับเอง)
+  // อัปให้เป็นชุด default ปัจจุบันอัตโนมัติ · ชุดที่ซุปปรับมือเอง(ไม่ตรงชุดเก่าใดๆ) ไม่แตะ
+  const previousDefaultWeightSets: Array<Record<string, number>> = [
+    // รุ่นก่อน 2026-07-04 (เกราะ 8/เชาว์ 16)
+    { selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 7,
+      itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 16, spyShield: 8 },
+    // รุ่น 2026-07-04 (เกราะ 3/เชาว์ 20)
+    { selfGain: 12, selfLoseAll: 8, allGain: 10, poorGain: 8, allLose: 8, voteUp: 8, voteDown: 8,
+      itemDouble: 3, itemRemove: 3, itemSwap: 3, itemReduce: 3, itemProtect: 3, grantQuiz: 20, spyShield: 3 },
+  ];
+  const savedWeightsNow = config.gachaWeights as Record<string, number>;
+  const matchesOldDefault = previousDefaultWeightSets.some((set) =>
+    Object.keys(set).every((key) => savedWeightsNow[key] === set[key]),
   );
-  if (sameAsOldDefault) config.gachaWeights = { ...defaultConfig.gachaWeights };
+  if (matchesOldDefault) config.gachaWeights = { ...defaultConfig.gachaWeights };
+  // เติม field กาชาใหม่ให้เซฟเก่าที่ยังไม่มี (เปิดของครบ + ตัวคูณสปาย) — merge ด้านบนคุมให้อยู่แล้ว แต่กันเหนียว
+  if (!config.gachaEnabled) config.gachaEnabled = { ...defaultConfig.gachaEnabled };
+  if (typeof config.spyGachaBadMultiplier !== "number") config.spyGachaBadMultiplier = defaultConfig.spyGachaBadMultiplier;
   return config;
 }
 
@@ -91,7 +99,8 @@ export function migrateGameState(raw: GameState): GameState {
     // pendingQuiz เก่าไม่มี startedAt/อ้าง playerId → ทิ้ง (โจทย์ค้างข้ามเวอร์ชันไม่มีเวลาเริ่ม)
     pendingQuiz: state.pendingQuiz?.startedAt ? { questionId: state.pendingQuiz.questionId, startedAt: state.pendingQuiz.startedAt } : null,
     pendingQuizResult: state.pendingQuizResult ?? null,
-    pendingGachaGrant: state.pendingGachaGrant ?? null,
+    // ไอเทมกาชารุ่นเก่ารอซุปเลือกคนรับ — flow นั้นถูกถอด (ไอเทมเข้ากระเป๋าคนหมุนตรงแล้ว) ทิ้ง state ค้าง
+    pendingGachaGrant: null,
     currentVote: state.currentVote ?? null,
     lastVoteResult: state.lastVoteResult ?? null,
     lastClueResult: state.lastClueResult ?? null,

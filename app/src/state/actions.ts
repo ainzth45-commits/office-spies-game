@@ -64,9 +64,18 @@ function playerName(state: GameState, playerId: PlayerId): string {
   return state.players.find((player) => player.id === playerId)?.name ?? playerId;
 }
 
+// สุ่มบทบาทใหม่ — เลือกสายลับจาก "คนที่มาวันแรก" เท่านั้น (คนลาไม่มีวันเป็นสปาย)
+// ทุกคนได้ entry ในตาราง roles เสมอ (คนที่ไม่ถูกเลือก/คนลา = normal) → คนมาเพิ่มวันหลังเข้าเป็นผู้เล่นปกติได้เลย
 export function assignNewRoles(state: GameState, random: RandomSource = Math.random): GameState {
-  const roles = assignSpyRoles(state.players.map((player) => player.id), random);
-  return log({ ...state, roles, phase: "roleReveal", currentVote: null, lastVoteResult: null, lastClueResult: null }, "สุ่มบทบาทใหม่");
+  const eligibleIds = presentPlayerIds(state);
+  if (eligibleIds.length < 2) {
+    throw new Error("ต้องมีคนมาอย่างน้อย 2 คนถึงจะเริ่มเกม (สุ่มสายลับ)");
+  }
+  const spyRoles = assignSpyRoles(eligibleIds, random);
+  const roles = Object.fromEntries(
+    state.players.map((player) => [player.id, spyRoles[player.id] ?? "normal"]),
+  ) as GameState["roles"];
+  return log({ ...state, roles, phase: "roleReveal", currentVote: null, lastVoteResult: null, lastClueResult: null }, "สุ่มบทบาทใหม่ (จากคนที่มา)");
 }
 
 export function rolesAssigned(state: GameState): boolean {
@@ -106,13 +115,12 @@ export function finishGameToBoot(state: GameState): GameState {
   );
 }
 
-// เข้าหน้าดูบทบาท: ถ้ายังไม่เคยสุ่มสายลับเลย (ทุกคน normal) ให้สุ่มก่อนอัตโนมัติ
-// กันบั๊ก "เกมใหม่ไม่มีใครเป็นสปาย" — ถ้าสุ่มแล้วก็แค่เปิดดู (ไม่สุ่มซ้ำ ผู้เล่นจะได้บทบาทเดิม)
-export function enterRoleReveal(state: GameState, random: RandomSource = Math.random): GameState {
-  if (rolesAssigned(state)) {
-    return log({ ...state, phase: "roleReveal" }, "เปิดดูบทบาท (รอบเดิม)");
-  }
-  return assignNewRoles(state, random);
+// เข้าหน้าดูบทบาท — ไม่สุ่มทันที
+//   - ยังไม่เคยสุ่ม (เกมใหม่) → เข้าจอ "ตั้งคนมา/ไม่มา" ก่อน แล้ว RoleRevealFlow ค่อยเรียก assignNewRoles หลังยืนยัน
+//     (ล็อคบทบาทให้ยึดตามคนที่มาวันแรกจริงๆ กันสายลับไปตกคนที่ไม่มา)
+//   - สุ่มแล้ว → เปิดดูบทบาทเดิม (ไม่สุ่มซ้ำ)
+export function enterRoleReveal(state: GameState): GameState {
+  return log({ ...state, phase: "roleReveal" }, rolesAssigned(state) ? "เปิดดูบทบาท (รอบเดิม)" : "เข้าหน้าตั้งคนมา + บทบาท");
 }
 
 export function openVote(state: GameState): GameState {
@@ -256,6 +264,8 @@ export interface ApplyGachaOutcomeOptions {
   random?: RandomSource;
   // เวลาปัจจุบัน (ms) — inject ได้ในเทส · ใช้ประทับ startedAt ของโจทย์เชาว์
   nowMs?: number;
+  // คนที่หมุนตานี้ — ถ้าออกไอเทม จะเข้ากระเป๋าคนนี้เลย (ไม่ต้องให้ซุปเลือกคนรับ)
+  spinnerId?: PlayerId;
 }
 
 // หมุนกาชา — ไม่ผูกผู้เล่น ไม่จำกัดครั้ง: ผลเหรียญเป็นของจริงหน้าตู้ (ซุปจัดการมือ)
@@ -297,8 +307,19 @@ export function applyGachaOutcome(
     message = `ค่าเปิดโหวตครั้งหน้า x${state.config.gachaVoteMultiplierDown}`;
   } else if (isGachaItemOutcome(outcome)) {
     const itemType = gachaItemOutcomeToItemType[outcome];
-    message = `ได้ไอเทม ${itemLabel(itemType)}! ซุปกดเลือกว่าใส่กระเป๋าใคร`;
-    next = { ...next, pendingGachaGrant: { itemType, message } };
+    if (options.spinnerId) {
+      // รู้คนหมุน → ไอเทมเข้ากระเป๋าคนนั้นทันที ไม่ต้องให้ซุปเลือก
+      const inventory = next.inventories[options.spinnerId] ?? [];
+      next = {
+        ...next,
+        inventories: { ...next.inventories, [options.spinnerId]: [...inventory, createVoteItem(itemType)] },
+      };
+      message = `${playerName(state, options.spinnerId)} ได้ไอเทม ${itemLabel(itemType)} เข้ากระเป๋าแล้ว!`;
+    } else {
+      // ไม่ระบุคนหมุน (เช่นในเทส) → คงพฤติกรรมเดิม ให้ซุปกดเลือกคนรับ
+      message = `ได้ไอเทม ${itemLabel(itemType)}! ซุปกดเลือกว่าใส่กระเป๋าใคร`;
+      next = { ...next, pendingGachaGrant: { itemType, message } };
+    }
   } else if (outcome === "grantQuiz") {
     const question = pickUnusedQuizQuestion(options.random ?? Math.random);
     if (!question) {

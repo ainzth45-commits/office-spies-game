@@ -62,6 +62,8 @@ const CATEGORIES: Category[] = [
       { key: "gachaPoorGain", label: "คนเหรียญน้อยได้", min: 0, max: 20, unit: " เหรียญ" },
       { key: "gachaVoteMultiplierUp", label: "โหวตหน้าแพงขึ้น", min: 1, max: 3, step: 0.1, unit: "×" },
       { key: "gachaVoteMultiplierDown", label: "โหวตหน้าถูกลง", min: 0.1, max: 1, step: 0.1, unit: "×" },
+      // 1 = ปิดการเอียง · สูง = สปายหมุนแล้วของป่วนออกบ่อยขึ้นชัด (แต่จับสปายง่ายขึ้น)
+      { key: "spyGachaBadMultiplier", label: "ตัวคูณความป่วนเมื่อสปายหมุน", min: 1, max: 3, step: 0.1, unit: "×" },
     ],
   },
   {
@@ -194,21 +196,40 @@ export function SettingsPanel() {
         <legend className={isGacha100 ? undefined : "settings-legend--warn"}>
           🎲 น้ำหนักโอกาสผลกาชา (รวม = {preview.gachaTotal.toFixed(1)}/100{isGacha100 ? " ✅" : gachaHeadroom >= 0 ? ` · ขาดอีก ${gachaHeadroom}` : ` · เกิน ${Math.abs(gachaHeadroom)}`})
         </legend>
+        <p className="settings-quizbank">
+          ปิดสวิตช์ = ถอดของชิ้นนั้นออกจากตู้ (ไม่ออก · ไม่โชว์ในตู้) — เปอร์เซ็นต์ที่เหลือเฉลี่ยใหม่ตอนหมุนอัตโนมัติ · น้ำหนักในตั้งค่ายังรวม 100 ตามเดิม
+        </p>
         <div className="settings-sliders">
           {gachaOutcomes.map((outcome) => {
             const value = draft.gachaWeights[outcome];
-            // ดันเพิ่มได้แค่เท่าโควตาที่เหลือ — เกิน 100 ไม่ได้ ต้องไปลดอันอื่นก่อน
-            const dynamicMax = Math.max(value, Math.min(30, value + Math.max(0, gachaHeadroom)));
+            const enabled = draft.gachaEnabled[outcome] ?? true;
+            // ดันเพิ่มได้แค่เท่าโควตาที่เหลือ — เกิน 100 ไม่ได้ ต้องไปลดอันอื่นก่อน (ใส่เกิน 30 ได้แล้ว)
+            const dynamicMax = value + Math.max(0, gachaHeadroom);
             return (
-              <SliderField
-                key={outcome}
-                label={gachaOutcomeLabels[outcome]}
-                value={value}
-                min={0}
-                max={dynamicMax}
-                step={0.5}
-                onChange={(weight) => { setDraft({ ...draft, gachaWeights: { ...draft.gachaWeights, [outcome]: weight } }); setSaved(false); }}
-              />
+              <div key={outcome} className={`gacha-weight-row${enabled ? "" : " gacha-weight-row--off"}`}>
+                <button
+                  type="button"
+                  className={`gacha-toggle${enabled ? " gacha-toggle--on" : ""}`}
+                  aria-pressed={enabled}
+                  aria-label={enabled ? `ปิด ${gachaOutcomeLabels[outcome]}` : `เปิด ${gachaOutcomeLabels[outcome]}`}
+                  onClick={() => {
+                    setDraft({ ...draft, gachaEnabled: { ...draft.gachaEnabled, [outcome]: !enabled } });
+                    setSaved(false);
+                  }}
+                >
+                  {enabled ? "เปิด" : "ปิด"}
+                </button>
+                <div className="gacha-weight-row__slider">
+                  <SliderField
+                    label={gachaOutcomeLabels[outcome]}
+                    value={value}
+                    min={0}
+                    max={dynamicMax}
+                    step={0.5}
+                    onChange={(weight) => { setDraft({ ...draft, gachaWeights: { ...draft.gachaWeights, [outcome]: weight } }); setSaved(false); }}
+                  />
+                </div>
+              </div>
             );
           })}
         </div>

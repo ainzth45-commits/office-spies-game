@@ -38,6 +38,9 @@ export function normalizeAndValidateConfig(config: GameConfig, playerCount: numb
   ) {
     throw new Error("เปอร์เซ็นต์ไอเทมเกณฑ์ต้องอยู่ระหว่าง 0 และ 1");
   }
+  if (config.spyGachaBadMultiplier < 1) {
+    throw new Error("ตัวคูณความป่วนของสปายต้องอย่างน้อย 1 (1 = ไม่เอียง)");
+  }
   return { ...config, gachaWeights: normalizeGachaWeights(config.gachaWeights) };
 }
 

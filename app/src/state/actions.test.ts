@@ -117,19 +117,45 @@ describe("game actions", () => {
     expect(rolesAssigned(createInitialGameState())).toBe(false);
   });
 
-  it("enterRoleReveal auto-assigns spies on a fresh game (fixes no-spy bug)", () => {
-    const state = enterRoleReveal(createInitialGameState(), () => 0);
+  it("enterRoleReveal enters the role phase WITHOUT assigning (attendance step assigns first)", () => {
+    const state = enterRoleReveal(createInitialGameState());
     expect(state.phase).toBe("roleReveal");
-    expect(rolesAssigned(state)).toBe(true);
-    expect(Object.values(state.roles).filter((role) => role === "spyA")).toHaveLength(1);
-    expect(Object.values(state.roles).filter((role) => role === "spyB")).toHaveLength(1);
+    // ยังไม่สุ่ม — RoleRevealFlow จะโชว์จอตั้งคนมาก่อน แล้วค่อยเรียก assignNewRoles
+    expect(rolesAssigned(state)).toBe(false);
   });
 
   it("enterRoleReveal does NOT reshuffle when roles already assigned (re-view keeps same roles)", () => {
     const assigned = assignNewRoles(createInitialGameState(), () => 0);
-    const reviewed = enterRoleReveal(assigned, () => 0.99);
+    const reviewed = enterRoleReveal(assigned);
     expect(reviewed.phase).toBe("roleReveal");
     expect(reviewed.roles).toEqual(assigned.roles);
+  });
+
+  it("assignNewRoles only makes spies out of present players (absent are always normal)", () => {
+    let state = createInitialGameState();
+    // ให้มาแค่ 3 คน (C001-C003) ที่เหลือลา
+    const present = new Set(["C001", "C002", "C003"]);
+    state = {
+      ...state,
+      attendance: Object.fromEntries(state.players.map((p) => [p.id, present.has(p.id)])) as typeof state.attendance,
+    };
+    const assigned = assignNewRoles(state, () => 0);
+    const spies = Object.entries(assigned.roles).filter(([, role]) => role === "spyA" || role === "spyB");
+    expect(spies).toHaveLength(2);
+    for (const [id] of spies) expect(present.has(id)).toBe(true);
+    // คนลาต้องเป็น normal ทุกคน
+    for (const player of state.players) {
+      if (!present.has(player.id)) expect(assigned.roles[player.id]).toBe("normal");
+    }
+  });
+
+  it("assignNewRoles throws when fewer than two players are present", () => {
+    let state = createInitialGameState();
+    state = {
+      ...state,
+      attendance: Object.fromEntries(state.players.map((p) => [p.id, p.id === "C001"])) as typeof state.attendance,
+    };
+    expect(() => assignNewRoles(state, () => 0)).toThrow("อย่างน้อย 2 คน");
   });
 
   it("startNewRound reshuffles spies and resets the round", () => {
@@ -181,6 +207,13 @@ describe("game actions", () => {
 
     expect(state.inventories.C001.map((item) => item.type)).toEqual(["double", "remove", "swap", "double"]);
     expect(state.pendingGachaGrant).toBeNull();
+  });
+
+  it("gacha item outcome with a spinnerId drops straight into that player's bag (no picker)", () => {
+    const spun = applyGachaOutcome(createInitialGameState(), "itemSwap", { spinnerId: "C005" });
+    expect(spun.pendingGachaGrant).toBeNull();
+    expect(spun.inventories.C005.map((item) => item.type)).toEqual(["swap"]);
+    expect(spun.lastGachaResult?.message).toContain("เข้ากระเป๋าแล้ว");
   });
 
   it("gacha spins are unlimited (no daily cap, no player binding)", () => {

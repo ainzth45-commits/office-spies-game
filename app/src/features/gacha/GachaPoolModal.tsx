@@ -24,21 +24,28 @@ export const gachaPoolEntries: Array<{ outcome: GachaOutcome; label: string; des
 
 export function GachaPoolModal({ onClose }: { onClose: () => void }) {
   const { state } = useGameStore();
+  // ช่องที่ซุปปิดในตั้งค่า — ถอดออกจากตู้ ไม่โชว์เลย (ต่างจาก "หมดชั่วคราว" ที่แค่จางไว้)
+  const disabled = (Object.keys(state.config.gachaEnabled) as GachaOutcome[]).filter(
+    (outcome) => !state.config.gachaEnabled[outcome],
+  );
+  const disabledSet = new Set(disabled);
   const live = availableGachaWeights(state.config.gachaWeights, {
     shieldExists: state.shield.exists,
     voteCostChangedToday: state.dailyUsage.voteCostChanged ?? false,
+    disabled,
   });
   // กันเคสสุดโต่ง (ซุปตั้งน้ำหนักเหลือ 0 หมด) — โชว์ 0% แทนพัง
   const total = Object.values(live).reduce((sum, weight) => sum + Math.max(0, weight), 0);
   const percents = total > 0 ? normalizeGachaWeights(live) : live;
+  const visibleEntries = gachaPoolEntries.filter(({ outcome }) => !disabledSet.has(outcome));
 
   return (
     <div className="overlay" onClick={onClose}>
       <div className="overlay-sheet pool-modal" onClick={(event) => event.stopPropagation()}>
         <h2>📦 ในตู้กาชามีอะไรบ้าง</h2>
-        <p className="scene-lead">เปอร์เซ็นต์คือโอกาสจริงตอนนี้ — ของที่หมด/ติดล็อกจะจางลง</p>
+        <p className="scene-lead">เปอร์เซ็นต์คือโอกาสจริงตอนนี้ — ของที่หมด/ติดล็อกจะจางลง (ของที่ปิดไว้ไม่โชว์)</p>
         <div className="pool-grid">
-          {gachaPoolEntries.map(({ outcome, label, desc }) => {
+          {visibleEntries.map(({ outcome, label, desc }) => {
             const locked = (live[outcome] ?? 0) <= 0;
             return (
               <div key={outcome} className={`pool-slot${locked ? " pool-slot--locked" : ""}`}>

@@ -2001,13 +2001,14 @@ span.end-spy-card__stamp-img {
   position: absolute;
   top: 6px;
   right: 6px;
-  z-index: 1;
+  z-index: 3; /* เหนือรูป (photo z-index:1) ไม่งั้นการ์ดที่มีรูปจะบังป้าย มา/ลา */
   border-radius: 10px;
   background: #20263f;
   color: #ffe9b6;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
-  padding: 2px 7px;
+  padding: 3px 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
 }
 
 /* modal "ในตู้มีอะไร" — กริดของ 14 ช่อง + % สด */
@@ -2526,6 +2527,37 @@ span.end-spy-card__stamp-img {
 }
 .settings-item-pair {
   display: contents;
+}
+
+/* แถวน้ำหนักกาชา: สวิตช์ เปิด/ปิด ซ้าย + สไลเดอร์ขวา */
+.gacha-weight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gacha-weight-row__slider {
+  flex: 1;
+  min-width: 0;
+}
+.gacha-weight-row--off .gacha-weight-row__slider {
+  opacity: 0.4;
+}
+.gacha-toggle {
+  flex: 0 0 auto;
+  min-width: 46px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  border: 2px solid rgba(251, 247, 239, 0.35);
+  background: rgba(24, 33, 63, 0.6);
+  color: #c9cede;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+}
+.gacha-toggle--on {
+  border-color: #6bbf59;
+  background: rgba(107, 191, 89, 0.22);
+  color: #d6f5cc;
 }
 
 .slider-field {

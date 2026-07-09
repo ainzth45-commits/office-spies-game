@@ -2,18 +2,25 @@ import { useState } from "react";
 import { gameAssets, itemCardAssets } from "../../data/assets";
 import { findSpyPartner } from "../../domain/roleEngine";
 import type { PlayerId } from "../../domain/types";
+import { assignNewRoles, rolesAssigned } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
 import { HandOffCurtain } from "../../ui/components/HandOffCurtain";
+import { PlayerCard } from "../../ui/components/PlayerCard";
 import { PlayerPicker } from "../../ui/components/PlayerPicker";
 
-type Step = "pick" | "confirm" | "reveal" | "curtain";
+type Step = "attendance" | "pick" | "confirm" | "reveal" | "curtain";
 
 export function RoleRevealFlow() {
   const { state, setState } = useGameStore();
-  const [step, setStep] = useState<Step>("pick");
+  // เกมใหม่ (ยังไม่สุ่มบทบาท) → เริ่มที่จอตั้งคนมา · เข้ามาดูซ้ำ (สุ่มแล้ว) → ข้ามไปหน้าเลือกคนดูเลย
+  const [step, setStep] = useState<Step>(() => (rolesAssigned(state) ? "pick" : "attendance"));
+  const [attendanceError, setAttendanceError] = useState("");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(null);
+  // เฉพาะคนที่มาวันนี้ (คนลาไม่ต้องเวียนดูบทบาท และไม่มีวันเป็นสปาย)
+  const presentPlayers = state.players.filter((candidate) => state.attendance[candidate.id]);
+  const presentCount = presentPlayers.length;
   // กดค้างถึงเห็นการ์ด — ปล่อยนิ้ว/วางเครื่อง = ซ่อนทันที ไม่มีทางค้างให้คนอื่นเห็น
   const [holding, setHolding] = useState(false);
   // จดว่าใครเปิดดูไปแล้วบ้าง (เฉพาะรอบการเวียนนี้) — โชว์คืบหน้าให้ทั้งวงเห็น
@@ -23,12 +30,60 @@ export function RoleRevealFlow() {
   const partnerId = selectedPlayerId ? findSpyPartner(state.roles, selectedPlayerId) : null;
   const partner = state.players.find((candidate) => candidate.id === partnerId) ?? null;
 
+  // จอตั้งคนมา/ไม่มา ก่อนล็อคบทบาท — สายลับจะสุ่มจากคนที่ "มา" เท่านั้น (วันแรกของเกม)
+  if (step === "attendance") {
+    return (
+      <section className="scene-panel">
+        <h2>👥 ใครมาเล่นวันนี้บ้าง?</h2>
+        <p className="big-callout">แตะสลับคนมา/ลา ก่อนแจกบทบาท — สายลับจะตกอยู่กับ "คนที่มา" เท่านั้น</p>
+        <p className="scene-lead">มาแล้ว {presentCount} คน · คนที่ลาวันนี้ ถ้ามาวันหลังจะเข้าเป็นผู้เล่นปกติ (ไม่มีวันเป็นสายลับ)</p>
+        {attendanceError && <p className="form-error">{attendanceError}</p>}
+        <div className="player-grid player-grid--pick player-grid--compact">
+          {state.players.map((player) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              dimmed={!state.attendance[player.id]}
+              badge={state.attendance[player.id] ? "✅ มา" : "😴 ลา"}
+              onClick={() =>
+                setState((current) => ({
+                  ...current,
+                  attendance: { ...current.attendance, [player.id]: !current.attendance[player.id] },
+                }))
+              }
+            />
+          ))}
+        </div>
+        <div className="button-row">
+          <GameButton
+            onClick={() => {
+              if (presentCount < 2) {
+                setAttendanceError("ต้องมีคนมาอย่างน้อย 2 คนถึงจะแจกบทบาทได้");
+                return;
+              }
+              try {
+                setState((current) => assignNewRoles(current));
+                setAttendanceError("");
+                setStep("pick");
+              } catch (caught) {
+                setAttendanceError(caught instanceof Error ? caught.message : "แจกบทบาทไม่สำเร็จ");
+              }
+            }}
+          >
+            🔒 ล็อครายชื่อ — แจกบทบาท!
+          </GameButton>
+        </div>
+      </section>
+    );
+  }
+
   if (step === "pick") {
+    const remaining = presentPlayers.filter((candidate) => !viewedIds.has(candidate.id));
     return (
       <PlayerPicker
-        title={`ใครยังไม่ดูบทบาท? (ดูแล้ว ${viewedIds.size}/${state.players.length})`}
+        title={`ใครยังไม่ดูบทบาท? (ดูแล้ว ${viewedIds.size}/${presentCount})`}
         lead="เดินมาที่เครื่องทีละคน 🕵️ แตะชื่อตัวเอง — คนอื่นห้ามแอบมอง"
-        players={state.players.filter((candidate) => !viewedIds.has(candidate.id))}
+        players={remaining}
         onPick={(playerId) => {
           setSelectedPlayerId(playerId);
           setStep("confirm");
@@ -42,7 +97,7 @@ export function RoleRevealFlow() {
   }
 
   if (step === "curtain") {
-    if (viewedIds.size >= state.players.length) {
+    if (viewedIds.size >= presentCount) {
       return (
         <section className="scene-panel">
           <h2>✅ รู้ตัวกันครบทุกคนแล้ว</h2>
@@ -56,7 +111,7 @@ export function RoleRevealFlow() {
     return (
       <HandOffCurtain
         message="ปิดแฟ้มแล้ว ส่งเครื่องต่อ"
-        sub={`ดูบทบาทแล้ว ${viewedIds.size}/${state.players.length} คน`}
+        sub={`ดูบทบาทแล้ว ${viewedIds.size}/${presentCount} คน`}
         hint="หน้านิ่งเข้าไว้ 😐 อย่าให้ใครจับสีหน้าได้"
         onContinue={() => setStep("pick")}
       />
