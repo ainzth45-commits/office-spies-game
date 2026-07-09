@@ -3,6 +3,7 @@ import { gameAssets } from "../../data/assets";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty, QuizQuestion } from "../../domain/types";
+import { getPracticeAnsweredIds, markPracticeAnswered, resetPracticeAnswered } from "../../state/practiceHistory";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { ThemedIcon } from "../../ui/components/ThemedIcon";
@@ -30,6 +31,10 @@ export function QuizPracticeFlow() {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  // ข้อที่ตอบไปแล้วในโหมดฝึก (แยก localStorage ไม่ปนเกมจริง) + สวิตช์ซ่อน/แสดง
+  const [answeredIds, setAnsweredIds] = useState<Set<string>>(() => new Set(getPracticeAnsweredIds()));
+  const [hideAnswered, setHideAnswered] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     if (!attempt) return;
@@ -57,8 +62,18 @@ export function QuizPracticeFlow() {
   function answer(choice: "A" | "B") {
     if (!attempt) return;
     const elapsedSec = Math.max(0, (Date.now() - attempt.startedAtMs) / 1000);
+    // มาร์คว่าตอบแล้ว (ถูกหรือผิดก็นับ = เคยเจอข้อนี้) — เก็บลง localStorage ด้วย
+    markPracticeAnswered(attempt.question.id);
+    setAnsweredIds((current) => new Set(current).add(attempt.question.id));
     setVerdict({ question: attempt.question, correct: attempt.question.answer === choice, elapsedSec });
     setAttempt(null);
+  }
+
+  function resetAnswered() {
+    resetPracticeAnswered();
+    setAnsweredIds(new Set());
+    setHideAnswered(false); // กลับสภาพปกติ — ไม่มีข้อให้ซ่อนแล้ว
+    setConfirmReset(false);
   }
 
   // หน้าเฉลย (ผลสมมติ — บอกชัดว่าไม่มีผลจริง)
@@ -121,23 +136,58 @@ export function QuizPracticeFlow() {
     );
   }
 
-  // คลังโจทย์ — กล่องหมายเลขทุกข้อ ไม่มีมาร์คว่าเล่นแล้ว เข้าซ้ำได้
+  // คลังโจทย์ — กล่องหมายเลขทุกข้อ · มาร์คข้อที่ตอบแล้ว + ซ่อน/แสดง/รีเซตได้
+  const answeredCount = answeredIds.size;
+  const visibleQuestions = quizBank
+    .map((question, index) => ({ question, number: index + 1 }))
+    .filter(({ question }) => !(hideAnswered && answeredIds.has(question.id)));
+  const allHidden = hideAnswered && visibleQuestions.length === 0;
   return (
     <section className="scene-panel quiz-practice">
       <h2>🏋️ ฝึกเชาว์</h2>
       <p className="scene-lead">
         สนามซ้อม {quizBank.length} ข้อ — กดเลขเพื่อเปิดโจทย์ จับเวลาเหมือนจริงแต่ไม่มีผลกับเกม เข้าซ้ำกี่รอบก็ได้
+        {answeredCount > 0 && <> · ตอบไปแล้ว <b>{answeredCount}</b> ข้อ (เหลือ {quizBank.length - answeredCount})</>}
       </p>
       <div className="button-row practice-actions">
         <GameButton onClick={openRandom}>🎲 สุ่มคำถาม</GameButton>
+        <GameButton variant="paper" onClick={() => setHideAnswered((value) => !value)}>
+          {hideAnswered ? `👁 แสดงข้อที่ตอบแล้ว (${answeredCount})` : `🙈 ซ่อนข้อที่ตอบแล้ว (${answeredCount})`}
+        </GameButton>
+        <GameButton
+          variant={confirmReset ? "danger" : "paper"}
+          disabled={answeredCount === 0 && !confirmReset}
+          onClick={() => {
+            if (!confirmReset) {
+              setConfirmReset(true);
+              return;
+            }
+            resetAnswered();
+          }}
+        >
+          {confirmReset ? "⚠️ กดอีกครั้ง — ล้างประวัติฝึก" : "♻️ รีเซตข้อที่ตอบแล้ว"}
+        </GameButton>
       </div>
-      <div className="practice-grid">
-        {quizBank.map((question, index) => (
-          <button key={question.id} type="button" className="practice-cell" onClick={() => open(question)}>
-            {index + 1}
-          </button>
-        ))}
-      </div>
+      {allHidden ? (
+        <p className="big-callout">🎉 ตอบครบทุกข้อแล้ว! กด "แสดงข้อที่ตอบแล้ว" หรือ "รีเซต" เพื่อซ้อมใหม่</p>
+      ) : (
+        <div className="practice-grid">
+          {visibleQuestions.map(({ question, number }) => {
+            const done = answeredIds.has(question.id);
+            return (
+              <button
+                key={question.id}
+                type="button"
+                className={`practice-cell${done ? " practice-cell--done" : ""}`}
+                onClick={() => open(question)}
+              >
+                {number}
+                {done && <span className="practice-cell__tick" aria-label="ตอบแล้ว">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

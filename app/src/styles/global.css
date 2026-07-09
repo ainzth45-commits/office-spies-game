@@ -2132,6 +2132,27 @@ span.end-spy-card__stamp-img {
   transition: transform 0.08s ease;
 }
 .practice-cell:active { transform: translateY(2px) scale(0.95); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2); }
+/* ข้อที่ตอบไปแล้ว — เขียวจางๆ + ติ๊กมุมขวาบน */
+.practice-cell--done {
+  position: relative;
+  background: #cfe8c0;
+  border-color: #6bbf59;
+  color: #3c6b2c;
+}
+.practice-cell__tick {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #6bbf59;
+  color: white;
+  font-size: 11px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
 .practice-sim { color: #ffd66b; font-weight: 800; font-size: 0.72em; }
 
 /* เนื้อหาสอนเล่น — บรรทัดสั้นๆ อ่านทีละวรรค */
