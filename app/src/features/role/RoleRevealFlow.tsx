@@ -123,7 +123,7 @@ export function RoleRevealFlow() {
   const isJester = role === "jester";
   const showPartner = isSpy && partner;
   const showShield = isSpy && state.shield.exists && !state.shield.consumed && state.shield.slot === role;
-  const hasAside = showPartner || showShield; // คนสติแตกเล่นเดี่ยว ไม่มี aside
+  const hasAside = showPartner || showShield; // คนบ้าเล่นเดี่ยว ไม่มี aside
 
   // ยังไม่กดค้าง → โชว์แผ่นปิดแฟ้ม (ปล่อยนิ้วเมื่อไหร่ก็กลับมาหน้านี้)
   if (!holding) {
@@ -168,14 +168,14 @@ export function RoleRevealFlow() {
             <img
               className={`role-portrait__img${isSpy ? " role-portrait__img--spy" : ""}${isJester ? " role-portrait__img--jester" : ""}`}
               src={isSpy ? gameAssets.roleSpy : isJester ? gameAssets.roleJester : gameAssets.roleNormal}
-              alt={isSpy ? "สายลับ" : isJester ? "พนักงานสติแตก" : "ผู้เล่นปกติ"}
+              alt={isSpy ? "สายลับ" : isJester ? "คนบ้า" : "ผู้เล่นปกติ"}
               onError={(event) => { if (isJester) event.currentTarget.src = gameAssets.roleNormal; }}
             />
             {showPartner && (
               <img className="role-portrait__badge" src={gameAssets.spyPairBadge} alt="ตราคู่สายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
             )}
           </div>
-          <h2>{isSpy ? `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}` : isJester ? "🤪 คุณคือพนักงานสติแตก" : "คุณคือผู้เล่นปกติ"}</h2>
+          <h2>{isSpy ? `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}` : isJester ? "🤪 คุณคือคนบ้า" : "คุณคือผู้เล่นปกติ"}</h2>
           {isJester && (
             <p className="big-callout role-reveal__jester-goal">
               เป้าหมายลับ: ทำตัวให้น่าสงสัยจน<b>โดนโหวตออก</b> — ถ้าโดนจับ คุณชนะเดี่ยว ทั้งทีมและสายลับแพ้! 🃏

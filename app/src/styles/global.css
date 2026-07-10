@@ -2732,7 +2732,14 @@ span.end-spy-card__stamp-img {
   border-radius: 10px;
   border: 2px solid rgba(251, 247, 239, 0.4);
 }
-/* หน้ากดค้างดูรูป topic */
+/* หน้ากดค้างดูรูป topic — จัดรูปไว้กลางจอ */
+.topic-view {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: clamp(10px, 2dvh, 20px);
+  min-height: min(60dvh, 480px);
+}
 .topic-view__img {
   max-width: 100%;
   max-height: clamp(200px, 52dvh, 460px);

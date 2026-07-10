@@ -37,7 +37,7 @@ export function EndGameScene() {
   const teamWon = state.endWinner === "team";
   const spies = state.players.filter((player) => state.roles[player.id] === "spyA" || state.roles[player.id] === "spyB");
   // เล่นเสียงครั้งเดียวต่อการเข้าฉากจบ — กัน StrictMode (dev) เรียก effect ซ้ำตอน mount
-  const celebrate = teamWon || jesterWon; // ทีมหรือคนสติแตกชนะ = โชว์คอนเฟตติ + เสียงแฟนแฟร์
+  const celebrate = teamWon || jesterWon; // ทีมหรือคนบ้าชนะ = โชว์คอนเฟตติ + เสียงแฟนแฟร์
   const playedRef = useRef(false);
   useEffect(() => {
     if (playedRef.current) return;
@@ -66,10 +66,10 @@ export function EndGameScene() {
             />
           </div>
           <div className="end-scene__right">
-            <h2>{jesterWon ? "🤪 พนักงานสติแตกชนะ!" : teamWon ? "🏆 ปิดคดีสำเร็จ! ทีมชนะ!" : "🕶 สายลับชนะ! รอดไปได้ทั้งเกม"}</h2>
+            <h2>{jesterWon ? "🤪 คนบ้าชนะ!" : teamWon ? "🏆 ปิดคดีสำเร็จ! ทีมชนะ!" : "🕶 สายลับชนะ! รอดไปได้ทั้งเกม"}</h2>
             <p className="big-callout">
               {jesterWon
-                ? `${jester?.name ?? "คนสติแตก"} หลอกให้ทุกคนโหวตตัวเองสำเร็จในวันเล่นที่ ${state.manualDay.index} — ชนะเดี่ยว ทีมและสายลับแพ้ทั้งคู่! 🃏`
+                ? `${jester?.name ?? "คนบ้า"} หลอกให้ทุกคนโหวตตัวเองสำเร็จในวันเล่นที่ ${state.manualDay.index} — ชนะเดี่ยว ทีมและสายลับแพ้ทั้งคู่! 🃏`
                 : teamWon
                   ? `จับสายลับได้ครบทั้งคู่ในวันเล่นที่ ${state.manualDay.index} — สมกับเป็นทีมนักสืบ!`
                   : `แฝงตัวรอดมาได้ถึงวันเล่นที่ ${state.manualDay.index} ทีมจับไม่ได้ครบ...`}
@@ -79,7 +79,7 @@ export function EndGameScene() {
                 <div className="end-spy-card">
                   <img className="end-spy-card__photo" src={jester.imageUrl} alt={jester.name} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />
                   <b>{jester.name}</b>
-                  <span className="end-spy-card__jester-tag">🤪 สติแตก</span>
+                  <span className="end-spy-card__jester-tag">🤪 คนบ้า</span>
                 </div>
               </div>
             )}

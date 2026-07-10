@@ -39,7 +39,7 @@ export function calculateVoteResult(input: VoteEngineInput): VoteEngineResult {
 
   let publicResult: VoteEngineResult["publicResult"] = "failed";
   if (winnerId && !shieldApplies) {
-    // คนสติแตกโดนโหวตถึงเกณฑ์ = ชนะเดี่ยว (เกราะไม่เกี่ยว เพราะไม่ใช่สปาย)
+    // คนบ้าโดนโหวตถึงเกณฑ์ = ชนะเดี่ยว (เกราะไม่เกี่ยว เพราะไม่ใช่สปาย)
     publicResult = winnerIsJester ? "caughtJester" : winnerIsSpy ? "caughtSpy" : "caughtInnocent";
   }
 

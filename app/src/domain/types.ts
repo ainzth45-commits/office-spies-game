@@ -1,6 +1,6 @@
 export type PlayerId = string;
 export type SpySlot = "spyA" | "spyB";
-// "jester" = พนักงานสติแตก — ชนะเมื่อโดนโหวตประจำวันถึงเกณฑ์ (เปิด/ปิดได้ มีได้ 1 คน)
+// "jester" = คนบ้า — ชนะเมื่อโดนโหวตประจำวันถึงเกณฑ์ (เปิด/ปิดได้ มีได้ 1 คน)
 export type Role = "normal" | "jester" | SpySlot;
 export type VoteItemType = "double" | "remove" | "swap" | "reduceThreshold" | "protectThreshold";
 // ช่องไอเทมในตู้กาชา — แตกรายใบ (ร้านลับถูกถอด กาชาเป็นทางเดียวที่ได้ไอเทม)
@@ -54,7 +54,7 @@ export interface Player {
 
 export interface GameConfig {
   spyCount: number;
-  // เปิด "พนักงานสติแตก" (jester) — สุ่ม 1 คนตอนแจกบทบาท ชนะเมื่อโดนโหวต
+  // เปิด "คนบ้า" (jester) — สุ่ม 1 คนตอนแจกบทบาท ชนะเมื่อโดนโหวต
   jesterEnabled: boolean;
   maxGameDays: number;
   thresholdRatio: number;

@@ -78,7 +78,7 @@ export function VoteResultScene() {
   return (
     <div className="reveal-stage">
     <section className="scene-panel result-scene">
-      {/* ตราปั๊ม: จับสปาย=จับได้! · จับสติแตก=ไม่มีตรา (โชว์การ์ดเปิดโปงแทน) · อื่นๆ=พลาด! */}
+      {/* ตราปั๊ม: จับสปาย=จับได้! · จับคนบ้า=ไม่มีตรา (โชว์การ์ดเปิดโปงแทน) · อื่นๆ=พลาด! */}
       {result.publicResult === "caughtSpy" ? (
         <img
           className="vote-stamp"
@@ -97,8 +97,8 @@ export function VoteResultScene() {
       <h2>{title}</h2>
       <p className="big-callout">
         {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 จับได้แล้ว 1 คน — อีกคนยังลอยนวล ทีมได้สิทธิ์ชี้ตัวต่อทันที` : null}
-        {/* คนสติแตกชนะ: เปิดโปงชื่อได้เต็มที่ (เขาชนะแล้ว) */}
-        {result.publicResult === "caughtJester" && winner ? `เสียงถึงเกณฑ์... แต่ ${winner.name} คือ "พนักงานสติแตก"! 🃏 หลอกให้ทุกคนโหวตตัวเองสำเร็จ — สติแตกชนะเดี่ยว ทีมและสายลับแพ้ทั้งคู่!` : null}
+        {/* คนบ้าชนะ: เปิดโปงชื่อได้เต็มที่ (เขาชนะแล้ว) */}
+        {result.publicResult === "caughtJester" && winner ? `เสียงถึงเกณฑ์... แต่ ${winner.name} คือ "คนบ้า"! 🃏 หลอกให้ทุกคนโหวตตัวเองสำเร็จ — คนบ้าชนะเดี่ยว ทีมและสายลับแพ้ทั้งคู่!` : null}
         {/* จับผิดคน: ห้ามเผยชื่อ! ใครโดนเสียงถล่มเป็นความลับ — บอกแค่ว่าไม่ใช่สายลับ */}
         {result.publicResult === "caughtInnocent" ? "เสียงถึงเกณฑ์... แต่คนที่โดนไม่ใช่สายลับ 😅 ส่วนโดนใครน่ะเหรอ — ความลับ! ซุปเตรียมคืนเหรียญปลอบใจให้ทีม" : null}
         {result.publicResult === "failed" ? "เสียงแตกเกินไป จับใครไม่ได้ 🕶 เหรียญคืนที่ซุป — พรุ่งนี้เอาใหม่ อย่าให้มันรอดอีก" : null}
@@ -116,7 +116,7 @@ export function VoteResultScene() {
             {result.publicResult === "caughtSpy" ? (
               <ThemedIcon className="end-spy-card__stamp-img" src={gameAssets.stampCaught} emoji="จับแล้ว" />
             ) : (
-              <span className="end-spy-card__jester-tag">🤪 สติแตก</span>
+              <span className="end-spy-card__jester-tag">🤪 คนบ้า</span>
             )}
           </div>
         </div>

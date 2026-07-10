@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { gameAssets } from "../../data/assets";
 import type { PlayerId } from "../../domain/types";
 import { rolesAssigned } from "../../state/actions";
+import { clearTopicImages, getTopicImages, saveTopicImages } from "../../state/topicImages";
 import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
@@ -23,8 +24,9 @@ export function TopicFlow() {
   const goHome = () => setState((current) => ({ ...current, phase: "home" }));
 
   const [step, setStep] = useState<Step>("input");
-  const [imageA, setImageA] = useState("");
-  const [imageB, setImageB] = useState("");
+  // จำลิงก์รูปเดิมจาก localStorage — เปิดเข้ามาใหม่ดูรูปเดิมได้เลย
+  const [imageA, setImageA] = useState(() => getTopicImages().a);
+  const [imageB, setImageB] = useState(() => getTopicImages().b);
   const [selectedId, setSelectedId] = useState<PlayerId | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const [holding, setHolding] = useState(false);
@@ -63,10 +65,10 @@ export function TopicFlow() {
       <section className="scene-panel topic-input">
         <h2>🖼️ โหมดดูภาพหาสายลับ</h2>
         <p className="scene-lead">
-          วางลิงก์รูป 2 รูป — คนปกติ (รวมคนสติแตก) เห็นรูป A · สายลับเห็นรูป B · เดินดูทีละคน แล้วคุยกันหาว่าใครเห็นรูปต่าง
+          วางลิงก์รูป 2 รูป — คนปกติ (รวมคนบ้า) เห็นรูป A · สายลับเห็นรูป B · เดินดูทีละคน แล้วคุยกันหาว่าใครเห็นรูปต่าง · ลิงก์จะถูกจำไว้ เปิดมาใหม่ดูรูปเดิมได้เลย
         </p>
         <label className="topic-field">
-          <span>รูป A — ผู้เล่นปกติ + คนสติแตก</span>
+          <span>รูป A — ผู้เล่นปกติ + คนบ้า</span>
           <input type="url" inputMode="url" placeholder="วางลิงก์รูป A" value={imageA} onChange={(e) => setImageA(e.target.value)} />
           {imageA.trim() !== "" && (
             <img className="topic-field__preview" src={imageA} alt="preview A" onError={(e) => { e.currentTarget.style.opacity = "0.25"; }} />
@@ -81,7 +83,19 @@ export function TopicFlow() {
         </label>
         <div className="button-row">
           <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
-          <GameButton disabled={!ready} onClick={() => { setViewedIds(new Set()); setStep("pick"); }}>เริ่มดูภาพ ➜</GameButton>
+          <GameButton
+            variant="paper"
+            disabled={imageA.trim() === "" && imageB.trim() === ""}
+            onClick={() => { setImageA(""); setImageB(""); clearTopicImages(); }}
+          >
+            ♻️ รีเซตรูป
+          </GameButton>
+          <GameButton
+            disabled={!ready}
+            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setViewedIds(new Set()); setStep("pick"); }}
+          >
+            เริ่มดูภาพ ➜
+          </GameButton>
         </div>
       </section>
     );
@@ -130,7 +144,7 @@ export function TopicFlow() {
     return (
       <section className="scene-panel topic-discuss">
         <h2>🗣️ คุยกันหาสายลับ</h2>
-        <p className="big-callout">เล่ากันทีละคนว่าเห็นรูปอะไร — ใครเล่าไม่ตรงกับคนอื่น คนนั้นอาจเป็นสายลับ (หรือคนสติแตกป่วนก็ได้ 🤪)</p>
+        <p className="big-callout">เล่ากันทีละคนว่าเห็นรูปอะไร — ใครเล่าไม่ตรงกับคนอื่น คนนั้นอาจเป็นสายลับ (หรือคนบ้าป่วนก็ได้ 🤪)</p>
         {timerOn && <div className="topic-timer">⏱ {formatClock(elapsedSec)}</div>}
         <div className="button-row">
           <GameButton variant="paper" onClick={() => setTimerOn((v) => !v)}>{timerOn ? "🙈 ซ่อนเวลา" : "⏱ จับเวลา"}</GameButton>
@@ -144,7 +158,7 @@ export function TopicFlow() {
   const imageUrl = imageForRole(role, imageA, imageB);
   if (!holding) {
     return (
-      <section className="scene-panel topic-view">
+      <section className="scene-panel role-reveal role-reveal--cover">
         <h2>ภาพของ {player?.name ?? "คุณ"}</h2>
         <p className="big-callout">👇 กดปุ่มค้างไว้เพื่อดูภาพ — ปล่อยนิ้วเมื่อไหร่ ปิดทันที</p>
         <button

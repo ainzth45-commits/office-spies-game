@@ -72,7 +72,7 @@ export function assignNewRoles(state: GameState, random: RandomSource = Math.ran
   if (eligibleIds.length < minPlayers) {
     throw new Error(
       state.config.jesterEnabled
-        ? "ต้องมีคนมาอย่างน้อย 3 คนถึงจะเริ่มเกม (สายลับ 2 + สติแตก 1)"
+        ? "ต้องมีคนมาอย่างน้อย 3 คนถึงจะเริ่มเกม (สายลับ 2 + คนบ้า 1)"
         : "ต้องมีคนมาอย่างน้อย 2 คนถึงจะเริ่มเกม (สุ่มสายลับ)",
     );
   }
@@ -80,7 +80,7 @@ export function assignNewRoles(state: GameState, random: RandomSource = Math.ran
   let roles = Object.fromEntries(
     state.players.map((player) => [player.id, spyRoles[player.id] ?? "normal"]),
   ) as GameState["roles"];
-  // เปิดคนสติแตก → เลื่อน 1 คนที่มา (นอกจากสปาย) ให้เป็น jester
+  // เปิดคนบ้า → เลื่อน 1 คนที่มา (นอกจากสปาย) ให้เป็น jester
   if (state.config.jesterEnabled) {
     roles = promoteJester(roles, eligibleIds, random) as GameState["roles"];
   }
@@ -500,9 +500,9 @@ export function finalizeVoteRound(state: GameState): GameState {
 
 export function advanceFromVoteResult(state: GameState): GameState {
   if (!state.lastVoteResult) throw new Error("ยังไม่มีผลโหวตล่าสุด");
-  // คนสติแตกโดนโหวต = จบเกมทันที ชนะเดี่ยว (ทีม+สปายแพ้) — ก่อน logic อื่นทั้งหมด
+  // คนบ้าโดนโหวต = จบเกมทันที ชนะเดี่ยว (ทีม+สปายแพ้) — ก่อน logic อื่นทั้งหมด
   if (state.lastVoteResult.result.publicResult === "caughtJester") {
-    return log({ ...state, phase: "ended", endWinner: "jester" }, "คนสติแตกโดนโหวต — สติแตกชนะเดี่ยว");
+    return log({ ...state, phase: "ended", endWinner: "jester" }, "คนบ้าโดนโหวต — คนบ้าชนะเดี่ยว");
   }
   // วันสุดท้ายโหวตแพ้ = จบเลย — ไม่ต้องแวะคืนเหรียญ/เบาะแส (เกมจบแล้ว ไม่มีรอบให้ใช้ข้อมูลต่อ)
   if (state.lastVoteResult.result.publicResult !== "caughtSpy" && onFinalDay(state)) {

@@ -18,7 +18,7 @@ export const gameAssets = {
   // การ์ดบทบาท (ดีฟอลต์ = เวอร์ชันผู้หญิง ให้ตรงกับพนักงานจริงที่เป็นผู้หญิงทั้งหมด)
   roleNormal: `${BASE}/role-normal.webp?v=3`,
   roleSpy: `${BASE}/role-spy.webp?v=4`, // v=4: เวอร์ชันกวนๆ ทะเล้น (codex 2026-07-03)
-  roleJester: `${BASE}/role-jester.webp?v=1`, // พนักงานสติแตก (codex กำลังเจน)
+  roleJester: `${BASE}/role-jester.webp?v=1`, // คนบ้า (codex กำลังเจน)
   // archive เวอร์ชันผู้ชายเดิม — เก็บไว้เผื่อระบบเลือกเพศคาแรกเตอร์ในอนาคต (ยังไม่ใช้งานตอนนี้)
   roleNormalMale: `${BASE}/role-normal-male.webp?v=3`,
   roleSpyMale: `${BASE}/role-spy-male.webp?v=3`,
@@ -46,7 +46,7 @@ export const gameAssets = {
   mascotDetective: `${BASE}/mascot-detective.webp?v=3`,
   endTeamWin: `${BASE}/end-team-win.webp?v=3`,
   endSpyWin: `${BASE}/end-spy-win.webp?v=3`,
-  endJesterWin: `${BASE}/end-jester-win.webp?v=1`, // ฉากจบคนสติแตกชนะ (codex กำลังเจน)
+  endJesterWin: `${BASE}/end-jester-win.webp?v=1`, // ฉากจบคนบ้าชนะ (codex กำลังเจน)
 
   // ภาพประกอบสอนเล่น (เน้นกลไกโหวต)
   tutVoteCast: `${BASE}/tut-vote-cast.webp?v=3`,

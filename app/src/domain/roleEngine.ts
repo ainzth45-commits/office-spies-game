@@ -17,7 +17,7 @@ export function assignSpyRoles(playerIds: PlayerId[], random: RandomSource = Mat
   );
 }
 
-// เลื่อน 1 คน (ที่ยังเป็น normal และอยู่ในกลุ่มมีสิทธิ์) ให้เป็น "พนักงานสติแตก"
+// เลื่อน 1 คน (ที่ยังเป็น normal และอยู่ในกลุ่มมีสิทธิ์) ให้เป็น "คนบ้า"
 // eligibleIds = คนที่มาวันแรก (ชุดเดียวกับที่ใช้สุ่มสปาย) — คนลาไม่มีวันเป็น jester
 export function promoteJester(
   roles: Record<PlayerId, Role>,
