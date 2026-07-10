@@ -27,6 +27,11 @@ export function TopicFlow() {
   // จำลิงก์รูปเดิมจาก localStorage — เปิดเข้ามาใหม่ดูรูปเดิมได้เลย
   const [imageA, setImageA] = useState(() => getTopicImages().a);
   const [imageB, setImageB] = useState(() => getTopicImages().b);
+  // มีรูปจำไว้แล้ว → เข้าโหมด "พร้อม" (ซ่อนลิงก์+พรีวิว กันสปอยล์) · ยังไม่มี/กดรีเซต → โหมดกรอก
+  const [editing, setEditing] = useState(() => {
+    const saved = getTopicImages();
+    return saved.a.trim() === "" || saved.b.trim() === "";
+  });
   const [selectedId, setSelectedId] = useState<PlayerId | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const [holding, setHolding] = useState(false);
@@ -61,6 +66,25 @@ export function TopicFlow() {
 
   if (step === "input") {
     const ready = imageA.trim() !== "" && imageB.trim() !== "";
+    const resetImages = () => { setImageA(""); setImageB(""); clearTopicImages(); setEditing(true); };
+
+    // โหมด "พร้อม" — มีรูปจำไว้แล้ว ซ่อนลิงก์+พรีวิว (กันสปอยล์) เห็นแค่ปุ่มรีเซต
+    if (!editing && ready) {
+      return (
+        <section className="scene-panel topic-input">
+          <h2>🖼️ โหมดดูภาพหาสายลับ</h2>
+          <p className="big-callout">✅ ใส่รูปไว้แล้ว — ซ่อนลิงก์ไว้กันสปอยล์ พร้อมเดินให้ทุกคนดูภาพได้เลย</p>
+          <p className="scene-lead">อยากเปลี่ยนรูปใหม่? กด "รีเซตรูป" เพื่อวางลิงก์ใหม่</p>
+          <div className="button-row">
+            <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
+            <GameButton variant="paper" onClick={resetImages}>♻️ รีเซตรูป</GameButton>
+            <GameButton onClick={() => { setViewedIds(new Set()); setStep("pick"); }}>เริ่มดูภาพ ➜</GameButton>
+          </div>
+        </section>
+      );
+    }
+
+    // โหมด "กรอก" — ยังไม่มีรูป/กดรีเซต ให้วางลิงก์ (มีพรีวิวยืนยันตอนตั้งค่า)
     return (
       <section className="scene-panel topic-input">
         <h2>🖼️ โหมดดูภาพหาสายลับ</h2>
@@ -84,17 +108,10 @@ export function TopicFlow() {
         <div className="button-row">
           <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
           <GameButton
-            variant="paper"
-            disabled={imageA.trim() === "" && imageB.trim() === ""}
-            onClick={() => { setImageA(""); setImageB(""); clearTopicImages(); }}
-          >
-            ♻️ รีเซตรูป
-          </GameButton>
-          <GameButton
             disabled={!ready}
-            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setViewedIds(new Set()); setStep("pick"); }}
+            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setEditing(false); setViewedIds(new Set()); setStep("pick"); }}
           >
-            เริ่มดูภาพ ➜
+            บันทึกรูป & เริ่มดูภาพ ➜
           </GameButton>
         </div>
       </section>
