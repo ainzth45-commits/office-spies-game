@@ -2,6 +2,7 @@ import type { GameConfig } from "../domain/types";
 
 export const defaultConfig: GameConfig = {
   spyCount: 2,
+  jesterEnabled: false,
   maxGameDays: 6,
   thresholdRatio: 0.72,
   thresholdFloor: 2,

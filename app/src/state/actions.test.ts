@@ -158,6 +158,57 @@ describe("game actions", () => {
     expect(() => assignNewRoles(state, () => 0)).toThrow("อย่างน้อย 2 คน");
   });
 
+  it("assignNewRoles adds exactly one jester (from present) when jesterEnabled", () => {
+    let state = createInitialGameState();
+    state = { ...state, config: { ...state.config, jesterEnabled: true } };
+    const assigned = assignNewRoles(state, () => 0);
+    expect(Object.values(assigned.roles).filter((r) => r === "jester")).toHaveLength(1);
+    expect(Object.values(assigned.roles).filter((r) => r === "spyA")).toHaveLength(1);
+    expect(Object.values(assigned.roles).filter((r) => r === "spyB")).toHaveLength(1);
+    // jester ต้องเป็นคนที่มา
+    const jesterId = Object.entries(assigned.roles).find(([, r]) => r === "jester")![0];
+    expect(assigned.attendance[jesterId]).toBe(true);
+  });
+
+  it("assignNewRoles requires 3 present when jesterEnabled (2 spy + 1 jester)", () => {
+    let state = createInitialGameState();
+    const present = new Set(["C001", "C002"]);
+    state = {
+      ...state,
+      config: { ...state.config, jesterEnabled: true },
+      attendance: Object.fromEntries(state.players.map((p) => [p.id, present.has(p.id)])) as typeof state.attendance,
+    };
+    expect(() => assignNewRoles(state, () => 0)).toThrow("อย่างน้อย 3 คน");
+  });
+
+  it("advanceFromVoteResult ends the game with jester win when the jester was caught", () => {
+    const base = createInitialGameState();
+    const state = {
+      ...base,
+      lastVoteResult: {
+        roundId: "r1",
+        paidCost: 0,
+        refundAmount: 0,
+        result: {
+          publicResult: "caughtJester" as const,
+          winnerId: "C003",
+          winnerIsSpy: false,
+          shieldConsumed: false,
+          adjustedCounts: {},
+          votedPool: [],
+          notVotedPool: [],
+          spiesInPoolCount: 0,
+          spyPoolReveal: null,
+          threshold: 4,
+          blockedMessages: [],
+        },
+      },
+    } as typeof base;
+    const next = advanceFromVoteResult(state);
+    expect(next.phase).toBe("ended");
+    expect(next.endWinner).toBe("jester");
+  });
+
   it("startNewRound reshuffles spies and resets the round", () => {
     const state = startNewRound(createInitialGameState(), () => 0);
     expect(rolesAssigned(state)).toBe(true);

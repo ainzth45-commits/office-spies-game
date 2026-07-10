@@ -43,6 +43,7 @@ export function HomeHub() {
     { key: "role", label: "บทบาท", icon: gameAssets.dockRole, fallback: "🕵️", onClick: () => setState((current) => enterRoleReveal(current)) },
     { key: "vote", label: "โหวต", icon: gameAssets.dockVote, fallback: "🗳️", onClick: goPhase("vote") },
     { key: "gacha", label: "กาชา", icon: gameAssets.dockGacha, fallback: "🎰", onClick: goPhase("gacha") },
+    { key: "topic", label: "ดูภาพ", icon: gameAssets.dockTopic, fallback: "🖼️", onClick: goPhase("topic") },
     // ทางเข้าพิเศษ: สนามซ้อมโจทย์เชาว์ — ไม่มีผลกับระบบเกม (ใช้ไอคอนโจทย์เชาว์จากชุดกาชา)
     { key: "practice", label: "ฝึกเชาว์", icon: gachaIconAssets.grantQuiz, fallback: "🧠", onClick: goPhase("quizPractice") },
     {

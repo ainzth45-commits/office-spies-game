@@ -167,6 +167,23 @@ export function SettingsPanel() {
               />
             ))}
           </div>
+          {/* toggle พนักงานสติแตก — อยู่ในหมวดบทบาท (มีคำว่า "บทบาท") */}
+          {category.title.includes("บทบาท") && (
+            <div className={`gacha-weight-row jester-toggle-row${draft.jesterEnabled ? "" : " gacha-weight-row--off"}`}>
+              <button
+                type="button"
+                className={`gacha-toggle${draft.jesterEnabled ? " gacha-toggle--on" : ""}`}
+                aria-pressed={draft.jesterEnabled}
+                onClick={() => { setDraft({ ...draft, jesterEnabled: !draft.jesterEnabled }); setSaved(false); }}
+              >
+                {draft.jesterEnabled ? "เปิด" : "ปิด"}
+              </button>
+              <div className="jester-toggle-row__text">
+                <b>🤪 พนักงานสติแตก (Jester)</b>
+                <small>เปิด = สุ่ม 1 คน · ชนะเมื่อโดนโหวตออก (ทีม+สายลับแพ้) · ต้องมีคนมา ≥ 3</small>
+              </div>
+            </div>
+          )}
         </fieldset>
       ))}
 

@@ -7,6 +7,7 @@ import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
 import { HandOffCurtain } from "../../ui/components/HandOffCurtain";
+import { HoldToReveal } from "../../ui/components/HoldToReveal";
 import { PlayerCard } from "../../ui/components/PlayerCard";
 import { PlayerPicker } from "../../ui/components/PlayerPicker";
 
@@ -21,8 +22,6 @@ export function RoleRevealFlow() {
   // เฉพาะคนที่มาวันนี้ (คนลาไม่ต้องเวียนดูบทบาท และไม่มีวันเป็นสปาย)
   const presentPlayers = state.players.filter((candidate) => state.attendance[candidate.id]);
   const presentCount = presentPlayers.length;
-  // กดค้างถึงเห็นการ์ด — ปล่อยนิ้ว/วางเครื่อง = ซ่อนทันที ไม่มีทางค้างให้คนอื่นเห็น
-  const [holding, setHolding] = useState(false);
   // จดว่าใครเปิดดูไปแล้วบ้าง (เฉพาะรอบการเวียนนี้) — โชว์คืบหน้าให้ทั้งวงเห็น
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const player = state.players.find((candidate) => candidate.id === selectedPlayerId) ?? null;
@@ -93,7 +92,7 @@ export function RoleRevealFlow() {
   }
 
   if (step === "confirm" && player) {
-    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — เปิดแฟ้มลับ" onBack={() => setStep("pick")} onConfirm={() => { setHolding(false); setStep("reveal"); }} />;
+    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — เปิดแฟ้มลับ" onBack={() => setStep("pick")} onConfirm={() => setStep("reveal")} />;
   }
 
   if (step === "curtain") {
@@ -118,60 +117,38 @@ export function RoleRevealFlow() {
     );
   }
 
-  const isSpy = role !== "normal";
+  const isSpy = role === "spyA" || role === "spyB";
+  const isJester = role === "jester";
   const showPartner = isSpy && partner;
   const showShield = isSpy && state.shield.exists && !state.shield.consumed && state.shield.slot === role;
-  const hasAside = showPartner || showShield;
-
-  // ยังไม่กดค้าง → โชว์แผ่นปิดแฟ้ม (ปล่อยนิ้วเมื่อไหร่ก็กลับมาหน้านี้)
-  if (!holding) {
-    return (
-      <section className="scene-panel role-reveal role-reveal--cover">
-        <h2>แฟ้มลับของ {player?.name ?? "คุณ"}</h2>
-        <p className="big-callout">👇 กดปุ่มค้างไว้เพื่อเปิดดู — ปล่อยนิ้วเมื่อไหร่ แฟ้มปิดทันที</p>
-        <button
-          type="button"
-          className="role-hold-btn"
-          onPointerDown={(event) => { event.preventDefault(); setHolding(true); }}
-          onContextMenu={(event) => event.preventDefault()}
-        >
-          🕵️ กดค้างเพื่อดูบทบาท
-        </button>
-        <div className="button-row">
-          <GameButton
-            variant="paper"
-            onClick={() => {
-              if (selectedPlayerId) setViewedIds((current) => new Set(current).add(selectedPlayerId));
-              setStep("curtain");
-            }}
-          >
-            ดูเสร็จแล้ว — ปิดแฟ้ม ส่งต่อ
-          </GameButton>
-        </div>
-      </section>
-    );
-  }
+  const hasAside = showPartner || showShield; // คนสติแตกเล่นเดี่ยว ไม่มี aside
 
   return (
-    <section
-      className="scene-panel role-reveal"
-      onPointerUp={() => setHolding(false)}
-      onPointerCancel={() => setHolding(false)}
-      onPointerLeave={() => setHolding(false)}
-    >
+    <section className="scene-panel role-reveal">
+      <h2>แฟ้มลับของ {player?.name ?? "คุณ"}</h2>
+      <HoldToReveal
+        coverLabel={<>🔒 แตะค้างที่ลายนิ้วมือด้านล่างเพื่อเปิดดูบทบาท<br /><small>วางนิ้วที่ลายนิ้วมือ (ขวา) — บทบาทจะโชว์ด้านบน มือไม่บัง · ปล่อยนิ้ว = ปิดทันที</small></>}
+      >
       <div className={`role-reveal__cols${hasAside ? "" : " role-reveal__cols--solo"}`}>
         <div className="role-reveal__main">
           <div className="role-portrait">
             <img
-              className={`role-portrait__img${isSpy ? " role-portrait__img--spy" : ""}`}
-              src={role === "normal" ? gameAssets.roleNormal : gameAssets.roleSpy}
-              alt={role === "normal" ? "ผู้เล่นปกติ" : "สายลับ"}
+              className={`role-portrait__img${isSpy ? " role-portrait__img--spy" : ""}${isJester ? " role-portrait__img--jester" : ""}`}
+              src={isSpy ? gameAssets.roleSpy : isJester ? gameAssets.roleJester : gameAssets.roleNormal}
+              alt={isSpy ? "สายลับ" : isJester ? "พนักงานสติแตก" : "ผู้เล่นปกติ"}
+              onError={(event) => { if (isJester) event.currentTarget.src = gameAssets.roleNormal; }}
             />
             {showPartner && (
               <img className="role-portrait__badge" src={gameAssets.spyPairBadge} alt="ตราคู่สายลับ" onError={(event) => { event.currentTarget.style.display = "none"; }} />
             )}
           </div>
-          <h2>{role === "normal" ? "คุณคือผู้เล่นปกติ" : `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}`}</h2>
+          <h2>{isSpy ? `คุณคือสายลับ ${role === "spyA" ? "A" : "B"}` : isJester ? "🤪 คุณคือพนักงานสติแตก" : "คุณคือผู้เล่นปกติ"}</h2>
+          {isJester && (
+            <p className="big-callout role-reveal__jester-goal">
+              เป้าหมายลับ: ทำตัวให้น่าสงสัยจน<b>โดนโหวตออก</b> — ถ้าโดนจับ คุณชนะเดี่ยว ทั้งทีมและสายลับแพ้! 🃏
+              <br /><small>เล่นเดี่ยว ไม่มีพวก · อย่าให้ใครจับทางได้ว่าคุณ "อยากโดนโหวต"</small>
+            </p>
+          )}
         </div>
 
         {hasAside && (
@@ -201,8 +178,18 @@ export function RoleRevealFlow() {
           </div>
         )}
       </div>
-
-      <p className="role-hold-hint">✊ กดค้างอยู่ — ปล่อยนิ้วเมื่อไหร่ แฟ้มปิดทันที</p>
+      </HoldToReveal>
+      <div className="button-row">
+        <GameButton
+          variant="paper"
+          onClick={() => {
+            if (selectedPlayerId) setViewedIds((current) => new Set(current).add(selectedPlayerId));
+            setStep("curtain");
+          }}
+        >
+          ดูเสร็จแล้ว — ปิดแฟ้ม ส่งต่อ
+        </GameButton>
+      </div>
     </section>
   );
 }

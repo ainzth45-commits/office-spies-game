@@ -33,12 +33,14 @@ export function calculateVoteResult(input: VoteEngineInput): VoteEngineResult {
   const winnerId = candidates.length === 1 ? candidates[0][0] : null;
   const winnerRole = winnerId ? input.roles[winnerId] : null;
   const winnerIsSpy = winnerRole === "spyA" || winnerRole === "spyB";
+  const winnerIsJester = winnerRole === "jester";
   const shieldApplies =
     winnerIsSpy && input.shield.exists && !input.shield.consumed && input.shield.slot === winnerRole;
 
   let publicResult: VoteEngineResult["publicResult"] = "failed";
   if (winnerId && !shieldApplies) {
-    publicResult = winnerIsSpy ? "caughtSpy" : "caughtInnocent";
+    // คนสติแตกโดนโหวตถึงเกณฑ์ = ชนะเดี่ยว (เกราะไม่เกี่ยว เพราะไม่ใช่สปาย)
+    publicResult = winnerIsJester ? "caughtJester" : winnerIsSpy ? "caughtSpy" : "caughtInnocent";
   }
 
   const votedPool = input.presentPlayerIds.filter((playerId) => (counts[playerId] ?? 0) >= 1);

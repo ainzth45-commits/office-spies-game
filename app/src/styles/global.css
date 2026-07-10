@@ -2374,6 +2374,41 @@ span.end-spy-card__stamp-img {
   gap: clamp(16px, 4vw, 48px);
   animation: tut-in 0.35s ease both;
 }
+/* ฉากแนะนำตัวละคร — การ์ด 3 ใบเรียงแนวนอน + คำอธิบายใต้ภาพ */
+.tutorial-body--characters {
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(8px, 1.6dvh, 16px);
+  animation: tut-in 0.35s ease both;
+}
+.tutorial-characters__title { margin: 0; text-align: center; }
+.tutorial-characters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 2vw, 24px);
+  width: 100%;
+}
+.tutorial-char-card {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  padding: clamp(8px, 1.6dvh, 14px);
+  border-radius: 16px;
+  background: rgba(24, 33, 63, 0.7);
+  border: 3px solid #fbf7ef;
+}
+.tutorial-char-card__img {
+  width: 100%;
+  max-width: 160px;
+  max-height: 30dvh;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.34));
+}
+.tutorial-char-card__label { color: #ffd66b; font-size: clamp(15px, 2.2dvh, 20px); }
+.tutorial-char-card__desc { color: #c9cede; font-size: clamp(12px, 1.7dvh, 15px); line-height: 1.25; }
+.tutorial-lines--center { text-align: center; justify-items: center; }
 .tutorial-art {
   flex: 0 0 38%;
   display: grid;
@@ -2579,6 +2614,145 @@ span.end-spy-card__stamp-img {
   border-color: #6bbf59;
   background: rgba(107, 191, 89, 0.22);
   color: #d6f5cc;
+}
+
+/* แถว toggle พนักงานสติแตก ในตั้งค่า */
+.jester-toggle-row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(251, 247, 239, 0.2);
+}
+.jester-toggle-row__text {
+  display: grid;
+  gap: 2px;
+}
+.jester-toggle-row__text b { color: #ffd66b; font-size: 15px; }
+.jester-toggle-row__text small { color: #c9cede; font-size: 12px; }
+
+/* ปุ่มกดค้างดูเนื้อหา (บทบาท/รูป topic) — แถบกดล่าง + ลายนิ้วมือขวา · เนื้อหาโชว์บน นิ้วไม่บัง */
+.hold-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  align-items: stretch;
+}
+.hold-reveal__stage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.hold-reveal__cover {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  text-align: center;
+  color: #c9cede;
+  font-weight: 900;
+  font-size: clamp(15px, 2.4dvh, 20px);
+  padding: 18px;
+  border: 3px dashed rgba(251, 247, 239, 0.28);
+  border-radius: 18px;
+  width: 100%;
+  min-height: clamp(160px, 40dvh, 340px);
+}
+.hold-reveal__btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 3px solid #fbf7ef;
+  border-radius: 16px;
+  background: rgba(24, 33, 63, 0.92);
+  color: #ffe9b6;
+  font-weight: 1000;
+  font-size: clamp(15px, 2.2dvh, 20px);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28);
+}
+.hold-reveal__btn--held {
+  background: rgba(107, 191, 89, 0.28);
+  border-color: #6bbf59;
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.28);
+}
+.hold-reveal__btn-label { flex: 1; text-align: left; }
+/* ลายนิ้วมือ: ชิดขวา เว้นขอบเล็กน้อย (จุดวางนิ้ว) */
+.hold-reveal__fingerprint {
+  width: clamp(38px, 6dvh, 52px);
+  height: clamp(38px, 6dvh, 52px);
+  margin-right: 6px;
+  flex: 0 0 auto;
+}
+.hold-reveal__btn--held .hold-reveal__fingerprint { filter: drop-shadow(0 0 6px rgba(107, 191, 89, 0.9)); }
+
+/* โหมด topic — หน้าใส่ลิงก์รูป */
+.topic-input { gap: clamp(8px, 1.6dvh, 16px); }
+.topic-field {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  width: min(560px, 100%);
+  margin: 0 auto;
+}
+.topic-field > span { font-weight: 900; color: #ffe9b6; font-size: clamp(13px, 1.9dvh, 16px); }
+.topic-field input {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 3px solid #fbf7ef;
+  background: rgba(24, 33, 63, 0.9);
+  color: #fff;
+  font-size: 15px;
+}
+.topic-field__preview {
+  max-height: clamp(70px, 12dvh, 120px);
+  width: auto;
+  align-self: start;
+  border-radius: 10px;
+  border: 2px solid rgba(251, 247, 239, 0.4);
+}
+/* หน้ากดค้างดูรูป topic */
+.topic-view__img {
+  max-width: 100%;
+  max-height: clamp(200px, 52dvh, 460px);
+  border-radius: 16px;
+  object-fit: contain;
+}
+.topic-timer {
+  font-weight: 1000;
+  font-size: clamp(28px, 6dvh, 48px);
+  color: #ffd66b;
+  letter-spacing: 2px;
+}
+
+/* เป้าหมายลับคนสติแตก ในหน้าเปิดบทบาท */
+.role-reveal__jester-goal {
+  border: 2px solid #f2a03d;
+  background: rgba(242, 160, 61, 0.16);
+  border-radius: 14px;
+  padding: 10px 16px;
+}
+.role-portrait__img--jester { filter: saturate(1.15); }
+
+/* แท็ก "สติแตก" บนการ์ดเปิดโปง (หน้าผลโหวต + ฉากจบ) */
+.end-spy-card__jester-tag {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f2a03d;
+  color: #3a2400;
+  font-weight: 1000;
+  font-size: 15px;
+  transform: rotate(-6deg);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .slider-field {

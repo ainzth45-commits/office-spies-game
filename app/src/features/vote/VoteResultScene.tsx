@@ -69,13 +69,16 @@ export function VoteResultScene() {
   const title =
     result.publicResult === "caughtSpy"
       ? "โดนจับแล้ว!"
-      : result.publicResult === "caughtInnocent"
-        ? "โป๊ะแตก... จับผิดคน!"
-        : "สายลับรอดไปได้!";
+      : result.publicResult === "caughtJester"
+        ? "🤪 โดนหลอกเข้าให้!"
+        : result.publicResult === "caughtInnocent"
+          ? "โป๊ะแตก... จับผิดคน!"
+          : "สายลับรอดไปได้!";
 
   return (
     <div className="reveal-stage">
     <section className="scene-panel result-scene">
+      {/* ตราปั๊ม: จับสปาย=จับได้! · จับสติแตก=ไม่มีตรา (โชว์การ์ดเปิดโปงแทน) · อื่นๆ=พลาด! */}
       {result.publicResult === "caughtSpy" ? (
         <img
           className="vote-stamp"
@@ -83,7 +86,7 @@ export function VoteResultScene() {
           alt=""
           onError={(event) => { event.currentTarget.style.display = "none"; }}
         />
-      ) : (
+      ) : result.publicResult === "caughtJester" ? null : (
         <img
           className="vote-stamp"
           src={gameAssets.voteLoseStamp}
@@ -94,11 +97,13 @@ export function VoteResultScene() {
       <h2>{title}</h2>
       <p className="big-callout">
         {result.publicResult === "caughtSpy" && winner ? `${winner.name} คือสายลับตัวจริง! 🎉 จับได้แล้ว 1 คน — อีกคนยังลอยนวล ทีมได้สิทธิ์ชี้ตัวต่อทันที` : null}
+        {/* คนสติแตกชนะ: เปิดโปงชื่อได้เต็มที่ (เขาชนะแล้ว) */}
+        {result.publicResult === "caughtJester" && winner ? `เสียงถึงเกณฑ์... แต่ ${winner.name} คือ "พนักงานสติแตก"! 🃏 หลอกให้ทุกคนโหวตตัวเองสำเร็จ — สติแตกชนะเดี่ยว ทีมและสายลับแพ้ทั้งคู่!` : null}
         {/* จับผิดคน: ห้ามเผยชื่อ! ใครโดนเสียงถล่มเป็นความลับ — บอกแค่ว่าไม่ใช่สายลับ */}
         {result.publicResult === "caughtInnocent" ? "เสียงถึงเกณฑ์... แต่คนที่โดนไม่ใช่สายลับ 😅 ส่วนโดนใครน่ะเหรอ — ความลับ! ซุปเตรียมคืนเหรียญปลอบใจให้ทีม" : null}
         {result.publicResult === "failed" ? "เสียงแตกเกินไป จับใครไม่ได้ 🕶 เหรียญคืนที่ซุป — พรุ่งนี้เอาใหม่ อย่าให้มันรอดอีก" : null}
       </p>
-      {result.publicResult === "caughtSpy" && winner && (
+      {(result.publicResult === "caughtSpy" || result.publicResult === "caughtJester") && winner && (
         <div className="end-scene__spy-cards end-scene__spy-cards--caught result-caught-card">
           <div className="end-spy-card">
             <img
@@ -108,7 +113,11 @@ export function VoteResultScene() {
               onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
             />
             <b>{winner.name}</b>
-            <ThemedIcon className="end-spy-card__stamp-img" src={gameAssets.stampCaught} emoji="จับแล้ว" />
+            {result.publicResult === "caughtSpy" ? (
+              <ThemedIcon className="end-spy-card__stamp-img" src={gameAssets.stampCaught} emoji="จับแล้ว" />
+            ) : (
+              <span className="end-spy-card__jester-tag">🤪 สติแตก</span>
+            )}
           </div>
         </div>
       )}
@@ -134,11 +143,13 @@ export function VoteResultScene() {
       )}
       <div className="button-row">
         <GameButton onClick={() => setState(advanceFromVoteResult)}>
-          {result.publicResult !== "caughtSpy" && (state.manualDay.isFinalDay || state.manualDay.index >= state.config.maxGameDays)
-            ? "หมดวันแล้ว... ไปดูผลตัดสิน 🏁"
-            : result.publicResult === "caughtInnocent"
-              ? "ไปต่อ ➜ รับเหรียญคืน"
-              : "ไปต่อ ➜ ล่าเบาะแส"}
+          {result.publicResult === "caughtJester"
+            ? "ไปดูผลตัดสิน 🏁"
+            : result.publicResult !== "caughtSpy" && (state.manualDay.isFinalDay || state.manualDay.index >= state.config.maxGameDays)
+              ? "หมดวันแล้ว... ไปดูผลตัดสิน 🏁"
+              : result.publicResult === "caughtInnocent"
+                ? "ไปต่อ ➜ รับเหรียญคืน"
+                : "ไปต่อ ➜ ล่าเบาะแส"}
         </GameButton>
       </div>
     </section>

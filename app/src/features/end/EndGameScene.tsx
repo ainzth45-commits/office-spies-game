@@ -11,6 +11,8 @@ const CONFETTI_PIECES = Array.from({ length: 26 }, (_, index) => index);
 
 export function EndGameScene() {
   const { state, setState } = useGameStore();
+  const jesterWon = state.endWinner === "jester";
+  const jester = state.players.find((player) => state.roles[player.id] === "jester") ?? null;
   // คลังโจทย์ต่ำกว่าเกณฑ์ตอนกดปิดคดี → เตือนซุปก่อน แล้วนับถอยหลัง 5 วิ ค่อยรีเซ็ตอัตโนมัติ
   const [resetCountdown, setResetCountdown] = useState<number | null>(null);
   useEffect(() => {
@@ -35,17 +37,18 @@ export function EndGameScene() {
   const teamWon = state.endWinner === "team";
   const spies = state.players.filter((player) => state.roles[player.id] === "spyA" || state.roles[player.id] === "spyB");
   // เล่นเสียงครั้งเดียวต่อการเข้าฉากจบ — กัน StrictMode (dev) เรียก effect ซ้ำตอน mount
+  const celebrate = teamWon || jesterWon; // ทีมหรือคนสติแตกชนะ = โชว์คอนเฟตติ + เสียงแฟนแฟร์
   const playedRef = useRef(false);
   useEffect(() => {
     if (playedRef.current) return;
     playedRef.current = true;
-    if (teamWon) playFanfare();
+    if (celebrate) playFanfare();
     else playLose();
-    buzz(teamWon ? [80, 60, 80, 60, 200] : [300]);
-  }, [teamWon]);
+    buzz(celebrate ? [80, 60, 80, 60, 200] : [300]);
+  }, [celebrate]);
   return (
     <div className="reveal-stage">
-      {teamWon && (
+      {celebrate && (
         <div className="confetti" aria-hidden="true">
           {CONFETTI_PIECES.map((index) => (
             <span key={index} className="confetti__piece" style={{ ["--i" as string]: index }} />
@@ -57,22 +60,33 @@ export function EndGameScene() {
           <div className="end-scene__left">
             <img
               className="end-scene__art"
-              src={teamWon ? gameAssets.endTeamWin : gameAssets.endSpyWin}
+              src={jesterWon ? gameAssets.endJesterWin : teamWon ? gameAssets.endTeamWin : gameAssets.endSpyWin}
               alt=""
-              onError={(event) => { event.currentTarget.style.display = "none"; }}
+              onError={(event) => { if (jesterWon) { event.currentTarget.src = gameAssets.endSpyWin; return; } event.currentTarget.style.display = "none"; }}
             />
           </div>
           <div className="end-scene__right">
-            <h2>{teamWon ? "🏆 ปิดคดีสำเร็จ! ทีมชนะ!" : "🕶 สายลับชนะ! รอดไปได้ทั้งเกม"}</h2>
+            <h2>{jesterWon ? "🤪 พนักงานสติแตกชนะ!" : teamWon ? "🏆 ปิดคดีสำเร็จ! ทีมชนะ!" : "🕶 สายลับชนะ! รอดไปได้ทั้งเกม"}</h2>
             <p className="big-callout">
-              {teamWon
-                ? `จับสายลับได้ครบทั้งคู่ในวันเล่นที่ ${state.manualDay.index} — สมกับเป็นทีมนักสืบ!`
-                : `แฝงตัวรอดมาได้ถึงวันเล่นที่ ${state.manualDay.index} ทีมจับไม่ได้ครบ...`}
+              {jesterWon
+                ? `${jester?.name ?? "คนสติแตก"} หลอกให้ทุกคนโหวตตัวเองสำเร็จในวันเล่นที่ ${state.manualDay.index} — ชนะเดี่ยว ทีมและสายลับแพ้ทั้งคู่! 🃏`
+                : teamWon
+                  ? `จับสายลับได้ครบทั้งคู่ในวันเล่นที่ ${state.manualDay.index} — สมกับเป็นทีมนักสืบ!`
+                  : `แฝงตัวรอดมาได้ถึงวันเล่นที่ ${state.manualDay.index} ทีมจับไม่ได้ครบ...`}
             </p>
+            {jesterWon && jester && (
+              <div className="end-scene__spy-cards end-scene__spy-cards--caught">
+                <div className="end-spy-card">
+                  <img className="end-spy-card__photo" src={jester.imageUrl} alt={jester.name} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />
+                  <b>{jester.name}</b>
+                  <span className="end-spy-card__jester-tag">🤪 สติแตก</span>
+                </div>
+              </div>
+            )}
             {spies.length > 0 && (
               <>
                 <p className="end-scene__spies">
-                  🎭 เฉลย — สายลับรอบนี้คือ{teamWon ? " (โดนรวบเรียบร้อย)" : " (เนียนมากทั้งคู่ ปรบมือให้)"}
+                  🎭 เฉลย — สายลับรอบนี้คือ{teamWon ? " (โดนรวบเรียบร้อย)" : jesterWon ? " (ยังลอยนวล เพราะเกมจบก่อน)" : " (เนียนมากทั้งคู่ ปรบมือให้)"}
                 </p>
                 <div className={`end-scene__spy-cards${teamWon ? " end-scene__spy-cards--caught" : ""}`}>
                   {spies.map((spy) => (

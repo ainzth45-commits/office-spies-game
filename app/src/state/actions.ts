@@ -8,7 +8,7 @@ import { resolveGachaOutcome } from "../domain/gachaEngine";
 import { quizPenaltyAt, quizRewardAt } from "../domain/quizEngine";
 import { getUsedQuizIds, markQuizUsed } from "./quizHistory";
 import type { RandomSource } from "../domain/random";
-import { assignSpyRoles } from "../domain/roleEngine";
+import { assignSpyRoles, promoteJester } from "../domain/roleEngine";
 import { calculateVoteResult } from "../domain/voteEngine";
 import { createInitialGameState } from "./gameState";
 import type {
@@ -68,13 +68,22 @@ function playerName(state: GameState, playerId: PlayerId): string {
 // ทุกคนได้ entry ในตาราง roles เสมอ (คนที่ไม่ถูกเลือก/คนลา = normal) → คนมาเพิ่มวันหลังเข้าเป็นผู้เล่นปกติได้เลย
 export function assignNewRoles(state: GameState, random: RandomSource = Math.random): GameState {
   const eligibleIds = presentPlayerIds(state);
-  if (eligibleIds.length < 2) {
-    throw new Error("ต้องมีคนมาอย่างน้อย 2 คนถึงจะเริ่มเกม (สุ่มสายลับ)");
+  const minPlayers = state.config.jesterEnabled ? 3 : 2;
+  if (eligibleIds.length < minPlayers) {
+    throw new Error(
+      state.config.jesterEnabled
+        ? "ต้องมีคนมาอย่างน้อย 3 คนถึงจะเริ่มเกม (สายลับ 2 + สติแตก 1)"
+        : "ต้องมีคนมาอย่างน้อย 2 คนถึงจะเริ่มเกม (สุ่มสายลับ)",
+    );
   }
   const spyRoles = assignSpyRoles(eligibleIds, random);
-  const roles = Object.fromEntries(
+  let roles = Object.fromEntries(
     state.players.map((player) => [player.id, spyRoles[player.id] ?? "normal"]),
   ) as GameState["roles"];
+  // เปิดคนสติแตก → เลื่อน 1 คนที่มา (นอกจากสปาย) ให้เป็น jester
+  if (state.config.jesterEnabled) {
+    roles = promoteJester(roles, eligibleIds, random) as GameState["roles"];
+  }
   return log({ ...state, roles, phase: "roleReveal", currentVote: null, lastVoteResult: null, lastClueResult: null }, "สุ่มบทบาทใหม่ (จากคนที่มา)");
 }
 
@@ -491,6 +500,10 @@ export function finalizeVoteRound(state: GameState): GameState {
 
 export function advanceFromVoteResult(state: GameState): GameState {
   if (!state.lastVoteResult) throw new Error("ยังไม่มีผลโหวตล่าสุด");
+  // คนสติแตกโดนโหวต = จบเกมทันที ชนะเดี่ยว (ทีม+สปายแพ้) — ก่อน logic อื่นทั้งหมด
+  if (state.lastVoteResult.result.publicResult === "caughtJester") {
+    return log({ ...state, phase: "ended", endWinner: "jester" }, "คนสติแตกโดนโหวต — สติแตกชนะเดี่ยว");
+  }
   // วันสุดท้ายโหวตแพ้ = จบเลย — ไม่ต้องแวะคืนเหรียญ/เบาะแส (เกมจบแล้ว ไม่มีรอบให้ใช้ข้อมูลต่อ)
   if (state.lastVoteResult.result.publicResult !== "caughtSpy" && onFinalDay(state)) {
     return log({ ...state, phase: "ended", endWinner: "spies" }, "โหวตวันสุดท้ายจับไม่ได้ — สายลับชนะ");

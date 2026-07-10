@@ -1,6 +1,7 @@
 export type PlayerId = string;
 export type SpySlot = "spyA" | "spyB";
-export type Role = "normal" | SpySlot;
+// "jester" = พนักงานสติแตก — ชนะเมื่อโดนโหวตประจำวันถึงเกณฑ์ (เปิด/ปิดได้ มีได้ 1 คน)
+export type Role = "normal" | "jester" | SpySlot;
 export type VoteItemType = "double" | "remove" | "swap" | "reduceThreshold" | "protectThreshold";
 // ช่องไอเทมในตู้กาชา — แตกรายใบ (ร้านลับถูกถอด กาชาเป็นทางเดียวที่ได้ไอเทม)
 export type GachaItemOutcome = "itemDouble" | "itemRemove" | "itemSwap" | "itemReduce" | "itemProtect";
@@ -40,8 +41,9 @@ export type GamePhase =
   | "postVoteClue"
   | "guess"
   | "refund"
+  | "topic"
   | "ended";
-export type EndWinner = "team" | "spies";
+export type EndWinner = "team" | "spies" | "jester";
 
 export interface Player {
   id: PlayerId;
@@ -52,6 +54,8 @@ export interface Player {
 
 export interface GameConfig {
   spyCount: number;
+  // เปิด "พนักงานสติแตก" (jester) — สุ่ม 1 คนตอนแจกบทบาท ชนะเมื่อโดนโหวต
+  jesterEnabled: boolean;
   maxGameDays: number;
   thresholdRatio: number;
   thresholdFloor: number;
@@ -225,7 +229,7 @@ export interface VoteEngineInput {
 }
 
 export interface VoteEngineResult {
-  publicResult: "failed" | "caughtInnocent" | "caughtSpy";
+  publicResult: "failed" | "caughtInnocent" | "caughtSpy" | "caughtJester";
   winnerId: PlayerId | null;
   winnerIsSpy: boolean;
   shieldConsumed: boolean;

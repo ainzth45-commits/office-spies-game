@@ -20,34 +20,63 @@ export function TutorialFlow() {
         <GameButton variant="paper" className="tutorial-skip" onClick={finish}>ข้าม</GameButton>
       </div>
 
-      {/* layout landscape: ภาพซ้าย · คำอธิบายขวา — พอดีจอ ไม่ต้องเลื่อน */}
-      <div className="tutorial-body" key={scene.id}>
-        <div className="tutorial-art">
-          <img
-            className="tutorial-art__img"
-            src={scene.image}
-            alt=""
-            aria-hidden="true"
-            onError={(event) => {
-              // รูปหลักยังไม่มี (เช่น รอ codex เจน) → สลับไปรูปสำรอง ถ้าไม่มีค่อยซ่อน
-              const img = event.currentTarget;
-              if (scene.fallbackImage && img.src !== scene.fallbackImage && !img.src.endsWith(scene.fallbackImage)) {
-                img.src = scene.fallbackImage;
-                return;
-              }
-              img.style.visibility = "hidden";
-            }}
-          />
-        </div>
-        <div className="tutorial-text">
-          <h2>{scene.title}</h2>
-          <ul className="tutorial-lines">
+      {/* ฉากแนะนำตัวละคร = โชว์การ์ดหลายรูปเรียงกัน · ฉากอื่น = ภาพเดี่ยวซ้าย + คำอธิบายขวา */}
+      {scene.characters ? (
+        <div className="tutorial-body tutorial-body--characters" key={scene.id}>
+          <h2 className="tutorial-characters__title">{scene.title}</h2>
+          <div className="tutorial-characters">
+            {scene.characters.map((character) => (
+              <div key={character.label} className="tutorial-char-card">
+                <img
+                  className="tutorial-char-card__img"
+                  src={character.src}
+                  alt={character.label}
+                  onError={(event) => {
+                    const img = event.currentTarget;
+                    if (character.fallback && !img.src.endsWith(character.fallback)) { img.src = character.fallback; return; }
+                    img.style.visibility = "hidden";
+                  }}
+                />
+                <b className="tutorial-char-card__label">{character.label}</b>
+                <span className="tutorial-char-card__desc">{character.desc}</span>
+              </div>
+            ))}
+          </div>
+          <ul className="tutorial-lines tutorial-lines--center">
             {scene.lines.map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>
         </div>
-      </div>
+      ) : (
+        <div className="tutorial-body" key={scene.id}>
+          <div className="tutorial-art">
+            <img
+              className="tutorial-art__img"
+              src={scene.image}
+              alt=""
+              aria-hidden="true"
+              onError={(event) => {
+                // รูปหลักยังไม่มี (เช่น รอ codex เจน) → สลับไปรูปสำรอง ถ้าไม่มีค่อยซ่อน
+                const img = event.currentTarget;
+                if (scene.fallbackImage && img.src !== scene.fallbackImage && !img.src.endsWith(scene.fallbackImage)) {
+                  img.src = scene.fallbackImage;
+                  return;
+                }
+                img.style.visibility = "hidden";
+              }}
+            />
+          </div>
+          <div className="tutorial-text">
+            <h2>{scene.title}</h2>
+            <ul className="tutorial-lines">
+              {scene.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       <div className="tutorial-dots" aria-hidden="true">
         {tutorialScenes.map((item, dotIndex) => (

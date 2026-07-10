@@ -70,6 +70,16 @@ describe("vote engine", () => {
     expect(result.winnerId).toBe("A");
   });
 
+  it("catches the jester when the vote lands on them (caughtJester)", () => {
+    const jesterRoles: Record<string, Role> = { ...roles, C: "jester" };
+    const result = calculateVoteResult(
+      input({ roles: jesterRoles, votes: players.slice(0, 6).map((voterId) => ({ voterId, targetId: "C", doubleVote: false })) }),
+    );
+    expect(result.publicResult).toBe("caughtJester");
+    expect(result.winnerId).toBe("C");
+    expect(result.winnerIsSpy).toBe(false);
+  });
+
   it("removes votes to zero and removes that player from voted pool", () => {
     const result = calculateVoteResult(
       input({

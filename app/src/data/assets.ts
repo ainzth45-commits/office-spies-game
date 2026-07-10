@@ -18,6 +18,7 @@ export const gameAssets = {
   // การ์ดบทบาท (ดีฟอลต์ = เวอร์ชันผู้หญิง ให้ตรงกับพนักงานจริงที่เป็นผู้หญิงทั้งหมด)
   roleNormal: `${BASE}/role-normal.webp?v=3`,
   roleSpy: `${BASE}/role-spy.webp?v=4`, // v=4: เวอร์ชันกวนๆ ทะเล้น (codex 2026-07-03)
+  roleJester: `${BASE}/role-jester.webp?v=1`, // พนักงานสติแตก (codex กำลังเจน)
   // archive เวอร์ชันผู้ชายเดิม — เก็บไว้เผื่อระบบเลือกเพศคาแรกเตอร์ในอนาคต (ยังไม่ใช้งานตอนนี้)
   roleNormalMale: `${BASE}/role-normal-male.webp?v=3`,
   roleSpyMale: `${BASE}/role-spy-male.webp?v=3`,
@@ -45,6 +46,7 @@ export const gameAssets = {
   mascotDetective: `${BASE}/mascot-detective.webp?v=3`,
   endTeamWin: `${BASE}/end-team-win.webp?v=3`,
   endSpyWin: `${BASE}/end-spy-win.webp?v=3`,
+  endJesterWin: `${BASE}/end-jester-win.webp?v=1`, // ฉากจบคนสติแตกชนะ (codex กำลังเจน)
 
   // ภาพประกอบสอนเล่น (เน้นกลไกโหวต)
   tutVoteCast: `${BASE}/tut-vote-cast.webp?v=3`,
@@ -63,6 +65,7 @@ export const gameAssets = {
   iconReset: `${BASE}/icon-reset.webp?v=1`,
   iconTimer: `${BASE}/icon-timer.webp?v=1`,
   iconMagnifierSpot: `${BASE}/icon-magnifier-spot.webp?v=1`,
+  iconFingerprint: `${BASE}/icon-fingerprint.webp?v=1`, // สแกนนิ้ว บนปุ่มกดค้าง (codex กำลังเจน)
 
   // ไอคอนแอป (Add to Home Screen) + ไอคอน dock เมนูหน้าโฮม
   appIcon: `${BASE}/app-icon.webp?v=3`,
@@ -71,6 +74,7 @@ export const gameAssets = {
   dockGacha: `${BASE}/dock-gacha.webp?v=3`,
   dockShop: `${BASE}/dock-shop.webp?v=3`,
   dockLearn: `${BASE}/dock-learn.webp?v=3`,
+  dockTopic: `${BASE}/dock-topic.webp?v=1`, // โหมด topic ดูภาพหาสปาย (codex กำลังเจน)
   dockSettings: `${BASE}/dock-settings.webp?v=3`,
 } as const;
 

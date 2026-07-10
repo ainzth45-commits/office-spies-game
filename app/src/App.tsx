@@ -13,6 +13,7 @@ import { QuizPracticeFlow } from "./features/quiz/QuizPracticeFlow";
 import { RefundScene } from "./features/refund/RefundScene";
 import { RoleRevealFlow } from "./features/role/RoleRevealFlow";
 import { TutorialFlow } from "./features/tutorial/TutorialFlow";
+import { TopicFlow } from "./features/topic/TopicFlow";
 import { PostVoteClueScene } from "./features/vote/PostVoteClueScene";
 import { VoteFlow } from "./features/vote/VoteFlow";
 import { VoteResultScene } from "./features/vote/VoteResultScene";
@@ -93,6 +94,7 @@ function renderPhase(hydrated: boolean, state: ReturnType<typeof useGameStore>["
     case "quiz": return <QuizFlow />;
     case "quizPractice": return <QuizPracticeFlow />;
     case "vote": return <VoteFlow />;
+    case "topic": return <TopicFlow />;
     case "voteResult": return <VoteResultScene />;
     case "postVoteClue": return <PostVoteClueScene />;
     case "refund": return <RefundScene />;
