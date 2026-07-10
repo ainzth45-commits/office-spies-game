@@ -1,39 +1,41 @@
-import type { QuizQuestion } from "../domain/types";
-
 // โจทย์ที่ผู้ใช้สร้างเองในโหมดฝึก — "ข้อ 0" เก็บใน localStorage อย่างเดียว (สร้างได้ครั้งละ 1)
-// ไม่เกี่ยวกับคลังโจทย์เกมจริง (quizBank) เลย
+// รองรับ 2–4 ตัวเลือก · ไม่เกี่ยวกับคลังโจทย์เกมจริง (quizBank) เลย
 const KEY = "office-spies/practice-custom-v1";
 
-export interface CustomQuizInput {
+export interface CustomQuizData {
   question: string;
-  choiceA: string;
-  choiceB: string;
-  answer: "A" | "B";
+  choices: string[]; // 2–4 ข้อ
+  answerIndex: number; // index ของคำตอบที่ถูก (0-based)
   explanation: string;
 }
 
-export function getCustomQuiz(): QuizQuestion | null {
+export function getCustomQuiz(): CustomQuizData | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<CustomQuizInput>;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+
+    // รองรับรูปแบบเก่า (choiceA/choiceB/answer "A"|"B") — แปลงเป็นรูปแบบใหม่
+    if (typeof parsed.choiceA === "string" && typeof parsed.choiceB === "string") {
+      const choices = [parsed.choiceA, parsed.choiceB];
+      const answerIndex = parsed.answer === "B" ? 1 : 0;
+      if (typeof parsed.question === "string" && parsed.question.trim() !== "") {
+        return { question: parsed.question, choices, answerIndex, explanation: typeof parsed.explanation === "string" ? parsed.explanation : "" };
+      }
+      return null;
+    }
+
+    const choices = Array.isArray(parsed.choices) ? parsed.choices.filter((c): c is string => typeof c === "string" && c.trim() !== "") : [];
     if (
       typeof parsed.question === "string" &&
       parsed.question.trim() !== "" &&
-      typeof parsed.choiceA === "string" &&
-      typeof parsed.choiceB === "string" &&
-      (parsed.answer === "A" || parsed.answer === "B")
+      choices.length >= 2 &&
+      choices.length <= 4 &&
+      Number.isInteger(parsed.answerIndex) &&
+      (parsed.answerIndex as number) >= 0 &&
+      (parsed.answerIndex as number) < choices.length
     ) {
-      return {
-        id: "Q000", // slice(1) = "000" → เลขข้อ = 0 ("ข้อ 0")
-        category: "โจทย์ที่สร้างเอง",
-        difficulty: "medium",
-        question: parsed.question,
-        choiceA: parsed.choiceA,
-        choiceB: parsed.choiceB,
-        answer: parsed.answer,
-        explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
-      };
+      return { question: parsed.question, choices, answerIndex: parsed.answerIndex as number, explanation: typeof parsed.explanation === "string" ? parsed.explanation : "" };
     }
     return null;
   } catch {
@@ -41,9 +43,9 @@ export function getCustomQuiz(): QuizQuestion | null {
   }
 }
 
-export function saveCustomQuiz(input: CustomQuizInput): void {
+export function saveCustomQuiz(data: CustomQuizData): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(input));
+    localStorage.setItem(KEY, JSON.stringify(data));
   } catch {
     // เพิกเฉย — ยอมให้จำไม่ได้ ดีกว่าพัง
   }
