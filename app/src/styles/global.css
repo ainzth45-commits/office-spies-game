@@ -461,17 +461,17 @@ h1 {
   min-height: min(60dvh, 480px);
 }
 .role-hold-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(14px, 2.5vw, 28px);
   border: 5px solid #20263f;
   border-radius: 26px;
   background: linear-gradient(180deg, #f6c453, #eaa93c);
   color: #20263f;
   font-weight: 1000;
   font-size: clamp(20px, 3.4dvh, 30px);
-  padding: clamp(22px, 5dvh, 44px) clamp(30px, 5vw, 60px);
+  padding: clamp(22px, 5dvh, 44px) clamp(36px, 6vw, 72px);
   box-shadow: 0 10px 0 rgba(0, 0, 0, 0.28);
   cursor: pointer;
   touch-action: none; /* กัน scroll/long-press menu ระหว่างกดค้าง */
@@ -480,11 +480,14 @@ h1 {
   -webkit-touch-callout: none;
 }
 .role-hold-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28); }
-/* ลายนิ้วมือในปุ่มกดค้าง — ชิดขวา (จุดวางนิ้ว) */
+/* ลายนิ้วมือ: ปักชิดขวาสุด (เว้นขอบ) — ข้อความยังอยู่กลางปุ่ม (จุดวางนิ้ว) */
 .role-hold-btn__fingerprint {
+  position: absolute;
+  right: clamp(20px, 3vw, 44px);
+  top: 50%;
+  transform: translateY(-50%);
   width: clamp(38px, 6dvh, 56px);
   height: clamp(38px, 6dvh, 56px);
-  flex: 0 0 auto;
   pointer-events: none;
 }
 .role-hold-hint {
