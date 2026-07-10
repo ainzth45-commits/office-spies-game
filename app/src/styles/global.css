@@ -2168,6 +2168,24 @@ span.end-spy-card__stamp-img {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 .practice-sim { color: #ffd66b; font-weight: 800; font-size: 0.72em; }
+/* แถบโจทย์สร้างเอง (ข้อ 0) — เด่นแยกจากคลังจริง */
+.custom-quiz-bar {
+  margin: 0 0 6px;
+  padding: 10px;
+  border: 2px dashed #f2a03d;
+  border-radius: 14px;
+  background: rgba(242, 160, 61, 0.12);
+}
+.custom-quiz-form .topic-field { width: min(680px, 100%); }
+.custom-answer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+.custom-answer-row > span { font-weight: 900; color: #ffe9b6; }
 
 /* เนื้อหาสอนเล่น — บรรทัดสั้นๆ อ่านทีละวรรค */
 .tutorial-lines {

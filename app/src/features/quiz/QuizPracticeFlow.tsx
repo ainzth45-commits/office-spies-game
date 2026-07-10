@@ -3,6 +3,7 @@ import { gameAssets } from "../../data/assets";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty, QuizQuestion } from "../../domain/types";
+import { clearCustomQuiz, getCustomQuiz, saveCustomQuiz } from "../../state/customQuiz";
 import { getPracticeAnsweredIds, markPracticeAnswered, resetPracticeAnswered } from "../../state/practiceHistory";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
@@ -35,6 +36,14 @@ export function QuizPracticeFlow() {
   const [answeredIds, setAnsweredIds] = useState<Set<string>>(() => new Set(getPracticeAnsweredIds()));
   const [hideAnswered, setHideAnswered] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  // โจทย์สร้างเอง (ข้อ 0) — เก็บใน localStorage
+  const [customQuestion, setCustomQuestion] = useState<QuizQuestion | null>(() => getCustomQuiz());
+  const [creating, setCreating] = useState(false);
+  const [formQ, setFormQ] = useState("");
+  const [formA, setFormA] = useState("");
+  const [formB, setFormB] = useState("");
+  const [formAnswer, setFormAnswer] = useState<"A" | "B">("A");
+  const [formExplain, setFormExplain] = useState("");
 
   useEffect(() => {
     if (!attempt) return;
@@ -62,9 +71,11 @@ export function QuizPracticeFlow() {
   function answer(choice: "A" | "B") {
     if (!attempt) return;
     const elapsedSec = Math.max(0, (Date.now() - attempt.startedAtMs) / 1000);
-    // มาร์คว่าตอบแล้ว (ถูกหรือผิดก็นับ = เคยเจอข้อนี้) — เก็บลง localStorage ด้วย
-    markPracticeAnswered(attempt.question.id);
-    setAnsweredIds((current) => new Set(current).add(attempt.question.id));
+    // มาร์คว่าตอบแล้ว (ถูกหรือผิดก็นับ = เคยเจอข้อนี้) — เฉพาะโจทย์คลังจริง ไม่นับข้อ 0 ที่สร้างเอง
+    if (attempt.question.id !== "Q000") {
+      markPracticeAnswered(attempt.question.id);
+      setAnsweredIds((current) => new Set(current).add(attempt.question.id));
+    }
     setVerdict({ question: attempt.question, correct: attempt.question.answer === choice, elapsedSec });
     setAttempt(null);
   }
@@ -74,6 +85,61 @@ export function QuizPracticeFlow() {
     setAnsweredIds(new Set());
     setHideAnswered(false); // กลับสภาพปกติ — ไม่มีข้อให้ซ่อนแล้ว
     setConfirmReset(false);
+  }
+
+  function startCreate() {
+    // ถ้ามีข้อ 0 อยู่แล้ว เติมค่าเดิมให้แก้ต่อ ไม่งั้นเริ่มฟอร์มเปล่า
+    setFormQ(customQuestion?.question ?? "");
+    setFormA(customQuestion?.choiceA ?? "");
+    setFormB(customQuestion?.choiceB ?? "");
+    setFormAnswer(customQuestion?.answer ?? "A");
+    setFormExplain(customQuestion?.explanation ?? "");
+    setCreating(true);
+  }
+
+  function saveCustom() {
+    if (formQ.trim() === "" || formA.trim() === "" || formB.trim() === "") return;
+    saveCustomQuiz({ question: formQ.trim(), choiceA: formA.trim(), choiceB: formB.trim(), answer: formAnswer, explanation: formExplain.trim() });
+    setCustomQuestion(getCustomQuiz());
+    setCreating(false);
+  }
+
+  function resetCustom() {
+    clearCustomQuiz();
+    setCustomQuestion(null);
+    setCreating(false);
+  }
+
+  // หน้าสร้างโจทย์เอง (ข้อ 0)
+  if (creating) {
+    const canSave = formQ.trim() !== "" && formA.trim() !== "" && formB.trim() !== "";
+    return (
+      <section className="scene-panel quiz-practice custom-quiz-form">
+        <h2>✏️ สร้างโจทย์เอง (ข้อ 0)</h2>
+        <p className="scene-lead">สร้างได้ครั้งละ 1 ข้อ · เก็บในเครื่องนี้เท่านั้น ไม่เข้าเกมจริง · อยากได้ข้อใหม่ให้กดรีเซต</p>
+        <label className="topic-field"><span>คำถาม</span>
+          <input value={formQ} onChange={(e) => setFormQ(e.target.value)} placeholder="พิมพ์คำถาม" maxLength={200} />
+        </label>
+        <label className="topic-field"><span>ตัวเลือก A</span>
+          <input value={formA} onChange={(e) => setFormA(e.target.value)} placeholder="คำตอบ A" maxLength={120} />
+        </label>
+        <label className="topic-field"><span>ตัวเลือก B</span>
+          <input value={formB} onChange={(e) => setFormB(e.target.value)} placeholder="คำตอบ B" maxLength={120} />
+        </label>
+        <div className="custom-answer-row">
+          <span>เฉลยคือข้อไหน?</span>
+          <GameButton variant={formAnswer === "A" ? undefined : "paper"} onClick={() => setFormAnswer("A")}>A ถูก</GameButton>
+          <GameButton variant={formAnswer === "B" ? undefined : "paper"} onClick={() => setFormAnswer("B")}>B ถูก</GameButton>
+        </div>
+        <label className="topic-field"><span>คำอธิบายเฉลย (ไม่บังคับ)</span>
+          <input value={formExplain} onChange={(e) => setFormExplain(e.target.value)} placeholder="ทำไมข้อนี้ถึงถูก" maxLength={200} />
+        </label>
+        <div className="button-row">
+          <GameButton variant="paper" onClick={() => setCreating(false)}>ยกเลิก</GameButton>
+          <GameButton disabled={!canSave} onClick={saveCustom}>💾 บันทึกข้อ 0</GameButton>
+        </div>
+      </section>
+    );
   }
 
   // หน้าเฉลย (ผลสมมติ — บอกชัดว่าไม่มีผลจริง)
@@ -149,6 +215,18 @@ export function QuizPracticeFlow() {
         สนามซ้อม {quizBank.length} ข้อ — กดเลขเพื่อเปิดโจทย์ จับเวลาเหมือนจริงแต่ไม่มีผลกับเกม เข้าซ้ำกี่รอบก็ได้
         {answeredCount > 0 && <> · ตอบไปแล้ว <b>{answeredCount}</b> ข้อ (เหลือ {quizBank.length - answeredCount})</>}
       </p>
+      {/* โจทย์สร้างเอง (ข้อ 0) — สร้างได้ครั้งละ 1 เก็บในเครื่อง ไม่เข้าเกมจริง */}
+      <div className="button-row custom-quiz-bar">
+        {customQuestion ? (
+          <>
+            <GameButton onClick={() => open(customQuestion)}>▶️ เล่นข้อ 0 (ที่สร้างเอง)</GameButton>
+            <GameButton variant="paper" onClick={startCreate}>✏️ แก้ไขข้อ 0</GameButton>
+            <GameButton variant="paper" onClick={resetCustom}>♻️ รีเซตข้อ 0</GameButton>
+          </>
+        ) : (
+          <GameButton variant="paper" onClick={startCreate}>✏️ สร้างโจทย์เอง (ข้อ 0)</GameButton>
+        )}
+      </div>
       <div className="button-row practice-actions">
         <GameButton onClick={openRandom}>🎲 สุ่มคำถาม</GameButton>
         <GameButton variant="paper" onClick={() => setHideAnswered((value) => !value)}>
