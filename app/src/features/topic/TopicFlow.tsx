@@ -7,7 +7,7 @@ import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
 import { HandOffCurtain } from "../../ui/components/HandOffCurtain";
-import { PlayerPicker } from "../../ui/components/PlayerPicker";
+import { PlayerCard } from "../../ui/components/PlayerCard";
 import { ThemedIcon } from "../../ui/components/ThemedIcon";
 import { imageForRole } from "./topicImage";
 
@@ -102,25 +102,33 @@ export function TopicFlow() {
   }
 
   if (step === "pick") {
-    const remaining = presentPlayers.filter((p) => !viewedIds.has(p.id));
-    if (remaining.length === 0) {
-      return (
-        <section className="scene-panel">
-          <h2>✅ ดูภาพครบทุกคนแล้ว</h2>
-          <p className="big-callout">ถึงเวลาคุยกันแล้ว — ใครเห็นรูปต่างจากคนอื่น คนนั้นน่าสงสัย 👀</p>
-          <div className="button-row">
-            <GameButton onClick={() => { setDiscussStartMs(Date.now()); setNowMs(Date.now()); setStep("discuss"); }}>🗣️ ไปคุยกัน!</GameButton>
-          </div>
-        </section>
-      );
-    }
+    // โชว์ทุกคนเสมอ — คนที่ดูแล้วก็กดดูซ้ำได้ (มีป้าย "ดูแล้ว") · กด "ไปคุยกัน" เมื่อพร้อม
     return (
-      <PlayerPicker
-        title={`ใครยังไม่ดูภาพ? (ดูแล้ว ${viewedIds.size}/${presentCount})`}
-        lead="แตะชื่อตัวเอง 🤫 คนอื่นห้ามแอบมองจอ"
-        players={remaining}
-        onPick={(id) => { setSelectedId(id); setStep("confirm"); }}
-      />
+      <section className="scene-panel">
+        <h2>ใครจะดูภาพ?</h2>
+        <p className="scene-lead">
+          แตะชื่อตัวเองเพื่อดูภาพ (กดดูซ้ำได้) 🤫 คนอื่นห้ามแอบมองจอ · ดูแล้ว {viewedIds.size}/{presentCount} คน
+        </p>
+        <div className="player-grid player-grid--pick player-grid--compact">
+          {presentPlayers.map((p) => (
+            <PlayerCard
+              key={p.id}
+              player={p}
+              badge={viewedIds.has(p.id) ? "👁 ดูแล้ว" : undefined}
+              onClick={() => { setSelectedId(p.id); setStep("confirm"); }}
+            />
+          ))}
+        </div>
+        <div className="button-row">
+          <GameButton variant="paper" onClick={() => setStep("input")}>← เปลี่ยนรูป</GameButton>
+          <GameButton
+            disabled={viewedIds.size === 0}
+            onClick={() => { setDiscussStartMs(Date.now()); setNowMs(Date.now()); setStep("discuss"); }}
+          >
+            🗣️ ไปคุยกัน!
+          </GameButton>
+        </div>
+      </section>
     );
   }
 
