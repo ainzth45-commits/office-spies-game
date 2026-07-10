@@ -6,8 +6,8 @@ import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
 import { HandOffCurtain } from "../../ui/components/HandOffCurtain";
-import { HoldToReveal } from "../../ui/components/HoldToReveal";
 import { PlayerPicker } from "../../ui/components/PlayerPicker";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 import { imageForRole } from "./topicImage";
 
 type Step = "input" | "pick" | "confirm" | "view" | "curtain" | "discuss";
@@ -27,6 +27,7 @@ export function TopicFlow() {
   const [imageB, setImageB] = useState("");
   const [selectedId, setSelectedId] = useState<PlayerId | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
+  const [holding, setHolding] = useState(false);
   // จับเวลาสนทนา (เลือกเปิด/ปิด)
   const [timerOn, setTimerOn] = useState(true);
   const [discussStartMs, setDiscussStartMs] = useState<number | null>(null);
@@ -110,7 +111,7 @@ export function TopicFlow() {
   }
 
   if (step === "confirm" && player) {
-    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — ดูภาพ" onBack={() => setStep("pick")} onConfirm={() => setStep("view")} />;
+    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — ดูภาพ" onBack={() => setStep("pick")} onConfirm={() => { setHolding(false); setStep("view"); }} />;
   }
 
   if (step === "curtain") {
@@ -141,30 +142,48 @@ export function TopicFlow() {
 
   // step === "view"
   const imageUrl = imageForRole(role, imageA, imageB);
-  return (
-    <section className="scene-panel topic-view">
-      <h2>ภาพของ {player?.name ?? "คุณ"}</h2>
-      <HoldToReveal
-        coverLabel={<>🔒 แตะค้างที่ลายนิ้วมือด้านล่างเพื่อดูภาพ<br /><small>วางนิ้วที่ลายนิ้วมือ (ขวา) — ภาพโชว์ด้านบน มือไม่บัง · ปล่อยนิ้ว = ปิด</small></>}
-      >
-        <img
-          className="topic-view__img"
-          src={imageUrl}
-          alt="ภาพของคุณ"
-          onError={(event) => { event.currentTarget.style.opacity = "0.3"; }}
-        />
-      </HoldToReveal>
-      <div className="button-row">
-        <GameButton
-          variant="paper"
-          onClick={() => {
-            if (selectedId) setViewedIds((current) => new Set(current).add(selectedId));
-            setStep("curtain");
-          }}
+  if (!holding) {
+    return (
+      <section className="scene-panel topic-view">
+        <h2>ภาพของ {player?.name ?? "คุณ"}</h2>
+        <p className="big-callout">👇 กดปุ่มค้างไว้เพื่อดูภาพ — ปล่อยนิ้วเมื่อไหร่ ปิดทันที</p>
+        <button
+          type="button"
+          className="role-hold-btn"
+          onPointerDown={(event) => { event.preventDefault(); setHolding(true); }}
+          onContextMenu={(event) => event.preventDefault()}
         >
-          ดูเสร็จแล้ว — ปิดจอ ส่งต่อ
-        </GameButton>
-      </div>
+          <span className="role-hold-btn__label">🖼️ กดค้างเพื่อดูภาพ</span>
+          <ThemedIcon className="role-hold-btn__fingerprint" src={gameAssets.iconFingerprint} emoji="🫲" />
+        </button>
+        <div className="button-row">
+          <GameButton
+            variant="paper"
+            onClick={() => {
+              if (selectedId) setViewedIds((current) => new Set(current).add(selectedId));
+              setStep("curtain");
+            }}
+          >
+            ดูเสร็จแล้ว — ปิดจอ ส่งต่อ
+          </GameButton>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section
+      className="scene-panel topic-view"
+      onPointerUp={() => setHolding(false)}
+      onPointerCancel={() => setHolding(false)}
+      onPointerLeave={() => setHolding(false)}
+    >
+      <img
+        className="topic-view__img"
+        src={imageUrl}
+        alt="ภาพของคุณ"
+        onError={(event) => { event.currentTarget.style.opacity = "0.3"; }}
+      />
+      <p className="role-hold-hint">✊ กดค้างอยู่ — ปล่อยนิ้วเมื่อไหร่ ปิดทันที</p>
     </section>
   );
 }

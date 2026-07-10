@@ -7,9 +7,9 @@ import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
 import { HandOffCurtain } from "../../ui/components/HandOffCurtain";
-import { HoldToReveal } from "../../ui/components/HoldToReveal";
 import { PlayerCard } from "../../ui/components/PlayerCard";
 import { PlayerPicker } from "../../ui/components/PlayerPicker";
+import { ThemedIcon } from "../../ui/components/ThemedIcon";
 
 type Step = "attendance" | "pick" | "confirm" | "reveal" | "curtain";
 
@@ -22,6 +22,8 @@ export function RoleRevealFlow() {
   // เฉพาะคนที่มาวันนี้ (คนลาไม่ต้องเวียนดูบทบาท และไม่มีวันเป็นสปาย)
   const presentPlayers = state.players.filter((candidate) => state.attendance[candidate.id]);
   const presentCount = presentPlayers.length;
+  // กดค้างถึงเห็นการ์ด — ปล่อยนิ้ว/วางเครื่อง = ซ่อนทันที ไม่มีทางค้างให้คนอื่นเห็น
+  const [holding, setHolding] = useState(false);
   // จดว่าใครเปิดดูไปแล้วบ้าง (เฉพาะรอบการเวียนนี้) — โชว์คืบหน้าให้ทั้งวงเห็น
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const player = state.players.find((candidate) => candidate.id === selectedPlayerId) ?? null;
@@ -92,7 +94,7 @@ export function RoleRevealFlow() {
   }
 
   if (step === "confirm" && player) {
-    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — เปิดแฟ้มลับ" onBack={() => setStep("pick")} onConfirm={() => setStep("reveal")} />;
+    return <ConfirmPlayer player={player} actionLabel="ใช่ฉันเอง — เปิดแฟ้มลับ" onBack={() => setStep("pick")} onConfirm={() => { setHolding(false); setStep("reveal"); }} />;
   }
 
   if (step === "curtain") {
@@ -123,12 +125,43 @@ export function RoleRevealFlow() {
   const showShield = isSpy && state.shield.exists && !state.shield.consumed && state.shield.slot === role;
   const hasAside = showPartner || showShield; // คนสติแตกเล่นเดี่ยว ไม่มี aside
 
+  // ยังไม่กดค้าง → โชว์แผ่นปิดแฟ้ม (ปล่อยนิ้วเมื่อไหร่ก็กลับมาหน้านี้)
+  if (!holding) {
+    return (
+      <section className="scene-panel role-reveal role-reveal--cover">
+        <h2>แฟ้มลับของ {player?.name ?? "คุณ"}</h2>
+        <p className="big-callout">👇 กดปุ่มค้างไว้เพื่อเปิดดู — ปล่อยนิ้วเมื่อไหร่ แฟ้มปิดทันที</p>
+        <button
+          type="button"
+          className="role-hold-btn"
+          onPointerDown={(event) => { event.preventDefault(); setHolding(true); }}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          <span className="role-hold-btn__label">🕵️ กดค้างเพื่อดูบทบาท</span>
+          <ThemedIcon className="role-hold-btn__fingerprint" src={gameAssets.iconFingerprint} emoji="🫲" />
+        </button>
+        <div className="button-row">
+          <GameButton
+            variant="paper"
+            onClick={() => {
+              if (selectedPlayerId) setViewedIds((current) => new Set(current).add(selectedPlayerId));
+              setStep("curtain");
+            }}
+          >
+            ดูเสร็จแล้ว — ปิดแฟ้ม ส่งต่อ
+          </GameButton>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="scene-panel role-reveal">
-      <h2>แฟ้มลับของ {player?.name ?? "คุณ"}</h2>
-      <HoldToReveal
-        coverLabel={<>🔒 แตะค้างที่ลายนิ้วมือด้านล่างเพื่อเปิดดูบทบาท<br /><small>วางนิ้วที่ลายนิ้วมือ (ขวา) — บทบาทจะโชว์ด้านบน มือไม่บัง · ปล่อยนิ้ว = ปิดทันที</small></>}
-      >
+    <section
+      className="scene-panel role-reveal"
+      onPointerUp={() => setHolding(false)}
+      onPointerCancel={() => setHolding(false)}
+      onPointerLeave={() => setHolding(false)}
+    >
       <div className={`role-reveal__cols${hasAside ? "" : " role-reveal__cols--solo"}`}>
         <div className="role-reveal__main">
           <div className="role-portrait">
@@ -178,18 +211,7 @@ export function RoleRevealFlow() {
           </div>
         )}
       </div>
-      </HoldToReveal>
-      <div className="button-row">
-        <GameButton
-          variant="paper"
-          onClick={() => {
-            if (selectedPlayerId) setViewedIds((current) => new Set(current).add(selectedPlayerId));
-            setStep("curtain");
-          }}
-        >
-          ดูเสร็จแล้ว — ปิดแฟ้ม ส่งต่อ
-        </GameButton>
-      </div>
+      <p className="role-hold-hint">✊ กดค้างอยู่ — ปล่อยนิ้วเมื่อไหร่ แฟ้มปิดทันที</p>
     </section>
   );
 }
