@@ -3,6 +3,7 @@ import { gameAssets } from "../../data/assets";
 import type { PlayerId } from "../../domain/types";
 import { rolesAssigned } from "../../state/actions";
 import { clearTopicImages, getTopicImages, saveTopicImages } from "../../state/topicImages";
+import { clearLeaked, getLeaked, saveLeaked } from "../../state/topicLeaked";
 import { useGameStore } from "../../state/useGameStore";
 import { ConfirmPlayer } from "../../ui/components/ConfirmPlayer";
 import { GameButton } from "../../ui/components/GameButton";
@@ -35,8 +36,9 @@ export function TopicFlow() {
   const [selectedId, setSelectedId] = useState<PlayerId | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const [holding, setHolding] = useState(false);
-  // "คนรั่ว" — ผู้เล่นปกติ 1 คนที่ถูกสุ่มให้เห็นรูปสปาย (สุ่มใหม่ทุกครั้งที่เริ่มดูรอบใหม่)
-  const [leakedId, setLeakedId] = useState<PlayerId | null>(null);
+  // "คนรั่ว" — ผู้เล่นปกติ 1 คนที่ถูกสุ่มให้เห็นรูปสปาย · จำไว้ใน localStorage
+  // ค้างคนเดิมจนกว่าจะเปลี่ยน/รีเซตรูป (กดดูซ้ำได้ผลเหมือนเดิมทุกครั้ง)
+  const [leakedId, setLeakedId] = useState<PlayerId | null>(() => getLeaked());
   // จับเวลาสนทนา (เลือกเปิด/ปิด)
   const [timerOn, setTimerOn] = useState(true);
   const [discussStartMs, setDiscussStartMs] = useState<number | null>(null);
@@ -53,10 +55,16 @@ export function TopicFlow() {
   const player = state.players.find((p) => p.id === selectedId) ?? null;
   const role = selectedId ? state.roles[selectedId] : "normal";
 
-  // เริ่มดูรอบใหม่ — สุ่ม "คนรั่ว" 1 คนจากผู้เล่นปกติที่มา (ให้เห็นรูปสปาย) แล้วไปหน้าเลือกคน
-  function startViewing() {
+  // เริ่มดูรอบใหม่ — คง "คนรั่ว" คนเดิมไว้ถ้ายังใช้ได้ (มาเล่น + ยังเป็นคนปกติ)
+  // ให้กดดูซ้ำได้ผลเหมือนเดิมจนกว่าจะเปลี่ยน/รีเซตรูป · forceNew=true บังคับสุ่มใหม่ (ตอนเปลี่ยนรูป)
+  function startViewing(forceNew = false) {
     const normals = presentPlayers.filter((p) => state.roles[p.id] === "normal");
-    setLeakedId(normals.length > 0 ? normals[Math.floor(Math.random() * normals.length)].id : null);
+    const keepValid = !forceNew && leakedId !== null && normals.some((p) => p.id === leakedId);
+    if (!keepValid) {
+      const next = normals.length > 0 ? normals[Math.floor(Math.random() * normals.length)].id : null;
+      setLeakedId(next);
+      saveLeaked(next);
+    }
     setViewedIds(new Set());
     setStep("pick");
   }
@@ -76,7 +84,8 @@ export function TopicFlow() {
 
   if (step === "input") {
     const ready = imageA.trim() !== "" && imageB.trim() !== "";
-    const resetImages = () => { setImageA(""); setImageB(""); clearTopicImages(); setEditing(true); };
+    // เปลี่ยน/รีเซตรูป → ล้างคนรั่วเดิม เพื่อสุ่มใหม่ให้ชุดรูปใหม่
+    const resetImages = () => { setImageA(""); setImageB(""); clearTopicImages(); clearLeaked(); setLeakedId(null); setEditing(true); };
 
     // โหมด "พร้อม" — มีรูปจำไว้แล้ว ซ่อนลิงก์+พรีวิว (กันสปอยล์) เห็นแค่ปุ่มรีเซต
     if (!editing && ready) {
@@ -88,7 +97,7 @@ export function TopicFlow() {
           <div className="button-row">
             <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
             <GameButton variant="paper" onClick={resetImages}>♻️ รีเซตรูป</GameButton>
-            <GameButton onClick={startViewing}>เริ่มดูภาพ ➜</GameButton>
+            <GameButton onClick={() => startViewing()}>เริ่มดูภาพ ➜</GameButton>
           </div>
         </section>
       );
@@ -119,7 +128,7 @@ export function TopicFlow() {
           <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
           <GameButton
             disabled={!ready}
-            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setEditing(false); startViewing(); }}
+            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setEditing(false); startViewing(true); }}
           >
             บันทึกรูป & เริ่มดูภาพ ➜
           </GameButton>
