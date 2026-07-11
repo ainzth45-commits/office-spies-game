@@ -9,7 +9,7 @@ import { GameButton } from "../../ui/components/GameButton";
 import { HandOffCurtain } from "../../ui/components/HandOffCurtain";
 import { PlayerCard } from "../../ui/components/PlayerCard";
 import { ThemedIcon } from "../../ui/components/ThemedIcon";
-import { imageForRole } from "./topicImage";
+import { topicViewFor } from "./topicImage";
 
 type Step = "input" | "pick" | "confirm" | "view" | "curtain" | "discuss";
 
@@ -35,6 +35,8 @@ export function TopicFlow() {
   const [selectedId, setSelectedId] = useState<PlayerId | null>(null);
   const [viewedIds, setViewedIds] = useState<Set<PlayerId>>(() => new Set());
   const [holding, setHolding] = useState(false);
+  // "คนรั่ว" — ผู้เล่นปกติ 1 คนที่ถูกสุ่มให้เห็นรูปสปาย (สุ่มใหม่ทุกครั้งที่เริ่มดูรอบใหม่)
+  const [leakedId, setLeakedId] = useState<PlayerId | null>(null);
   // จับเวลาสนทนา (เลือกเปิด/ปิด)
   const [timerOn, setTimerOn] = useState(true);
   const [discussStartMs, setDiscussStartMs] = useState<number | null>(null);
@@ -50,6 +52,14 @@ export function TopicFlow() {
   const presentCount = presentPlayers.length;
   const player = state.players.find((p) => p.id === selectedId) ?? null;
   const role = selectedId ? state.roles[selectedId] : "normal";
+
+  // เริ่มดูรอบใหม่ — สุ่ม "คนรั่ว" 1 คนจากผู้เล่นปกติที่มา (ให้เห็นรูปสปาย) แล้วไปหน้าเลือกคน
+  function startViewing() {
+    const normals = presentPlayers.filter((p) => state.roles[p.id] === "normal");
+    setLeakedId(normals.length > 0 ? normals[Math.floor(Math.random() * normals.length)].id : null);
+    setViewedIds(new Set());
+    setStep("pick");
+  }
 
   // กันเข้าถ้ายังไม่แจกบทบาท (ต้องรู้ว่าใครสปายถึงจะเลือกรูปได้)
   if (!rolesAssigned(state)) {
@@ -78,7 +88,7 @@ export function TopicFlow() {
           <div className="button-row">
             <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
             <GameButton variant="paper" onClick={resetImages}>♻️ รีเซตรูป</GameButton>
-            <GameButton onClick={() => { setViewedIds(new Set()); setStep("pick"); }}>เริ่มดูภาพ ➜</GameButton>
+            <GameButton onClick={startViewing}>เริ่มดูภาพ ➜</GameButton>
           </div>
         </section>
       );
@@ -89,10 +99,10 @@ export function TopicFlow() {
       <section className="scene-panel topic-input">
         <h2>🖼️ โหมดดูภาพหาสายลับ</h2>
         <p className="scene-lead">
-          วางลิงก์รูป 2 รูป — คนปกติ (รวมคนบ้า) เห็นรูป A · สายลับเห็นรูป B · เดินดูทีละคน แล้วคุยกันหาว่าใครเห็นรูปต่าง · ลิงก์จะถูกจำไว้ เปิดมาใหม่ดูรูปเดิมได้เลย
+          วางลิงก์รูป 2 รูป — คนปกติเห็นรูป A · สายลับ + คนปกติที่ถูกสุ่ม "รั่ว" 1 คนเห็นรูป B · คนบ้าไม่เห็นภาพ · เดินดูทีละคน แล้วคุยกันหาว่าใครเห็นรูปต่าง · ลิงก์จะถูกจำไว้ เปิดมาใหม่ดูรูปเดิมได้เลย
         </p>
         <label className="topic-field">
-          <span>รูป A — ผู้เล่นปกติ + คนบ้า</span>
+          <span>รูป A — ผู้เล่นปกติ</span>
           <input type="url" inputMode="url" placeholder="วางลิงก์รูป A" value={imageA} onChange={(e) => setImageA(e.target.value)} />
           {imageA.trim() !== "" && (
             <img className="topic-field__preview" src={imageA} alt="preview A" onError={(e) => { e.currentTarget.style.opacity = "0.25"; }} />
@@ -109,7 +119,7 @@ export function TopicFlow() {
           <GameButton variant="paper" onClick={goHome}>← กลับ Home</GameButton>
           <GameButton
             disabled={!ready}
-            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setEditing(false); setViewedIds(new Set()); setStep("pick"); }}
+            onClick={() => { saveTopicImages(imageA.trim(), imageB.trim()); setEditing(false); startViewing(); }}
           >
             บันทึกรูป & เริ่มดูภาพ ➜
           </GameButton>
@@ -180,7 +190,8 @@ export function TopicFlow() {
   }
 
   // step === "view"
-  const imageUrl = imageForRole(role, imageA, imageB);
+  // "คนรั่ว" เห็นรูปสปาย (B) โดยไม่มีป้ายบอก — ตัวเองก็ไม่รู้ว่าเห็นรูปปกติหรือรูปสปาย
+  const view = topicViewFor(role, selectedId !== null && selectedId === leakedId, imageA, imageB);
   if (!holding) {
     return (
       <section className="scene-panel role-reveal role-reveal--cover">
@@ -216,12 +227,20 @@ export function TopicFlow() {
       onPointerCancel={() => setHolding(false)}
       onPointerLeave={() => setHolding(false)}
     >
-      <img
-        className="topic-view__img"
-        src={imageUrl}
-        alt="ภาพของคุณ"
-        onError={(event) => { event.currentTarget.style.opacity = "0.3"; }}
-      />
+      {view.kind === "jester" ? (
+        <div className="topic-view__jester">
+          <span className="topic-view__jester-emoji">🤪</span>
+          <p className="topic-view__jester-text">คนบ้า — ไม่มีภาพให้ดู</p>
+          <p className="topic-view__jester-sub">เนียนๆ ทำเป็นเห็นภาพ แล้วป่วนให้สุด 😜</p>
+        </div>
+      ) : (
+        <img
+          className="topic-view__img"
+          src={view.url}
+          alt="ภาพของคุณ"
+          onError={(event) => { event.currentTarget.style.opacity = "0.3"; }}
+        />
+      )}
       <p className="role-hold-hint">✊ กดค้างอยู่ — ปล่อยนิ้วเมื่อไหร่ ปิดทันที</p>
     </section>
   );

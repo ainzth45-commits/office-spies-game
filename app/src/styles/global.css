@@ -2773,6 +2773,26 @@ span.end-spy-card__stamp-img {
   border-radius: 16px;
   object-fit: contain;
 }
+.topic-view__jester {
+  display: grid;
+  place-items: center;
+  gap: clamp(6px, 1.4dvh, 14px);
+  text-align: center;
+  padding: clamp(20px, 5dvh, 48px) clamp(16px, 4vw, 40px);
+  border: 2px dashed #f2a03d;
+  background: rgba(242, 160, 61, 0.14);
+  border-radius: 20px;
+}
+.topic-view__jester-emoji { font-size: clamp(56px, 12dvh, 96px); line-height: 1; }
+.topic-view__jester-text {
+  font-weight: 1000;
+  font-size: clamp(24px, 5dvh, 40px);
+  color: #ffd66b;
+}
+.topic-view__jester-sub {
+  font-size: clamp(14px, 2.6dvh, 20px);
+  color: rgba(255, 255, 255, 0.82);
+}
 .topic-timer {
   font-weight: 1000;
   font-size: clamp(28px, 6dvh, 48px);
