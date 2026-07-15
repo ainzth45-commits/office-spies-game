@@ -108,6 +108,15 @@ export function migrateGameState(raw: GameState): GameState {
     lastGuessResult: state.lastGuessResult ?? null,
   };
   delete (migrated as GameState & { usedQuizIds?: string[] }).usedQuizIds;
+  // ผู้เล่นใหม่ที่เพิ่มใน defaultPlayers หลังเซฟถูกสร้าง (เช่น C012) — เติมเข้าเซฟเก่าพร้อม state ราย field
+  for (const player of fresh.players) {
+    if (!migrated.players.some((p) => p.id === player.id)) {
+      migrated.players = [...migrated.players, player];
+      migrated.attendance = { ...migrated.attendance, [player.id]: true };
+      migrated.roles = { ...migrated.roles, [player.id]: "normal" };
+      migrated.inventories = { ...migrated.inventories, [player.id]: [] };
+    }
+  }
   return migrated;
 }
 

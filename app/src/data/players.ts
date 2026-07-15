@@ -12,4 +12,5 @@ export const defaultPlayers: Player[] = [
   { id: "C009", code: "C009", name: "อีฟ พิมชนก", imageUrl: "https://lh3.googleusercontent.com/d/1d05jzX6gfUqZUCuqJRx8FArlC7-FVqAE=w500" },
   { id: "C010", code: "C010", name: "เรย์ พรธิศา", imageUrl: "https://lh3.googleusercontent.com/d/1HjLBR1b3qoKXTKTJ9nBu3QtACwEOh3xP=w500" },
   { id: "C011", code: "C011", name: "เบ้นซ์ กนกพร", imageUrl: "https://lh3.googleusercontent.com/d/1iKGto7htyXqIKgBRuOKpnsnDzOg-7F2g=w500" },
+  { id: "C012", code: "C012", name: "แพรว ลักษิกา", imageUrl: "https://lh3.googleusercontent.com/d/1dVTuvs1pQXGplJaFfhR_9h6qnFMjIx5e=w500" },
 ];

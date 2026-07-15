@@ -5,7 +5,7 @@ import { createInitialGameState } from "./gameState";
 describe("backup", () => {
   it("exports and imports state", () => {
     const state = createInitialGameState();
-    expect(parseBackup(exportBackup(state)).players).toHaveLength(11);
+    expect(parseBackup(exportBackup(state)).players).toHaveLength(12);
   });
 
   it("rejects invalid backup", () => {

@@ -91,8 +91,8 @@ describe("game actions", () => {
     expect(state.voteCostState.nextVoteMultiplier).toBe(1);
     expect(state.manualDay.openedVoteToday).toBe(true);
     expect(state.currentVoteRoundId).toBeTruthy();
-    expect(state.currentVote?.paidCost).toBe(49);
-    expect(state.currentVote?.presentPlayerIds).toHaveLength(11);
+    expect(state.currentVote?.paidCost).toBe(54);
+    expect(state.currentVote?.presentPlayerIds).toHaveLength(12);
   });
 
   it("final day gives spies the win when team has not won", () => {
@@ -236,7 +236,7 @@ describe("game actions", () => {
   });
 
   it("rejects invalid config", () => {
-    expect(() => updateConfig(createInitialGameState(), { spyCount: 11 })).toThrow("จำนวนสปายต้องน้อยกว่าจำนวนผู้เล่น");
+    expect(() => updateConfig(createInitialGameState(), { spyCount: 12 })).toThrow("จำนวนสปายต้องน้อยกว่าจำนวนผู้เล่น");
   });
 
   it("item outcome parks a pending grant, admin assigns it into an inventory", () => {
@@ -362,7 +362,7 @@ describe("game actions", () => {
 
     expect(state.phase).toBe("voteResult");
     expect(state.lastVoteResult?.result.publicResult).toBe("caughtInnocent");
-    expect(state.lastVoteResult?.refundAmount).toBe(8);
+    expect(state.lastVoteResult?.refundAmount).toBe(9);
   });
 
   it("routes from vote result to post-vote clue before guessing a caught spy", () => {
