@@ -12,9 +12,14 @@ export function buildPlayerRecords(players: Player[]): Pick<GameState, "attendan
 }
 
 export function createInitialGameState(players: Player[] = defaultPlayers): GameState {
+  const maxCodeNumber = players.reduce((max, player) => {
+    const numeric = Number(player.code.replace(/^C/, ""));
+    return Number.isFinite(numeric) ? Math.max(max, numeric) : max;
+  }, 0);
   return {
     version: 1,
     rosterVersion: 2,
+    rosterNextNumber: maxCodeNumber + 1,
     phase: "boot",
     players,
     config: defaultConfig,

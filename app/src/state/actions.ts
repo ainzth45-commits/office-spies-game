@@ -91,6 +91,73 @@ export function rolesAssigned(state: GameState): boolean {
   return Object.values(state.roles).some((role) => role === "spyA" || role === "spyB");
 }
 
+// ---- ระบบลงทะเบียนผู้เล่น (ตั้งค่า → 👥 ผู้เล่น) ----
+// เพิ่ม/ลบทำได้เฉพาะตอนยังไม่แจกบทบาท — กลางเกมมี บทบาท/ไอเทม/โหวต ผูก id อยู่ ลบแล้วพังทั้งกระดาน
+const ROSTER_LOCKED_MESSAGE = "แก้รายชื่อระหว่างเกมไม่ได้ — จบเกมหรือเริ่มรอบใหม่ก่อน";
+
+function cleanPlayerName(raw: string): string {
+  // ตัดอักขระควบคุม/ล่องหน (zero-width, BOM ฯลฯ) แล้ว trim — กันชื่อว่างแบบมองไม่เห็น
+  const cleaned = raw.replace(/[\u0000-\u001F\u007F\u200B-\u200F\u2028-\u202E\u2060\uFEFF]/g, "").trim();
+  if (!cleaned) throw new Error("ใส่ชื่อผู้เล่นก่อน");
+  return cleaned.slice(0, 40);
+}
+
+function nextPlayerNumber(state: GameState): number {
+  // ใช้ counter ใน state (นับต่อเสมอแม้ลบคน) — กันรหัสถูกเวียนใช้ซ้ำชนกับประวัติ/ข้อมูลเก่า
+  // เผื่อเซฟที่ counter เพี้ยน (ต่ำกว่ารหัสที่มีจริง) ให้ยึดค่าที่มากกว่าระหว่าง counter กับ max+1
+  const maxNumber = state.players.reduce((max, player) => {
+    const numeric = Number(player.code.replace(/^C/, ""));
+    return Number.isFinite(numeric) ? Math.max(max, numeric) : max;
+  }, 0);
+  return Math.max(state.rosterNextNumber || 1, maxNumber + 1);
+}
+
+export function addPlayer(state: GameState, input: { name: string; imageUrl: string }): GameState {
+  if (rolesAssigned(state)) throw new Error(ROSTER_LOCKED_MESSAGE);
+  const name = cleanPlayerName(input.name);
+  const codeNumber = nextPlayerNumber(state);
+  const code = `C${String(codeNumber).padStart(3, "0")}`;
+  const player = { id: code, code, name, imageUrl: input.imageUrl };
+  return log(
+    {
+      ...state,
+      rosterNextNumber: codeNumber + 1,
+      players: [...state.players, player],
+      attendance: { ...state.attendance, [player.id]: true },
+      roles: { ...state.roles, [player.id]: "normal" as const },
+      inventories: { ...state.inventories, [player.id]: [] },
+    },
+    `ลงทะเบียนผู้เล่น ${code} ${name}`,
+  );
+}
+
+export function updatePlayer(state: GameState, playerId: PlayerId, input: { name: string; imageUrl: string }): GameState {
+  const existing = state.players.find((player) => player.id === playerId);
+  if (!existing) throw new Error("ไม่พบผู้เล่นที่ต้องการแก้ไข");
+  const name = cleanPlayerName(input.name);
+  const players = state.players.map((player) => (player.id === playerId ? { ...player, name, imageUrl: input.imageUrl } : player));
+  return log({ ...state, players }, `แก้ข้อมูลผู้เล่น ${existing.code}`);
+}
+
+export function removePlayer(state: GameState, playerId: PlayerId): GameState {
+  if (rolesAssigned(state)) throw new Error(ROSTER_LOCKED_MESSAGE);
+  const existing = state.players.find((player) => player.id === playerId);
+  if (!existing) throw new Error("ไม่พบผู้เล่นที่ต้องการลบ");
+  const { [playerId]: _removedAttendance, ...attendance } = state.attendance;
+  const { [playerId]: _removedRole, ...roles } = state.roles;
+  const { [playerId]: _removedInventory, ...inventories } = state.inventories;
+  return log(
+    {
+      ...state,
+      players: state.players.filter((player) => player.id !== playerId),
+      attendance,
+      roles: roles as GameState["roles"],
+      inventories: inventories as GameState["inventories"],
+    },
+    `ลบผู้เล่น ${existing.code} ${existing.name}`,
+  );
+}
+
 // เริ่มรอบใหม่ — สุ่มสายลับ 2 คนใหม่เสมอ (รีเซ็ตโหวต/เบาะแสของรอบเดิม)
 export function startNewRound(state: GameState, random: RandomSource = Math.random): GameState {
   return assignNewRoles(state, random);
@@ -110,7 +177,7 @@ export function startNewGameRound(state: GameState): GameState {
   // กลับไปหน้าแตะโลโก้ (boot) — ให้ความรู้สึก "เกมใหม่จริงๆ" ตั้งแต่จอแรก
   // fresh สร้างจากรายชื่อว่าง — ต้อง rebuild ตาราง มา/ลา บทบาท กระเป๋า จากรายชื่อที่ลงทะเบียนไว้
   return log(
-    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, config: state.config, settings: state.settings },
+    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, rosterNextNumber: Math.max(fresh.rosterNextNumber, state.rosterNextNumber || 1), config: state.config, settings: state.settings },
     "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด",
   );
 }
@@ -120,7 +187,7 @@ export function startNewGameRound(state: GameState): GameState {
 export function finishGameToBoot(state: GameState): GameState {
   const fresh = createInitialGameState();
   return log(
-    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, config: state.config, settings: state.settings },
+    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, rosterNextNumber: Math.max(fresh.rosterNextNumber, state.rosterNextNumber || 1), config: state.config, settings: state.settings },
     "จบเกม — ล้างกระดานกลับหน้าแรก",
   );
 }
@@ -130,6 +197,7 @@ export function finishGameToBoot(state: GameState): GameState {
 //     (ล็อคบทบาทให้ยึดตามคนที่มาวันแรกจริงๆ กันสายลับไปตกคนที่ไม่มา)
 //   - สุ่มแล้ว → เปิดดูบทบาทเดิม (ไม่สุ่มซ้ำ)
 export function enterRoleReveal(state: GameState): GameState {
+  if (state.players.length < 3) throw new Error("ลงทะเบียนผู้เล่นอย่างน้อย 3 คนในตั้งค่าก่อนเริ่มเกม");
   return log({ ...state, phase: "roleReveal" }, rolesAssigned(state) ? "เปิดดูบทบาท (รอบเดิม)" : "เข้าหน้าตั้งคนมา + บทบาท");
 }
 
