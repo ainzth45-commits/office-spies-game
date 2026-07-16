@@ -144,8 +144,6 @@ export interface GameState {
   version: 1;
   // ยุคของระบบรายชื่อ — 2 = ลงทะเบียนในแอป (เซฟที่ไม่มี field นี้คือยุครายชื่อฝังโค้ด ต้องล้างทิ้ง)
   rosterVersion: number;
-  // เลขรันถัดไปของรหัสผู้เล่น (C001, C002, ...) — นับต่อเสมอแม้ลบคน กันรหัสถูกเวียนใช้ซ้ำชนกับประวัติเก่า
-  rosterNextNumber: number;
   phase: GamePhase;
   players: Player[];
   config: GameConfig;

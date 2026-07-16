@@ -4,19 +4,23 @@ import { createInitialGameState } from "./gameState";
 import { makeTestState } from "./testUtils";
 
 describe("player roster", () => {
-  it("addPlayer สร้าง code รันต่อจาก max + record ครบ 3 ตาราง", () => {
+  it("addPlayer ใช้รหัสที่ใส่เอง + record ครบ 3 ตาราง", () => {
     let state = createInitialGameState();
-    state = addPlayer(state, { name: "  ทดสอบ หนึ่ง  ", imageUrl: "" });
+    state = addPlayer(state, { code: "c001", name: "  ทดสอบ หนึ่ง  ", imageUrl: "" }); // พิมพ์เล็กก็แปลงให้เป็นใหญ่
     expect(state.players).toEqual([{ id: "C001", code: "C001", name: "ทดสอบ หนึ่ง", imageUrl: "" }]);
     expect(state.attendance.C001).toBe(true);
     expect(state.roles.C001).toBe("normal");
     expect(state.inventories.C001).toEqual([]);
   });
-  it("ลบคนแล้ว code ไม่ถูกใช้ซ้ำ (กันชนกับ state เก่า)", () => {
-    let state = makeTestState(3); // C001-C003
-    state = removePlayer(state, "C003");
-    state = addPlayer(state, { name: "คนใหม่", imageUrl: "" });
-    expect(state.players.map((p) => p.code)).toEqual(["C001", "C002", "C004"]);
+  it("รหัสซ้ำกับคนที่มีอยู่ = throw", () => {
+    const state = makeTestState(3); // C001-C003
+    expect(() => addPlayer(state, { code: "C002", name: "คนใหม่", imageUrl: "" })).toThrow("มีคนใช้แล้ว");
+  });
+  it("รหัสผิดรูปแบบ = throw (ต้อง ตัวพิมพ์ใหญ่ 1 + ตัวเลข 3 รวม 4 ตัวเป๊ะ)", () => {
+    const state = createInitialGameState();
+    for (const bad of ["A01", "A0011", "AB01", "1234", "A-01", "AAAA", ""]) {
+      expect(() => addPlayer(state, { code: bad, name: "ทดสอบ", imageUrl: "" })).toThrow("รหัสต้องเป็น");
+    }
   });
   it("removePlayer ล้าง record ทุกตาราง", () => {
     let state = makeTestState(3);
@@ -28,11 +32,11 @@ describe("player roster", () => {
   });
   it("ชื่อว่าง/อักขระล่องหนล้วน = throw", () => {
     const state = createInitialGameState();
-    expect(() => addPlayer(state, { name: "  ​ ", imageUrl: "" })).toThrow("ใส่ชื่อผู้เล่นก่อน");
+    expect(() => addPlayer(state, { code: "A001", name: "  ​ ", imageUrl: "" })).toThrow("ใส่ชื่อผู้เล่นก่อน");
   });
   it("เพิ่ม/ลบระหว่างเกมค้าง (แจกบทบาทแล้ว) = throw · แก้ชื่อ/รูปทำได้", () => {
     let state = assignNewRoles(makeTestState(4));
-    expect(() => addPlayer(state, { name: "แทรก", imageUrl: "" })).toThrow("จบเกมหรือเริ่มรอบใหม่ก่อน");
+    expect(() => addPlayer(state, { code: "Z999", name: "แทรก", imageUrl: "" })).toThrow("จบเกมหรือเริ่มรอบใหม่ก่อน");
     expect(() => removePlayer(state, "C001")).toThrow("จบเกมหรือเริ่มรอบใหม่ก่อน");
     state = updatePlayer(state, "C001", { name: "ชื่อใหม่", imageUrl: "https://example.com/a.webp" });
     expect(state.players[0].name).toBe("ชื่อใหม่");
@@ -65,7 +69,7 @@ describe("roster lock during open vote + empty-roster vote guard", () => {
     const { openVote } = await import("./actions");
     const state = openVote(makeTestState(4));
     expect(() => removePlayer(state, "C001")).toThrow("หีบโหวตเปิดอยู่");
-    expect(() => addPlayer(state, { name: "แทรก", imageUrl: "" })).toThrow("หีบโหวตเปิดอยู่");
+    expect(() => addPlayer(state, { code: "Z999", name: "แทรก", imageUrl: "" })).toThrow("หีบโหวตเปิดอยู่");
   });
   it("openVote โดยผู้เล่น < 3 คน = throw บอกให้ลงทะเบียน (กันเผาสิทธิ์โหวตของวันทิ้งเปล่า)", async () => {
     const { openVote } = await import("./actions");

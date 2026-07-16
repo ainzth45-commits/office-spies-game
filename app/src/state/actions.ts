@@ -10,7 +10,7 @@ import { getUsedQuizIds, markQuizUsed } from "./quizHistory";
 import type { RandomSource } from "../domain/random";
 import { assignSpyRoles, promoteJester } from "../domain/roleEngine";
 import { calculateVoteResult } from "../domain/voteEngine";
-import { createInitialGameState, maxPlayerCodeNumber } from "./gameState";
+import { createInitialGameState } from "./gameState";
 import type {
   GameConfig,
   GameState,
@@ -115,22 +115,26 @@ function cleanPlayerName(raw: string): string {
   return cleaned.slice(0, 40);
 }
 
-function nextPlayerNumber(state: GameState): number {
-  // ใช้ counter ใน state (นับต่อเสมอแม้ลบคน) — กันรหัสถูกเวียนใช้ซ้ำชนกับประวัติ/ข้อมูลเก่า
-  // เผื่อเซฟที่ counter เพี้ยน (ต่ำกว่ารหัสที่มีจริง) ให้ยึดค่าที่มากกว่าระหว่าง counter กับ max+1
-  return Math.max(state.rosterNextNumber || 1, maxPlayerCodeNumber(state.players) + 1);
+// รหัสผู้เล่นใส่เองตามกติกาเจ้านาย: ตัวพิมพ์ใหญ่ 1 ตัว + ตัวเลข 3 ตัว รวม 4 ตัวเป๊ะ (เช่น A001) · ห้ามซ้ำ
+function cleanPlayerCode(state: GameState, raw: string): string {
+  const code = raw.trim().toUpperCase(); // พิมพ์เล็กมาก็รับ แปลงให้เป็นใหญ่
+  if (!/^[A-Z][0-9]{3}$/.test(code)) {
+    throw new Error("รหัสต้องเป็น ตัวพิมพ์ใหญ่ 1 ตัว ตามด้วยตัวเลข 3 ตัว รวม 4 ตัวพอดี (เช่น A001)");
+  }
+  if (state.players.some((player) => player.code === code)) {
+    throw new Error(`รหัส ${code} มีคนใช้แล้ว — เลือกรหัสอื่นนะ`);
+  }
+  return code;
 }
 
-export function addPlayer(state: GameState, input: { name: string; imageUrl: string }): GameState {
+export function addPlayer(state: GameState, input: { code: string; name: string; imageUrl: string }): GameState {
   assertRosterUnlocked(state);
   const name = cleanPlayerName(input.name);
-  const codeNumber = nextPlayerNumber(state);
-  const code = `C${String(codeNumber).padStart(3, "0")}`;
+  const code = cleanPlayerCode(state, input.code);
   const player = { id: code, code, name, imageUrl: input.imageUrl };
   return log(
     {
       ...state,
-      rosterNextNumber: codeNumber + 1,
       players: [...state.players, player],
       attendance: { ...state.attendance, [player.id]: true },
       roles: { ...state.roles, [player.id]: "normal" as const },
@@ -186,16 +190,9 @@ export function startNewGameRound(state: GameState): GameState {
   return log(resetBoardKeepRoster(state), "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด");
 }
 
-// ล้างกระดานทั้งหมดแต่คงสิ่งที่ต้องรอดข้ามรอบ: รายชื่อผู้เล่น + counter รหัส + config ของซุป + settings เครื่อง
+// ล้างกระดานทั้งหมดแต่คงสิ่งที่ต้องรอดข้ามรอบ: รายชื่อผู้เล่น + config ของซุป + settings เครื่อง
 function resetBoardKeepRoster(state: GameState): GameState {
-  const fresh = createInitialGameState(state.players);
-  return {
-    ...fresh,
-    phase: "boot",
-    rosterNextNumber: Math.max(fresh.rosterNextNumber, state.rosterNextNumber || 1),
-    config: state.config,
-    settings: state.settings,
-  };
+  return { ...createInitialGameState(state.players), phase: "boot", config: state.config, settings: state.settings };
 }
 
 // ปุ่มออกจากฉากจบเกม — ล้างกระดานกลับหน้าโลโก้เหมือนเริ่มรอบใหม่

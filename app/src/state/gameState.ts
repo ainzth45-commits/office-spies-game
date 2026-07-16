@@ -11,19 +11,10 @@ export function buildPlayerRecords(players: Player[]): Pick<GameState, "attendan
   };
 }
 
-// เลขสูงสุดของรหัสผู้เล่น (C001, C002, ...) — ที่เดียวที่ parse รหัส ห้าม copy สูตรไปที่อื่น
-export function maxPlayerCodeNumber(players: Player[]): number {
-  return players.reduce((max, player) => {
-    const numeric = Number(player.code.replace(/^C/, ""));
-    return Number.isFinite(numeric) ? Math.max(max, numeric) : max;
-  }, 0);
-}
-
 export function createInitialGameState(players: Player[] = defaultPlayers): GameState {
   return {
     version: 1,
     rosterVersion: 2,
-    rosterNextNumber: maxPlayerCodeNumber(players) + 1,
     phase: "boot",
     players,
     config: defaultConfig,

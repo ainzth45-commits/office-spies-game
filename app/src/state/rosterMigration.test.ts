@@ -22,7 +22,6 @@ describe("roster migration", () => {
     const migrated = migrateGameState(saved);
     expect(migrated.players).toHaveLength(5);
     expect(migrated.phase).toBe("home");
-    expect(migrated.rosterNextNumber).toBe(6);
   });
 });
 

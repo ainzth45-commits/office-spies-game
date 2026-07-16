@@ -11,6 +11,7 @@ export function PlayersSection() {
   const { state, setState } = useGameStore();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Player | null>(null);
+  const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [linkDraft, setLinkDraft] = useState("");
@@ -24,6 +25,7 @@ export function PlayersSection() {
 
   function openForm(player: Player | null) {
     setEditing(player);
+    setCode(player?.code ?? "");
     setName(player?.name ?? "");
     setImageUrl(player?.imageUrl ?? "");
     setLinkDraft(player && /^https?:/i.test(player.imageUrl) ? player.imageUrl : "");
@@ -59,7 +61,7 @@ export function PlayersSection() {
   function save() {
     try {
       setState((current) =>
-        editing ? updatePlayer(current, editing.id, { name, imageUrl }) : addPlayer(current, { name, imageUrl }),
+        editing ? updatePlayer(current, editing.id, { name, imageUrl }) : addPlayer(current, { code, name, imageUrl }),
       );
       setFormOpen(false);
       setError(null);
@@ -127,6 +129,18 @@ export function PlayersSection() {
       {formOpen ? (
         <div className="player-form">
           <h4>{editing ? `แก้ไข ${editing.code}` : "ลงทะเบียนผู้เล่นใหม่"}</h4>
+          {editing ? null : (
+            <label className="player-form__field">
+              รหัส (ตัวพิมพ์ใหญ่ 1 ตัว + ตัวเลข 3 ตัว เช่น A001)
+              <input
+                value={code}
+                maxLength={4}
+                autoCapitalize="characters"
+                onChange={(event) => setCode(event.target.value.toUpperCase())}
+                placeholder="A001"
+              />
+            </label>
+          )}
           <label className="player-form__field">
             ชื่อ
             <input value={name} maxLength={40} onChange={(event) => setName(event.target.value)} placeholder="ชื่อเล่น + ชื่อจริง" />
