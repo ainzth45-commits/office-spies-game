@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { exportBackup, parseBackup } from "./backup";
-import { createInitialGameState } from "./gameState";
+import { makeTestState } from "./testUtils";
 
 describe("backup", () => {
   it("exports and imports state", () => {
-    const state = createInitialGameState();
+    const state = makeTestState();
     expect(parseBackup(exportBackup(state)).players).toHaveLength(12);
   });
 

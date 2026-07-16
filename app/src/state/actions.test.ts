@@ -29,17 +29,17 @@ import {
   updateConfig,
 } from "./actions";
 import { quizBank } from "../data/quizBank";
-import { createInitialGameState } from "./gameState";
+import { makeTestState } from "./testUtils";
 
 describe("game actions", () => {
   it("ending a working day without vote increases vote cost multiplier", () => {
-    const state = endWorkingDay(createInitialGameState(), "วันเล่นที่ 2");
+    const state = endWorkingDay(makeTestState(), "วันเล่นที่ 2");
     expect(state.voteCostState.accumulatedSkippedMultiplier).toBe(1.5);
     expect(state.manualDay.label).toBe("วันเล่นที่ 2");
   });
 
   it("startNewDay advances the day until maxGameDays then locks", () => {
-    let state = createInitialGameState(); // day 1, maxGameDays 6
+    let state = makeTestState(); // day 1, maxGameDays 6
     for (let day = 2; day <= 6; day += 1) {
       expect(canStartNewDay(state)).toBe(true);
       state = startNewDay(state);
@@ -53,7 +53,7 @@ describe("game actions", () => {
   });
 
   it("startNewGameRound wipes the board but keeps config/settings/players", () => {
-    let state = startNewDay(startNewDay(createInitialGameState())); // day 3
+    let state = startNewDay(startNewDay(makeTestState())); // day 3
     state = assignGachaItem(applyGachaOutcome(state, "itemSwap"), "C001");
     state = {
       ...state,
@@ -78,14 +78,14 @@ describe("game actions", () => {
 
   it("startNewGameRound is blocked when the quiz bank is below the minimum", () => {
     // ใน jsdom คลังยังเต็ม 200 — ตั้งเกณฑ์สูงกว่าคลังเพื่อจำลองคลังต่ำกว่าเกณฑ์
-    const state = { ...createInitialGameState(), config: { ...createInitialGameState().config, quizMinRemainingToStart: 201 } };
+    const state = { ...makeTestState(), config: { ...makeTestState().config, quizMinRemainingToStart: 201 } };
     expect(() => startNewGameRound(state)).toThrow("รีเซตคลังโจทย์");
   });
 
 
 
   it("opening a vote resets skipped multiplier and marks the day", () => {
-    const skipped = endWorkingDay(createInitialGameState(), "วันเล่นที่ 2");
+    const skipped = endWorkingDay(makeTestState(), "วันเล่นที่ 2");
     const state = openVote(skipped);
     expect(state.voteCostState.accumulatedSkippedMultiplier).toBe(1);
     expect(state.voteCostState.nextVoteMultiplier).toBe(1);
@@ -96,43 +96,43 @@ describe("game actions", () => {
   });
 
   it("final day gives spies the win when team has not won", () => {
-    const state = markFinalDay(createInitialGameState());
+    const state = markFinalDay(makeTestState());
     expect(state.phase).toBe("ended");
     expect(state.endWinner).toBe("spies");
   });
 
   it("final day does not overwrite an existing team win", () => {
-    const initial = { ...createInitialGameState(), phase: "ended" as const, endWinner: "team" as const };
+    const initial = { ...makeTestState(), phase: "ended" as const, endWinner: "team" as const };
     const state = markFinalDay(initial);
     expect(state.endWinner).toBe("team");
   });
 
   it("assignNewRoles assigns two spies", () => {
-    const state = assignNewRoles(createInitialGameState(), () => 0);
+    const state = assignNewRoles(makeTestState(), () => 0);
     expect(Object.values(state.roles).filter((role) => role === "spyA")).toHaveLength(1);
     expect(Object.values(state.roles).filter((role) => role === "spyB")).toHaveLength(1);
   });
 
   it("fresh game has no spies assigned (rolesAssigned=false)", () => {
-    expect(rolesAssigned(createInitialGameState())).toBe(false);
+    expect(rolesAssigned(makeTestState())).toBe(false);
   });
 
   it("enterRoleReveal enters the role phase WITHOUT assigning (attendance step assigns first)", () => {
-    const state = enterRoleReveal(createInitialGameState());
+    const state = enterRoleReveal(makeTestState());
     expect(state.phase).toBe("roleReveal");
     // ยังไม่สุ่ม — RoleRevealFlow จะโชว์จอตั้งคนมาก่อน แล้วค่อยเรียก assignNewRoles
     expect(rolesAssigned(state)).toBe(false);
   });
 
   it("enterRoleReveal does NOT reshuffle when roles already assigned (re-view keeps same roles)", () => {
-    const assigned = assignNewRoles(createInitialGameState(), () => 0);
+    const assigned = assignNewRoles(makeTestState(), () => 0);
     const reviewed = enterRoleReveal(assigned);
     expect(reviewed.phase).toBe("roleReveal");
     expect(reviewed.roles).toEqual(assigned.roles);
   });
 
   it("assignNewRoles only makes spies out of present players (absent are always normal)", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     // ให้มาแค่ 3 คน (C001-C003) ที่เหลือลา
     const present = new Set(["C001", "C002", "C003"]);
     state = {
@@ -150,7 +150,7 @@ describe("game actions", () => {
   });
 
   it("assignNewRoles throws when fewer than two players are present", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     state = {
       ...state,
       attendance: Object.fromEntries(state.players.map((p) => [p.id, p.id === "C001"])) as typeof state.attendance,
@@ -159,7 +159,7 @@ describe("game actions", () => {
   });
 
   it("assignNewRoles adds exactly one jester (from present) when jesterEnabled", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     state = { ...state, config: { ...state.config, jesterEnabled: true } };
     const assigned = assignNewRoles(state, () => 0);
     expect(Object.values(assigned.roles).filter((r) => r === "jester")).toHaveLength(1);
@@ -171,7 +171,7 @@ describe("game actions", () => {
   });
 
   it("assignNewRoles requires 3 present when jesterEnabled (2 spy + 1 jester)", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     const present = new Set(["C001", "C002"]);
     state = {
       ...state,
@@ -182,7 +182,7 @@ describe("game actions", () => {
   });
 
   it("advanceFromVoteResult ends the game with jester win when the jester was caught", () => {
-    const base = createInitialGameState();
+    const base = makeTestState();
     const state = {
       ...base,
       lastVoteResult: {
@@ -210,14 +210,14 @@ describe("game actions", () => {
   });
 
   it("startNewRound reshuffles spies and resets the round", () => {
-    const state = startNewRound(createInitialGameState(), () => 0);
+    const state = startNewRound(makeTestState(), () => 0);
     expect(rolesAssigned(state)).toBe(true);
     expect(state.currentVote).toBeNull();
     expect(state.lastVoteResult).toBeNull();
   });
 
   it("assignNewRoles preserves inventory and shield state", () => {
-    const original = createInitialGameState();
+    const original = makeTestState();
     original.inventories.C001 = [{ id: "item-1", type: "double", source: "gacha", publicKnown: true, createdAtActionId: "a1" }];
     original.shield = { slot: "spyA", exists: true, consumed: false };
     const state = assignNewRoles(original, () => 0);
@@ -226,21 +226,21 @@ describe("game actions", () => {
   });
 
   it("applies next vote multiplier from gacha", () => {
-    const state = applyGachaVoteMultiplier(createInitialGameState(), 1.5);
+    const state = applyGachaVoteMultiplier(makeTestState(), 1.5);
     expect(state.voteCostState.nextVoteMultiplier).toBe(1.5);
   });
 
   it("updates valid config", () => {
-    const state = updateConfig(createInitialGameState(), { quizCorrectReward: 12 });
+    const state = updateConfig(makeTestState(), { quizCorrectReward: 12 });
     expect(state.config.quizCorrectReward).toBe(12);
   });
 
   it("rejects invalid config", () => {
-    expect(() => updateConfig(createInitialGameState(), { spyCount: 12 })).toThrow("จำนวนสปายต้องน้อยกว่าจำนวนผู้เล่น");
+    expect(() => updateConfig(makeTestState(), { spyCount: 12 })).toThrow("จำนวนสปายต้องน้อยกว่าจำนวนผู้เล่น");
   });
 
   it("item outcome parks a pending grant, admin assigns it into an inventory", () => {
-    const spun = applyGachaOutcome(createInitialGameState(), "itemSwap");
+    const spun = applyGachaOutcome(makeTestState(), "itemSwap");
     expect(spun.pendingGachaGrant).toMatchObject({ itemType: "swap" });
     expect(spun.inventories.C002 ?? []).toHaveLength(0);
 
@@ -250,7 +250,7 @@ describe("game actions", () => {
   });
 
   it("inventories are unlimited — one player can stack any number of items", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
     state = assignGachaItem(applyGachaOutcome(state, "itemRemove"), "C001");
     state = assignGachaItem(applyGachaOutcome(state, "itemSwap"), "C001");
@@ -261,14 +261,14 @@ describe("game actions", () => {
   });
 
   it("gacha item outcome with a spinnerId drops straight into that player's bag (no picker)", () => {
-    const spun = applyGachaOutcome(createInitialGameState(), "itemSwap", { spinnerId: "C005" });
+    const spun = applyGachaOutcome(makeTestState(), "itemSwap", { spinnerId: "C005" });
     expect(spun.pendingGachaGrant).toBeNull();
     expect(spun.inventories.C005.map((item) => item.type)).toEqual(["swap"]);
     expect(spun.lastGachaResult?.message).toContain("เข้ากระเป๋าแล้ว");
   });
 
   it("gacha spins are unlimited (no daily cap, no player binding)", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     for (let i = 0; i < 10; i += 1) {
       state = applyGachaOutcome(state, "selfGain");
     }
@@ -276,7 +276,7 @@ describe("game actions", () => {
   });
 
   it("resets daily vote-cost flag when a new day starts", () => {
-    const spun = applyGachaOutcome(createInitialGameState(), "voteUp");
+    const spun = applyGachaOutcome(makeTestState(), "voteUp");
     expect(spun.dailyUsage.voteCostChanged).toBe(true);
     const nextDay = endWorkingDay(spun, "วันเล่นที่ 2");
     expect(nextDay.dailyUsage.dayIndex).toBe(2);
@@ -285,7 +285,7 @@ describe("game actions", () => {
 
   it("opens quiz phase with a timestamp when gacha grants a quiz", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const state = applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs });
+    const state = applyGachaOutcome(makeTestState(), "grantQuiz", { random: () => 0, nowMs });
 
     expect(state.phase).toBe("quiz");
     expect(state.pendingQuiz?.questionId).toMatch(/^Q\d{3}$/);
@@ -300,7 +300,7 @@ describe("game actions", () => {
 
   it("answering fast earns full reward; result waits on quiz screen", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
+    const pending = startPendingQuiz(applyGachaOutcome(makeTestState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
     const state = answerPendingQuiz(pending, question.answer, nowMs + 3_000);
 
@@ -316,7 +316,7 @@ describe("game actions", () => {
 
   it("slow answers decay the reward down to the floor", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
+    const pending = startPendingQuiz(applyGachaOutcome(makeTestState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
     // 17 วิ → ลด 3 ขั้น (default decay 5 วิ/ขั้น จาก 10 → 7)
     const state = answerPendingQuiz(pending, question.answer, nowMs + 17_000);
@@ -325,7 +325,7 @@ describe("game actions", () => {
 
   it("wrong answers escalate the penalty after the time tier", () => {
     const nowMs = Date.parse("2026-07-03T10:00:00.000Z");
-    const pending = startPendingQuiz(applyGachaOutcome(createInitialGameState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
+    const pending = startPendingQuiz(applyGachaOutcome(makeTestState(), "grantQuiz", { random: () => 0, nowMs }), nowMs);
     const question = quizBank.find((candidate) => candidate.id === pending.pendingQuiz?.questionId)!;
     const wrong = question.answer === "A" ? "B" : "A";
 
@@ -339,8 +339,8 @@ describe("game actions", () => {
 
   it("does not create a new spy shield after the only shield was consumed", () => {
     const initial = {
-      ...createInitialGameState(),
-      roles: { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const },
+      ...makeTestState(),
+      roles: { ...makeTestState().roles, C001: "spyA" as const, C002: "spyB" as const },
       shield: { slot: "spyA" as const, exists: true, consumed: true },
     };
     const state = applyGachaOutcome(initial, "spyShield", { shieldSlot: "spyB" });
@@ -351,8 +351,8 @@ describe("game actions", () => {
 
   it("runs a full vote round and holds on vote result before routing onward", () => {
     const withRoles = {
-      ...createInitialGameState(),
-      roles: { ...createInitialGameState().roles, C010: "spyA" as const, C011: "spyB" as const },
+      ...makeTestState(),
+      roles: { ...makeTestState().roles, C010: "spyA" as const, C011: "spyB" as const },
     };
     let state = openVote(withRoles);
     for (const voter of state.currentVote!.presentPlayerIds) {
@@ -366,9 +366,9 @@ describe("game actions", () => {
   });
 
   it("routes from vote result to post-vote clue before guessing a caught spy", () => {
-    const roles = { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const };
+    const roles = { ...makeTestState().roles, C001: "spyA" as const, C002: "spyB" as const };
     const state = advanceFromVoteResult({
-      ...createInitialGameState(),
+      ...makeTestState(),
       phase: "voteResult",
       roles,
       lastVoteResult: {
@@ -395,9 +395,9 @@ describe("game actions", () => {
   });
 
   it("routes from post-vote clue to guessing after a spy catch", () => {
-    const roles = { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const };
+    const roles = { ...makeTestState().roles, C001: "spyA" as const, C002: "spyB" as const };
     const state = advanceFromPostVoteClue({
-      ...createInitialGameState(),
+      ...makeTestState(),
       phase: "postVoteClue",
       roles,
       lastVoteResult: {
@@ -424,7 +424,7 @@ describe("game actions", () => {
   });
 
   it("consumes vote items when a turn uses them", () => {
-    let state = assignGachaItem(applyGachaOutcome(createInitialGameState(), "itemDouble"), "C001");
+    let state = assignGachaItem(applyGachaOutcome(makeTestState(), "itemDouble"), "C001");
     state = openVote(state);
     const itemId = state.inventories.C001[0].id;
     state = submitVoteTurn(state, { voterId: "C001", targetId: "C002", items: [{ id: itemId, type: "double" }] });
@@ -434,7 +434,7 @@ describe("game actions", () => {
   });
 
   it("allows several items in one turn (double + remove + reduce) but rejects a second double", () => {
-    let state = createInitialGameState();
+    let state = makeTestState();
     state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
     state = assignGachaItem(applyGachaOutcome(state, "itemDouble"), "C001");
     state = assignGachaItem(applyGachaOutcome(state, "itemRemove"), "C001");
@@ -471,7 +471,7 @@ describe("game actions", () => {
   });
 
   it("skipping the clue forfeits it for the round — no buying later", () => {
-    let state = openVote(createInitialGameState());
+    let state = openVote(makeTestState());
     for (const voter of state.currentVote!.presentPlayerIds) {
       state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
     }
@@ -484,7 +484,7 @@ describe("game actions", () => {
   });
 
   it("buys one public post-vote clue per vote round", () => {
-    let state = openVote(createInitialGameState());
+    let state = openVote(makeTestState());
     for (const voter of state.currentVote!.presentPlayerIds) {
       state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
     }
@@ -497,10 +497,10 @@ describe("game actions", () => {
   });
 
   it("ends the game when the team guesses the second spy correctly", () => {
-    const roles = { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const };
+    const roles = { ...makeTestState().roles, C001: "spyA" as const, C002: "spyB" as const };
     const state = resolveSecondSpyGuess(
       {
-        ...createInitialGameState(),
+        ...makeTestState(),
         roles,
         phase: "guess",
         lastVoteResult: {
@@ -530,9 +530,9 @@ describe("game actions", () => {
   });
 
   it("wrong second-spy guess shows a verdict first, then reshuffles on acknowledge", () => {
-    const roles = { ...createInitialGameState().roles, C001: "spyA" as const, C002: "spyB" as const };
+    const roles = { ...makeTestState().roles, C001: "spyA" as const, C002: "spyB" as const };
     const fixture = {
-      ...createInitialGameState(),
+      ...makeTestState(),
       roles,
       phase: "guess" as const,
       lastVoteResult: {
@@ -574,7 +574,7 @@ describe("game actions", () => {
   });
 
   it("ends with a spy win when the final-day vote round closes without a catch", () => {
-    let state = openVote(createInitialGameState());
+    let state = openVote(makeTestState());
     state = { ...state, manualDay: { ...state.manualDay, index: 6, isFinalDay: true } };
     for (const voter of state.currentVote!.presentPlayerIds) {
       state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
@@ -589,7 +589,7 @@ describe("game actions", () => {
   });
 
   it("keeps the game going when a mid-game vote round closes without a catch", () => {
-    let state = openVote(createInitialGameState()); // วันเล่นที่ 1
+    let state = openVote(makeTestState()); // วันเล่นที่ 1
     for (const voter of state.currentVote!.presentPlayerIds) {
       state = submitVoteTurn(state, { voterId: voter, targetId: voter === "C001" ? "C002" : "C001" });
     }

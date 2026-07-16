@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultConfig } from "../data/configDefaults";
 import type { GameState } from "../domain/types";
-import { createInitialGameState } from "./gameState";
+import { makeTestState } from "./testUtils";
 import { migrateConfig, migrateGameState } from "./storage";
 
 // เซฟเก่า (ก่อน 2026-07-03): grantItem ช่องเดียว + field ที่ถูกถอด
@@ -79,7 +79,7 @@ describe("migration from pre-rework saves", () => {
 
   it("moves a game stranded on the removed shop phase back home and fills new fields", () => {
     const legacy = {
-      ...createInitialGameState(),
+      ...makeTestState(),
       phase: "shop",
       config: legacyConfig(),
       usedQuizIds: ["Q001", "Q002"],
