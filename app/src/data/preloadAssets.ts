@@ -1,5 +1,4 @@
 import { gachaIconAssets, gameAssets, itemCardAssets } from "./assets";
-import { defaultPlayers } from "./players";
 
 // โหลดรูปทั้งเกมไว้เบื้องหลังตั้งแต่เปิดแอป — เข้าหน้าไหนรูปก็พร้อมทันที ไม่ต้องรอโหลด
 // ไล่ทีละชุด (จำกัดพร้อมกัน 4 รูป) กันแย่งแบนด์วิดท์กับหน้าที่กำลังแสดงอยู่
@@ -20,7 +19,7 @@ export function preloadAllGameAssets(): void {
     ...Object.values(gameAssets),
     ...Object.values(gachaIconAssets),
     ...Object.values(itemCardAssets),
-    ...defaultPlayers.map((player) => player.imageUrl),
+    // รูปผู้เล่นไม่ preload แล้ว — เป็น data URL/ลิงก์ที่ลงทะเบียนเองในเครื่อง โหลดตรงจาก state
   ];
   queue.push(...new Set(urls));
   total = queue.length;
