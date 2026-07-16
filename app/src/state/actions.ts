@@ -10,7 +10,7 @@ import { getUsedQuizIds, markQuizUsed } from "./quizHistory";
 import type { RandomSource } from "../domain/random";
 import { assignSpyRoles, promoteJester } from "../domain/roleEngine";
 import { calculateVoteResult } from "../domain/voteEngine";
-import { createInitialGameState } from "./gameState";
+import { buildPlayerRecords, createInitialGameState } from "./gameState";
 import type {
   GameConfig,
   GameState,
@@ -108,8 +108,9 @@ export function startNewGameRound(state: GameState): GameState {
   }
   const fresh = createInitialGameState();
   // กลับไปหน้าแตะโลโก้ (boot) — ให้ความรู้สึก "เกมใหม่จริงๆ" ตั้งแต่จอแรก
+  // fresh สร้างจากรายชื่อว่าง — ต้อง rebuild ตาราง มา/ลา บทบาท กระเป๋า จากรายชื่อที่ลงทะเบียนไว้
   return log(
-    { ...fresh, phase: "boot", players: state.players, config: state.config, settings: state.settings },
+    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, config: state.config, settings: state.settings },
     "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด",
   );
 }
@@ -119,7 +120,7 @@ export function startNewGameRound(state: GameState): GameState {
 export function finishGameToBoot(state: GameState): GameState {
   const fresh = createInitialGameState();
   return log(
-    { ...fresh, phase: "boot", players: state.players, config: state.config, settings: state.settings },
+    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, config: state.config, settings: state.settings },
     "จบเกม — ล้างกระดานกลับหน้าแรก",
   );
 }

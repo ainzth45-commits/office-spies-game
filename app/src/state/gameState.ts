@@ -1,20 +1,24 @@
 import { defaultConfig } from "../data/configDefaults";
 import { defaultPlayers } from "../data/players";
-import type { GameState, PlayerId } from "../domain/types";
+import type { GameState, Player, PlayerId } from "../domain/types";
 
-export function createInitialGameState(): GameState {
-  const attendance = Object.fromEntries(defaultPlayers.map((player) => [player.id, true])) as Record<PlayerId, boolean>;
-  const roles = Object.fromEntries(defaultPlayers.map((player) => [player.id, "normal"])) as GameState["roles"];
-  const inventories = Object.fromEntries(defaultPlayers.map((player) => [player.id, []])) as GameState["inventories"];
+// สร้างตาราง per-player (มา/ลา, บทบาท, กระเป๋า) จากรายชื่อ — ใช้ทั้งตอนสร้างเกมและตอนล้างกระดานที่ต้องคงรายชื่อไว้
+export function buildPlayerRecords(players: Player[]): Pick<GameState, "attendance" | "roles" | "inventories"> {
+  return {
+    attendance: Object.fromEntries(players.map((player) => [player.id, true])) as Record<PlayerId, boolean>,
+    roles: Object.fromEntries(players.map((player) => [player.id, "normal"])) as GameState["roles"],
+    inventories: Object.fromEntries(players.map((player) => [player.id, []])) as GameState["inventories"],
+  };
+}
 
+export function createInitialGameState(players: Player[] = defaultPlayers): GameState {
   return {
     version: 1,
+    rosterVersion: 2,
     phase: "boot",
-    players: defaultPlayers,
+    players,
     config: defaultConfig,
-    attendance,
-    roles,
-    inventories,
+    ...buildPlayerRecords(players),
     shield: { slot: null, exists: false, consumed: false },
     manualDay: {
       index: 1,

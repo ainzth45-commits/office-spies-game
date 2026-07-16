@@ -142,6 +142,8 @@ export interface QuizQuestion {
 
 export interface GameState {
   version: 1;
+  // ยุคของระบบรายชื่อ — 2 = ลงทะเบียนในแอป (เซฟที่ไม่มี field นี้คือยุครายชื่อฝังโค้ด ต้องล้างทิ้ง)
+  rosterVersion: number;
   phase: GamePhase;
   players: Player[];
   config: GameConfig;
