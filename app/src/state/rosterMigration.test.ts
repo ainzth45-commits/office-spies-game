@@ -25,3 +25,14 @@ describe("roster migration", () => {
     expect(migrated.rosterNextNumber).toBe(6);
   });
 });
+
+describe("backup import migration", () => {
+  it("ไฟล์ backup ยุคเก่า (ไม่มี rosterVersion) โดนล้างรายชื่อเหมือนเซฟเก่า", async () => {
+    const { exportBackup, parseBackup } = await import("./backup");
+    const legacy = { ...makeTestState(12), phase: "home" } as Omit<GameState, "rosterVersion"> & { rosterVersion?: number };
+    delete legacy.rosterVersion;
+    const imported = parseBackup(exportBackup(legacy as GameState));
+    expect(imported.players).toEqual([]);
+    expect(imported.rosterVersion).toBe(2);
+  });
+});
