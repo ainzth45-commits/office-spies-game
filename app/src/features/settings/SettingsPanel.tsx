@@ -7,6 +7,7 @@ import { remainingQuizCount, resetConfig, updateConfig } from "../../state/actio
 import { resetQuizHistory } from "../../state/quizHistory";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
+import { PlayersSection } from "./PlayersSection";
 
 type ScalarKey = {
   [K in keyof GameConfig]: GameConfig[K] extends number ? K : never;
@@ -149,6 +150,8 @@ export function SettingsPanel() {
       </div>
       {error && <p className="form-error">⚠️ {error}</p>}
       {saved && !error && <p className="settings-saved">✅ บันทึกแล้ว</p>}
+
+      <PlayersSection />
 
       {CATEGORIES.map((category) => (
         <fieldset key={category.title} className="settings-cat">

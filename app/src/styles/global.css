@@ -2931,3 +2931,26 @@ span.end-spy-card__stamp-img {
   overflow: auto;
   margin: 0 auto;
 }
+
+/* ตั้งค่า → 👥 ผู้เล่น (ลงทะเบียนในเครื่อง) */
+.players-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.players-list__row { display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 6px 10px; }
+.players-list__thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; object-position: 50% 18%; flex-shrink: 0; }
+.players-list__thumb--empty { display: grid; place-items: center; background: rgba(255, 255, 255, 0.12); font-size: 12px; }
+.players-list__code { opacity: 0.7; font-size: 13px; width: 44px; flex-shrink: 0; }
+.players-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.players-list__btn { background: none; border: 0; color: inherit; font-size: 18px; padding: 6px; cursor: pointer; }
+.players-list__btn:disabled { opacity: 0.35; }
+.players-list__btn--danger { color: #ff6b6b; font-size: 14px; font-weight: 700; }
+.players-section__note { font-size: 14px; opacity: 0.85; margin: 4px 0 10px; }
+.player-form { margin-top: 12px; padding: 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.25); display: grid; gap: 10px; }
+.player-form h4 { margin: 0; }
+.player-form__field { display: grid; gap: 4px; font-size: 14px; }
+.player-form input { padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.08); color: inherit; font: inherit; }
+.player-form__photo { display: flex; gap: 12px; align-items: flex-start; }
+.player-form__preview { width: 96px; height: 96px; border-radius: 12px; object-fit: cover; object-position: 50% 18%; flex-shrink: 0; }
+.player-form__preview--empty { display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); font-size: 12px; opacity: 0.7; }
+.player-form__photo-actions { display: grid; gap: 8px; flex: 1; min-width: 0; }
+.player-form__link { display: flex; gap: 8px; }
+.player-form__link input { flex: 1; min-width: 0; }
+.player-form__actions { display: flex; justify-content: flex-end; gap: 10px; }

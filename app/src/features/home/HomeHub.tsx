@@ -26,6 +26,7 @@ export function HomeHub() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmEndGame, setConfirmEndGame] = useState(false);
   const [confirmNewDay, setConfirmNewDay] = useState(false);
+  const [rosterHint, setRosterHint] = useState(false);
   const [resetError, setResetError] = useState("");
   const quizRemaining = remainingQuizCount();
   const quizBankLow = quizRemaining < state.config.quizMinRemainingToStart;
@@ -40,7 +41,20 @@ export function HomeHub() {
   const goPhase = (phase: typeof state.phase) => () => setState((current) => ({ ...current, phase }));
 
   const dock: DockItem[] = [
-    { key: "role", label: "บทบาท", icon: gameAssets.dockRole, fallback: "🕵️", onClick: () => setState((current) => enterRoleReveal(current)) },
+    {
+      key: "role",
+      label: "บทบาท",
+      icon: gameAssets.dockRole,
+      fallback: "🕵️",
+      onClick: () => {
+        // ยังไม่มีทีม (หรือคนไม่พอ) — enterRoleReveal จะ throw อยู่แล้ว แต่ดักก่อนเพื่อโชว์ popup แนะนำแทน crash
+        if (state.players.length < 3) {
+          setRosterHint(true);
+          return;
+        }
+        setState((current) => enterRoleReveal(current));
+      },
+    },
     { key: "vote", label: "โหวต", icon: gameAssets.dockVote, fallback: "🗳️", onClick: goPhase("vote") },
     { key: "gacha", label: "กาชา", icon: gameAssets.dockGacha, fallback: "🎰", onClick: goPhase("gacha") },
     { key: "topic", label: "ดูภาพ", icon: gameAssets.dockTopic, fallback: "🖼️", onClick: goPhase("topic") },
@@ -200,6 +214,27 @@ export function HomeHub() {
               <GameButton onClick={() => { setConfirmNewDay(false); setState((current) => startNewDay(current)); }}>
                 ✅ ยืนยัน ขึ้นวันใหม่
               </GameButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rosterHint && (
+        <div className="overlay" onClick={() => setRosterHint(false)}>
+          <div className="admin-menu confirm-modal" onClick={(event) => event.stopPropagation()}>
+            <img
+              className="confirm-modal__mascot"
+              src={gameAssets.mascotDetective}
+              alt=""
+              aria-hidden="true"
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
+            <h2>👥 ยังไม่มีทีมสายสืบเลย!</h2>
+            <p className="confirm-modal__body">
+              ไปที่ ⚙️ ตั้งค่า → 👥 ผู้เล่น แล้วลงทะเบียนอย่างน้อย 3 คนก่อน ถึงจะเริ่มภารกิจได้นะ
+            </p>
+            <div className="button-row">
+              <GameButton onClick={() => { setRosterHint(false); setActivePanel("settings"); }}>ไปลงทะเบียนเลย</GameButton>
             </div>
           </div>
         </div>
