@@ -55,7 +55,20 @@ export function HomeHub() {
         setState((current) => enterRoleReveal(current));
       },
     },
-    { key: "vote", label: "โหวต", icon: gameAssets.dockVote, fallback: "🗳️", onClick: goPhase("vote") },
+    {
+      key: "vote",
+      label: "โหวต",
+      icon: gameAssets.dockVote,
+      fallback: "🗳️",
+      onClick: () => {
+        // เข้าหน้าโหวตทั้งที่ไม่มีทีม = เปิดหีบเปล่าแล้วเผาสิทธิ์โหวตของวันทิ้ง — ดักด้วย popup เดียวกับปุ่มบทบาท
+        if (state.players.length < 3) {
+          setRosterHint(true);
+          return;
+        }
+        goPhase("vote")();
+      },
+    },
     { key: "gacha", label: "กาชา", icon: gameAssets.dockGacha, fallback: "🎰", onClick: goPhase("gacha") },
     { key: "topic", label: "ดูภาพ", icon: gameAssets.dockTopic, fallback: "🖼️", onClick: goPhase("topic") },
     // ทางเข้าพิเศษ: สนามซ้อมโจทย์เชาว์ — ไม่มีผลกับระบบเกม (ใช้ไอคอนโจทย์เชาว์จากชุดกาชา)

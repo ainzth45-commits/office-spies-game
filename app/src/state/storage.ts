@@ -84,6 +84,10 @@ export function migrateGameState(raw: GameState): GameState {
   // เซฟยุครายชื่อฝังโค้ด (ไม่มี rosterVersion) มีชื่อ/รูปพนักงานชุดเก่าค้างอยู่ — เจ้านายเคาะ "เริ่มใหม่หมด":
   // ล้างรายชื่อ+กระดานทิ้ง เหลือ config ของซุป + settings เครื่อง แล้วไปลงทะเบียนใหม่ในตั้งค่า
   if (typeof (state as Partial<GameState>).rosterVersion !== "number") {
+    // ประวัติโจทย์เชาว์เป็นของเครื่อง ไม่ใช่ของกระดาน — เซฟรุ่นเก่ามากที่ยังฝัง usedQuizIds ต้องย้ายก่อนทิ้งเซฟ
+    if (Array.isArray(state.usedQuizIds) && state.usedQuizIds.length > 0) {
+      mergeUsedQuizIds(state.usedQuizIds);
+    }
     const blank = createInitialGameState();
     return {
       ...blank,

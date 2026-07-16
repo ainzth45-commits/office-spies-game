@@ -59,3 +59,16 @@ describe("roster survives resets", () => {
     expect(() => enterRoleReveal(makeTestState(2))).toThrow("ลงทะเบียนผู้เล่นอย่างน้อย 3 คน");
   });
 });
+
+describe("roster lock during open vote + empty-roster vote guard", () => {
+  it("หีบโหวตเปิดค้าง (ยังไม่แจกบทบาท) → เพิ่ม/ลบไม่ได้ กันคนผีค้างใน presentPlayerIds", async () => {
+    const { openVote } = await import("./actions");
+    const state = openVote(makeTestState(4));
+    expect(() => removePlayer(state, "C001")).toThrow("หีบโหวตเปิดอยู่");
+    expect(() => addPlayer(state, { name: "แทรก", imageUrl: "" })).toThrow("หีบโหวตเปิดอยู่");
+  });
+  it("openVote โดยผู้เล่น < 3 คน = throw บอกให้ลงทะเบียน (กันเผาสิทธิ์โหวตของวันทิ้งเปล่า)", async () => {
+    const { openVote } = await import("./actions");
+    expect(() => openVote(createInitialGameState())).toThrow("ลงทะเบียนผู้เล่นอย่างน้อย 3 คน");
+  });
+});

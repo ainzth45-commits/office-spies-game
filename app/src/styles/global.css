@@ -2954,3 +2954,6 @@ span.end-spy-card__stamp-img {
 .player-form__link { display: flex; gap: 8px; }
 .player-form__link input { flex: 1; min-width: 0; }
 .player-form__actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* แถบเตือนเซฟลงเครื่องไม่สำเร็จ (private mode / พื้นที่เต็ม) — ลอยบนสุด อ่านชัด ไม่บังปุ่ม dock */
+.save-error-banner { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 8px); left: 50%; transform: translateX(-50%); z-index: 60; background: rgba(180, 40, 40, 0.95); color: #fff; padding: 8px 16px; border-radius: 10px; font-size: 14px; max-width: min(90vw, 640px); text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }

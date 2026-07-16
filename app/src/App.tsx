@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { playClick, setSoundEnabled } from "./audio/sounds";
 import { gameAssets } from "./data/assets";
-import { preloadAllGameAssets } from "./data/preloadAssets";
+import { preloadAllGameAssets, warmPlayerImageUrls } from "./data/preloadAssets";
 import { ThemedIcon } from "./ui/components/ThemedIcon";
 import { BootScreen } from "./features/boot/BootScreen";
 import { EndGameScene } from "./features/end/EndGameScene";
@@ -28,7 +28,11 @@ export function App() {
 }
 
 function AppRouter() {
-  const { hydrated, state, setState } = useGameStore();
+  const { hydrated, state, setState, saveError } = useGameStore();
+  // รูปผู้เล่นแบบลิงก์ (http) ต้องอุ่น cache ล่วงหน้าเหมือนรูปเกม — ไม่งั้นจอเปิดบทบาท/โหวตรูปโหลดช้า
+  useEffect(() => {
+    if (hydrated) warmPlayerImageUrls(state.players.map((player) => player.imageUrl));
+  }, [hydrated, state.players]);
   useEffect(() => {
     setSoundEnabled(state.settings.soundEnabled);
   }, [state.settings.soundEnabled]);
@@ -50,6 +54,7 @@ function AppRouter() {
   // ห่อทุกหน้าใน frame ที่เว้น safe-area (หลบ status bar / home indicator บน iPad)
   return (
     <div className="app-frame">
+      {saveError && <div className="save-error-banner" role="alert">⚠️ {saveError}</div>}
       {hydrated && state.phase !== "home" && state.phase !== "boot" && (
         <>
           <button

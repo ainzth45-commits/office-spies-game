@@ -10,7 +10,7 @@ import { getUsedQuizIds, markQuizUsed } from "./quizHistory";
 import type { RandomSource } from "../domain/random";
 import { assignSpyRoles, promoteJester } from "../domain/roleEngine";
 import { calculateVoteResult } from "../domain/voteEngine";
-import { buildPlayerRecords, createInitialGameState } from "./gameState";
+import { createInitialGameState, maxPlayerCodeNumber } from "./gameState";
 import type {
   GameConfig,
   GameState,
@@ -92,8 +92,21 @@ export function rolesAssigned(state: GameState): boolean {
 }
 
 // ---- ระบบลงทะเบียนผู้เล่น (ตั้งค่า → 👥 ผู้เล่น) ----
-// เพิ่ม/ลบทำได้เฉพาะตอนยังไม่แจกบทบาท — กลางเกมมี บทบาท/ไอเทม/โหวต ผูก id อยู่ ลบแล้วพังทั้งกระดาน
+// เพิ่ม/ลบทำได้เฉพาะตอนยังไม่แจกบทบาท "และ" ไม่มีหีบโหวตเปิดค้าง — โหวตเปิดได้ก่อนแจกบทบาท
+// ถ้าลบคนตอนหีบเปิด id ผี จะค้างใน presentPlayerIds ทำให้ปิดหีบไม่ได้ตลอดกาล (โหวตวันนั้นพังถาวร)
 const ROSTER_LOCKED_MESSAGE = "แก้รายชื่อระหว่างเกมไม่ได้ — จบเกมหรือเริ่มรอบใหม่ก่อน";
+const ROSTER_VOTE_OPEN_MESSAGE = "แก้รายชื่อตอนหีบโหวตเปิดอยู่ไม่ได้ — ปิดผลโหวตรอบนี้ก่อน";
+
+export function rosterLockReason(state: GameState): string | null {
+  if (rolesAssigned(state)) return ROSTER_LOCKED_MESSAGE;
+  if (state.currentVote) return ROSTER_VOTE_OPEN_MESSAGE;
+  return null;
+}
+
+function assertRosterUnlocked(state: GameState): void {
+  const reason = rosterLockReason(state);
+  if (reason) throw new Error(reason);
+}
 
 function cleanPlayerName(raw: string): string {
   // ตัดอักขระควบคุม/ล่องหน (zero-width, BOM ฯลฯ) แล้ว trim — กันชื่อว่างแบบมองไม่เห็น
@@ -105,15 +118,11 @@ function cleanPlayerName(raw: string): string {
 function nextPlayerNumber(state: GameState): number {
   // ใช้ counter ใน state (นับต่อเสมอแม้ลบคน) — กันรหัสถูกเวียนใช้ซ้ำชนกับประวัติ/ข้อมูลเก่า
   // เผื่อเซฟที่ counter เพี้ยน (ต่ำกว่ารหัสที่มีจริง) ให้ยึดค่าที่มากกว่าระหว่าง counter กับ max+1
-  const maxNumber = state.players.reduce((max, player) => {
-    const numeric = Number(player.code.replace(/^C/, ""));
-    return Number.isFinite(numeric) ? Math.max(max, numeric) : max;
-  }, 0);
-  return Math.max(state.rosterNextNumber || 1, maxNumber + 1);
+  return Math.max(state.rosterNextNumber || 1, maxPlayerCodeNumber(state.players) + 1);
 }
 
 export function addPlayer(state: GameState, input: { name: string; imageUrl: string }): GameState {
-  if (rolesAssigned(state)) throw new Error(ROSTER_LOCKED_MESSAGE);
+  assertRosterUnlocked(state);
   const name = cleanPlayerName(input.name);
   const codeNumber = nextPlayerNumber(state);
   const code = `C${String(codeNumber).padStart(3, "0")}`;
@@ -140,7 +149,7 @@ export function updatePlayer(state: GameState, playerId: PlayerId, input: { name
 }
 
 export function removePlayer(state: GameState, playerId: PlayerId): GameState {
-  if (rolesAssigned(state)) throw new Error(ROSTER_LOCKED_MESSAGE);
+  assertRosterUnlocked(state);
   const existing = state.players.find((player) => player.id === playerId);
   if (!existing) throw new Error("ไม่พบผู้เล่นที่ต้องการลบ");
   const { [playerId]: _removedAttendance, ...attendance } = state.attendance;
@@ -173,23 +182,26 @@ export function startNewGameRound(state: GameState): GameState {
       `คลังโจทย์เหลือ ${remaining} ข้อ (ต้องมีอย่างน้อย ${state.config.quizMinRemainingToStart}) — กด "รีเซตคลังโจทย์" ในตั้งค่าก่อนเริ่มรอบใหม่`,
     );
   }
-  const fresh = createInitialGameState();
   // กลับไปหน้าแตะโลโก้ (boot) — ให้ความรู้สึก "เกมใหม่จริงๆ" ตั้งแต่จอแรก
-  // fresh สร้างจากรายชื่อว่าง — ต้อง rebuild ตาราง มา/ลา บทบาท กระเป๋า จากรายชื่อที่ลงทะเบียนไว้
-  return log(
-    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, rosterNextNumber: Math.max(fresh.rosterNextNumber, state.rosterNextNumber || 1), config: state.config, settings: state.settings },
-    "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด",
-  );
+  return log(resetBoardKeepRoster(state), "เริ่มรอบใหม่ — ล้างกระดานทั้งหมด");
+}
+
+// ล้างกระดานทั้งหมดแต่คงสิ่งที่ต้องรอดข้ามรอบ: รายชื่อผู้เล่น + counter รหัส + config ของซุป + settings เครื่อง
+function resetBoardKeepRoster(state: GameState): GameState {
+  const fresh = createInitialGameState(state.players);
+  return {
+    ...fresh,
+    phase: "boot",
+    rosterNextNumber: Math.max(fresh.rosterNextNumber, state.rosterNextNumber || 1),
+    config: state.config,
+    settings: state.settings,
+  };
 }
 
 // ปุ่มออกจากฉากจบเกม — ล้างกระดานกลับหน้าโลโก้เหมือนเริ่มรอบใหม่
 // ไม่เช็คเกณฑ์คลังโจทย์เหมือน startNewGameRound: เกมจบแล้วต้องออกได้เสมอ ห้ามค้างที่ฉากจบ
 export function finishGameToBoot(state: GameState): GameState {
-  const fresh = createInitialGameState();
-  return log(
-    { ...fresh, ...buildPlayerRecords(state.players), phase: "boot", players: state.players, rosterNextNumber: Math.max(fresh.rosterNextNumber, state.rosterNextNumber || 1), config: state.config, settings: state.settings },
-    "จบเกม — ล้างกระดานกลับหน้าแรก",
-  );
+  return log(resetBoardKeepRoster(state), "จบเกม — ล้างกระดานกลับหน้าแรก");
 }
 
 // เข้าหน้าดูบทบาท — ไม่สุ่มทันที
@@ -202,6 +214,9 @@ export function enterRoleReveal(state: GameState): GameState {
 }
 
 export function openVote(state: GameState): GameState {
+  if (state.players.length < 3) {
+    throw new Error("ลงทะเบียนผู้เล่นอย่างน้อย 3 คนในตั้งค่าก่อนเริ่มเกม");
+  }
   if (state.manualDay.openedVoteToday) {
     throw new Error("วันนี้เปิดโหวตไปแล้ว");
   }

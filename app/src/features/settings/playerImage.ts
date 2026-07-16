@@ -23,7 +23,11 @@ export async function processPlayerImage(file: File): Promise<string> {
 }
 
 function readImage(file: File): Promise<ImageBitmap | HTMLImageElement> {
-  if (typeof createImageBitmap === "function") return createImageBitmap(file);
+  if (typeof createImageBitmap === "function") {
+    // รูปจากกล้อง iPad เก็บทิศทางไว้ใน EXIF — ต้องบอกให้หมุนตาม ไม่งั้นรูปที่ย่อแล้วนอนตะแคงถาวร
+    // WebKit บางรุ่นไม่รู้จัก option นี้ (throw) → ถอยไปเรียกแบบเปล่า
+    return createImageBitmap(file, { imageOrientation: "from-image" }).catch(() => createImageBitmap(file));
+  }
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();

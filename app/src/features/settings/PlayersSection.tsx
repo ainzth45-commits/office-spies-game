@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { Player } from "../../domain/types";
-import { addPlayer, removePlayer, rolesAssigned, updatePlayer } from "../../state/actions";
+import { addPlayer, removePlayer, rosterLockReason, updatePlayer } from "../../state/actions";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
 import { processPlayerImage, validateImageLink } from "./playerImage";
@@ -19,7 +19,8 @@ export function PlayersSection() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const locked = rolesAssigned(state);
+  const lockReason = rosterLockReason(state);
+  const locked = lockReason !== null;
 
   function openForm(player: Player | null) {
     setEditing(player);
@@ -80,9 +81,7 @@ export function PlayersSection() {
   return (
     <fieldset className="settings-cat players-section">
       <legend>👥 ผู้เล่น ({state.players.length} คน)</legend>
-      {locked ? (
-        <p className="players-section__note">🔒 เกมกำลังเล่นอยู่ — เพิ่ม/ลบได้หลังจบเกมหรือเริ่มรอบใหม่ (แก้ชื่อ/รูปได้ตลอด)</p>
-      ) : null}
+      {locked ? <p className="players-section__note">🔒 {lockReason} (แก้ชื่อ/รูปได้ตลอด)</p> : null}
       {state.players.length === 0 ? (
         <p className="players-section__note">ยังไม่มีผู้เล่นเลย — ลงทะเบียนอย่างน้อย 3 คนถึงจะเริ่มเกมได้นะ</p>
       ) : null}
@@ -161,7 +160,7 @@ export function PlayersSection() {
             <GameButton variant="paper" onClick={() => setFormOpen(false)}>
               ยกเลิก
             </GameButton>
-            <GameButton onClick={save}>{editing ? "บันทึก" : "เพิ่มเข้าทีม"}</GameButton>
+            <GameButton disabled={busy} onClick={save}>{editing ? "บันทึก" : "เพิ่มเข้าทีม"}</GameButton>
           </div>
         </div>
       ) : null}

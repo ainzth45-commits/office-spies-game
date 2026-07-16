@@ -28,6 +28,18 @@ export function preloadAllGameAssets(): void {
   delayTimerId = window.setTimeout(startLanes, 800);
 }
 
+// รูปผู้เล่นที่ลงทะเบียนเป็น "ลิงก์" (http/https) ต้องอุ่น cache เหมือนรูปเกม — data URL ข้ามได้ (อยู่ในเครื่องแล้ว)
+// เรียกซ้ำได้ทุกครั้งที่รายชื่อเปลี่ยน (กัน fetch ซ้ำด้วย set)
+const warmedPlayerUrls = new Set<string>();
+export function warmPlayerImageUrls(urls: string[]): void {
+  for (const url of urls) {
+    if (!/^https?:\/\//i.test(url) || warmedPlayerUrls.has(url)) continue;
+    warmedPlayerUrls.add(url);
+    const image = new Image();
+    image.src = url;
+  }
+}
+
 // ผู้เล่นกดโลโก้แล้วต้องรอ — ข้าม delay ปล่อยเลนโหลดทันที
 export function boostPreload(): void {
   if (!started) preloadAllGameAssets();

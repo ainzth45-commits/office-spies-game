@@ -14,7 +14,11 @@ export function parseBackup(raw: string): GameState {
   if (state.version !== 1 || !Array.isArray(state.players) || !state.config || !state.manualDay) {
     throw new Error("backup version หรือโครงสร้างไม่ตรงกับเกมนี้");
   }
-  // ไฟล์ backup ยุคเก่าต้องผ่าน migration เหมือนเซฟใน IndexedDB — ไม่งั้นรายชื่อยุคฝังโค้ดฟื้นกลับมา
-  // แล้วค่อยถูกล้างตอน reload ถัดไป (พฤติกรรมไม่ตรงกันจนงง)
+  // ไฟล์ backup ยุคเก่า (ก่อนระบบลงทะเบียน) จะโดน migration ล้างรายชื่อ+กระดานทิ้งทั้งไฟล์ —
+  // นำเข้าแล้วเงียบๆ ได้ state เปล่า = หลอกว่าสำเร็จ → ปฏิเสธตรงๆ พร้อมบอกเหตุผลแทน
+  if (typeof state.rosterVersion !== "number") {
+    throw new Error("ไฟล์ backup รุ่นเก่า (ก่อนระบบลงทะเบียนผู้เล่น) ใช้กับเวอร์ชันนี้ไม่ได้ — ลงทะเบียนผู้เล่นใหม่ในตั้งค่า แล้ว export backup ใหม่");
+  }
+  // backup รุ่นปัจจุบันยังต้องผ่าน migration ปกติ (เผื่อ field รุ่นถัดไปเปลี่ยน)
   return migrateGameState(state as GameState);
 }
