@@ -81,6 +81,17 @@ export function migrateConfig(saved: LegacyGameState["config"]): GameConfig {
 
 export function migrateGameState(raw: GameState): GameState {
   const state = raw as LegacyGameState;
+  // เซฟยุครายชื่อฝังโค้ด (ไม่มี rosterVersion) มีชื่อ/รูปพนักงานชุดเก่าค้างอยู่ — เจ้านายเคาะ "เริ่มใหม่หมด":
+  // ล้างรายชื่อ+กระดานทิ้ง เหลือ config ของซุป + settings เครื่อง แล้วไปลงทะเบียนใหม่ในตั้งค่า
+  if (typeof (state as Partial<GameState>).rosterVersion !== "number") {
+    const blank = createInitialGameState();
+    return {
+      ...blank,
+      phase: "boot",
+      config: migrateConfig(state.config ?? blank.config),
+      settings: { ...blank.settings, ...state.settings },
+    };
+  }
   const fresh = createInitialGameState();
   // ประวัติโจทย์เดิมเคยอยู่ในเซฟเกม → ย้ายเข้า localStorage (ครั้งเดียว ตอนโหลด)
   if (Array.isArray(state.usedQuizIds) && state.usedQuizIds.length > 0) {
@@ -108,15 +119,6 @@ export function migrateGameState(raw: GameState): GameState {
     lastGuessResult: state.lastGuessResult ?? null,
   };
   delete (migrated as GameState & { usedQuizIds?: string[] }).usedQuizIds;
-  // ผู้เล่นใหม่ที่เพิ่มใน defaultPlayers หลังเซฟถูกสร้าง (เช่น C012) — เติมเข้าเซฟเก่าพร้อม state ราย field
-  for (const player of fresh.players) {
-    if (!migrated.players.some((p) => p.id === player.id)) {
-      migrated.players = [...migrated.players, player];
-      migrated.attendance = { ...migrated.attendance, [player.id]: true };
-      migrated.roles = { ...migrated.roles, [player.id]: "normal" };
-      migrated.inventories = { ...migrated.inventories, [player.id]: [] };
-    }
-  }
   return migrated;
 }
 
