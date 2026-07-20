@@ -3,7 +3,7 @@ import { gameAssets } from "../../data/assets";
 import { quizBank } from "../../data/quizBank";
 import { quizPenaltyAt, quizRewardAt } from "../../domain/quizEngine";
 import type { QuizDifficulty, QuizQuestion } from "../../domain/types";
-import { clearCustomQuiz, type CustomQuizData, getCustomQuiz, saveCustomQuiz } from "../../state/customQuiz";
+import { clearCustomQuiz, type CustomQuizData, getCustomQuiz, normalizeImageUrl, saveCustomQuiz } from "../../state/customQuiz";
 import { getPracticeAnsweredIds, markPracticeAnswered, resetPracticeAnswered } from "../../state/practiceHistory";
 import { useGameStore } from "../../state/useGameStore";
 import { GameButton } from "../../ui/components/GameButton";
@@ -35,6 +35,7 @@ interface PracticeQuestion {
   choices: string[];
   answerIndex: number;
   explanation: string;
+  imageUrl?: string; // มีเฉพาะข้อ 0 ที่สร้างเอง
 }
 
 function bankToPractice(q: QuizQuestion): PracticeQuestion {
@@ -42,7 +43,7 @@ function bankToPractice(q: QuizQuestion): PracticeQuestion {
 }
 
 function customToPractice(d: CustomQuizData): PracticeQuestion {
-  return { id: "Q000", category: "โจทย์ที่สร้างเอง", difficulty: "medium", question: d.question, choices: d.choices, answerIndex: d.answerIndex, explanation: d.explanation };
+  return { id: "Q000", category: "โจทย์ที่สร้างเอง", difficulty: "medium", question: d.question, choices: d.choices, answerIndex: d.answerIndex, explanation: d.explanation, imageUrl: d.imageUrl };
 }
 
 type Attempt = { question: PracticeQuestion; startedAtMs: number };
@@ -65,6 +66,7 @@ export function QuizPracticeFlow() {
   const [choiceCount, setChoiceCount] = useState(2);
   const [formAnswerIndex, setFormAnswerIndex] = useState(0);
   const [formExplain, setFormExplain] = useState("");
+  const [formImage, setFormImage] = useState("");
 
   useEffect(() => {
     if (!attempt) return;
@@ -108,6 +110,15 @@ export function QuizPracticeFlow() {
     setConfirmReset(false);
   }
 
+  // ล้างฟอร์มให้ว่างหมดในคลิกเดียว — ไม่แตะข้อที่บันทึกไว้ (ยังกดยกเลิกถอยได้)
+  function clearForm() {
+    setFormQ("");
+    setFormChoices(["", "", "", ""]);
+    setFormAnswerIndex(0);
+    setFormExplain("");
+    setFormImage("");
+  }
+
   function startCreate() {
     // ถ้ามีข้อ 0 อยู่แล้ว เติมค่าเดิมให้แก้ต่อ ไม่งั้นเริ่มฟอร์มเปล่า
     if (customQuestion) {
@@ -116,12 +127,10 @@ export function QuizPracticeFlow() {
       setChoiceCount(customQuestion.choices.length);
       setFormAnswerIndex(customQuestion.answerIndex);
       setFormExplain(customQuestion.explanation);
+      setFormImage(customQuestion.imageUrl);
     } else {
-      setFormQ("");
-      setFormChoices(["", "", "", ""]);
+      clearForm();
       setChoiceCount(2);
-      setFormAnswerIndex(0);
-      setFormExplain("");
     }
     setCreating(true);
   }
@@ -130,7 +139,7 @@ export function QuizPracticeFlow() {
     const choices = formChoices.slice(0, choiceCount).map((c) => c.trim());
     if (formQ.trim() === "" || choices.some((c) => c === "")) return;
     const answerIndex = Math.min(formAnswerIndex, choiceCount - 1);
-    saveCustomQuiz({ question: formQ.trim(), choices, answerIndex, explanation: formExplain.trim() });
+    saveCustomQuiz({ question: formQ.trim(), choices, answerIndex, explanation: formExplain.trim(), imageUrl: formImage.trim() });
     setCustomQuestion(getCustomQuiz());
     setCreating(false);
   }
@@ -144,13 +153,33 @@ export function QuizPracticeFlow() {
   // หน้าสร้างโจทย์เอง (ข้อ 0)
   if (creating) {
     const filled = formChoices.slice(0, choiceCount).every((c) => c.trim() !== "");
-    const canSave = formQ.trim() !== "" && filled;
+    // ลิงก์รูปไม่บังคับ แต่ถ้าใส่มาต้องเป็น http/https จริง — ไม่งั้นกันบันทึกพร้อมบอกเหตุผล
+    const imageTyped = formImage.trim();
+    const imageOk = imageTyped === "" || normalizeImageUrl(imageTyped) !== "";
+    const canSave = formQ.trim() !== "" && filled && imageOk;
+    const formDirty = formQ !== "" || formExplain !== "" || formImage !== "" || formChoices.some((c) => c !== "");
     return (
       <section className="scene-panel quiz-practice custom-quiz-form">
         <h2>✏️ สร้างโจทย์เอง (ข้อ 0)</h2>
         <p className="scene-lead">สร้างได้ครั้งละ 1 ข้อ · เก็บในเครื่องนี้เท่านั้น ไม่เข้าเกมจริง · อยากได้ข้อใหม่ให้กดรีเซต</p>
+        <div className="button-row custom-form-tools">
+          <GameButton variant="paper" disabled={!formDirty} onClick={clearForm}>🧹 ล้างข้อมูลทั้งหมด</GameButton>
+        </div>
         <label className="topic-field"><span>คำถาม</span>
           <input value={formQ} onChange={(e) => setFormQ(e.target.value)} placeholder="พิมพ์คำถาม" maxLength={200} />
+        </label>
+        <label className="topic-field"><span>ลิงก์รูปประกอบคำถาม (ไม่บังคับ)</span>
+          <input value={formImage} onChange={(e) => setFormImage(e.target.value)} placeholder="https://... วางลิงก์รูป" maxLength={2000} inputMode="url" />
+          {imageTyped !== "" && !imageOk && <small className="custom-form-warn">⚠️ ต้องเป็นลิงก์ที่ขึ้นต้นด้วย http:// หรือ https:// เท่านั้น</small>}
+          {imageTyped !== "" && imageOk && (
+            <img
+              className="topic-field__preview"
+              src={imageTyped}
+              alt="ตัวอย่างรูปประกอบ"
+              onLoad={(e) => { e.currentTarget.style.opacity = "1"; }}
+              onError={(e) => { e.currentTarget.style.opacity = "0.25"; }}
+            />
+          )}
         </label>
         <div className="custom-answer-row">
           <span>จำนวนตัวเลือก:</span>
@@ -207,6 +236,7 @@ export function QuizPracticeFlow() {
           {correct ? "✅ ตอบถูก!" : "❌ ตอบผิด"}
         </h2>
         <p className="scene-lead">{question.question}</p>
+        {question.imageUrl && <img className="quiz-question-image quiz-question-image--verdict" src={question.imageUrl} alt="รูปประกอบคำถาม" />}
         <p className="big-callout">
           เฉลย: {CHOICE_LETTERS[question.answerIndex]} · {question.choices[question.answerIndex]}
           <br />
@@ -243,6 +273,7 @@ export function QuizPracticeFlow() {
           </span>
         </div>
         <p className="big-callout quiz-question">{question.question}</p>
+        {question.imageUrl && <img className="quiz-question-image" src={question.imageUrl} alt="รูปประกอบคำถาม" />}
         <div className={`quiz-choices${question.choices.length > 2 ? " quiz-choices--multi" : ""}`}>
           {question.choices.map((text, index) => (
             <GameButton key={index} onClick={() => answer(index)}>{CHOICE_LETTERS[index]} · {text}</GameButton>

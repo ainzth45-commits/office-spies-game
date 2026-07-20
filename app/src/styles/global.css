@@ -2186,6 +2186,27 @@ span.end-spy-card__stamp-img {
   background: rgba(242, 160, 61, 0.12);
 }
 .custom-quiz-form .topic-field { width: min(680px, 100%); }
+/* ฟอร์มยาวขึ้นเมื่อเลือก 4 ตัวเลือก + มีรูปพรีวิว — ให้เลื่อนในกล่อง ไม่ให้ล้นจอแล้วโดนตัด */
+.custom-quiz-form {
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.custom-form-tools { justify-content: flex-end; margin: -8px 0 4px; }
+.custom-form-warn { color: #ffb4a2; font-weight: 800; font-size: 13px; }
+/* รูปประกอบคำถาม (ข้อ 0) — คุมความสูงด้วย dvh ให้ตัวเลือกไม่ถูกดันตกจอ iPad */
+.quiz-question-image {
+  display: block;
+  margin: 8px auto;
+  max-width: min(560px, 100%);
+  max-height: clamp(90px, 22dvh, 240px);
+  width: auto;
+  object-fit: contain;
+  border-radius: 14px;
+  border: 3px solid rgba(251, 247, 239, 0.55);
+  background: rgba(0, 0, 0, 0.25);
+}
+.quiz-question-image--verdict { max-height: clamp(70px, 15dvh, 170px); }
 .custom-answer-row {
   display: flex;
   align-items: center;
