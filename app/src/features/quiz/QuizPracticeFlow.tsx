@@ -26,28 +26,31 @@ function formatClock(totalSec: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-// รูปแบบกลางที่หน้าโจทย์/เฉลยใช้ — มีตัวเลือกกี่ข้อก็ได้
+// รูปแบบกลางที่หน้าโจทย์/เฉลยใช้ — มีตัวเลือกกี่ข้อก็ได้ หรือเป็นโหมดเขียนตอบเอง
 interface PracticeQuestion {
   id: string;
+  mode: "choices" | "open"; // open = เขียนคำตอบเอง ผู้คุมเกมตัดสินถูก/ผิด
   category: string;
   difficulty: QuizDifficulty;
   question: string;
-  choices: string[];
-  answerIndex: number;
+  choices: string[]; // ว่างในโหมด open
+  answerIndex: number; // ใช้เฉพาะโหมด choices
+  answerText: string; // เฉลยที่ตั้งไว้ — ใช้เฉพาะโหมด open
   explanation: string;
   imageUrl?: string; // มีเฉพาะข้อ 0 ที่สร้างเอง
 }
 
 function bankToPractice(q: QuizQuestion): PracticeQuestion {
-  return { id: q.id, category: q.category, difficulty: q.difficulty, question: q.question, choices: [q.choiceA, q.choiceB], answerIndex: q.answer === "A" ? 0 : 1, explanation: q.explanation };
+  return { id: q.id, mode: "choices", category: q.category, difficulty: q.difficulty, question: q.question, choices: [q.choiceA, q.choiceB], answerIndex: q.answer === "A" ? 0 : 1, answerText: "", explanation: q.explanation };
 }
 
 function customToPractice(d: CustomQuizData): PracticeQuestion {
-  return { id: "Q000", category: "โจทย์ที่สร้างเอง", difficulty: "medium", question: d.question, choices: d.choices, answerIndex: d.answerIndex, explanation: d.explanation, imageUrl: d.imageUrl };
+  return { id: "Q000", mode: d.mode, category: "โจทย์ที่สร้างเอง", difficulty: "medium", question: d.question, choices: d.choices, answerIndex: d.answerIndex, answerText: d.answerText, explanation: d.explanation, imageUrl: d.imageUrl };
 }
 
 type Attempt = { question: PracticeQuestion; startedAtMs: number };
-type Verdict = { question: PracticeQuestion; picked: number; elapsedSec: number };
+// picked = index ที่เลือก (โหมด choices) หรือ -1 (โหมด open) · typed = ข้อความที่ผู้เล่นพิมพ์ (โหมด open)
+type Verdict = { question: PracticeQuestion; picked: number; typed: string; elapsedSec: number };
 
 export function QuizPracticeFlow() {
   const { state } = useGameStore();
@@ -61,12 +64,16 @@ export function QuizPracticeFlow() {
   // โจทย์สร้างเอง (ข้อ 0) — เก็บใน localStorage
   const [customQuestion, setCustomQuestion] = useState<CustomQuizData | null>(() => getCustomQuiz());
   const [creating, setCreating] = useState(false);
+  const [formMode, setFormMode] = useState<"choices" | "open">("choices");
   const [formQ, setFormQ] = useState("");
   const [formChoices, setFormChoices] = useState<string[]>(["", "", "", ""]);
   const [choiceCount, setChoiceCount] = useState(2);
   const [formAnswerIndex, setFormAnswerIndex] = useState(0);
+  const [formAnswerText, setFormAnswerText] = useState(""); // เฉลยที่ตั้งไว้ (โหมด open)
   const [formExplain, setFormExplain] = useState("");
   const [formImage, setFormImage] = useState("");
+  // คำตอบที่ผู้เล่นพิมพ์ในหน้าโจทย์ (โหมด open)
+  const [typedAnswer, setTypedAnswer] = useState("");
 
   useEffect(() => {
     if (!attempt) return;
@@ -76,6 +83,7 @@ export function QuizPracticeFlow() {
 
   function open(question: PracticeQuestion) {
     setVerdict(null);
+    setTypedAnswer("");
     const startedAtMs = Date.now();
     setNowMs(startedAtMs);
     setAttempt({ question, startedAtMs });
@@ -91,7 +99,7 @@ export function QuizPracticeFlow() {
     open(bankToPractice(quizBank[(index + 1) % quizBank.length]));
   }
 
-  function answer(picked: number) {
+  function answer(picked: number, typed = "") {
     if (!attempt) return;
     const elapsedSec = Math.max(0, (Date.now() - attempt.startedAtMs) / 1000);
     // มาร์คว่าตอบแล้ว — เฉพาะโจทย์คลังจริง ไม่นับข้อ 0 ที่สร้างเอง
@@ -99,8 +107,9 @@ export function QuizPracticeFlow() {
       markPracticeAnswered(attempt.question.id);
       setAnsweredIds((current) => new Set(current).add(attempt.question.id));
     }
-    setVerdict({ question: attempt.question, picked, elapsedSec });
+    setVerdict({ question: attempt.question, picked, typed, elapsedSec });
     setAttempt(null);
+    setTypedAnswer("");
   }
 
   function resetAnswered() {
@@ -115,6 +124,7 @@ export function QuizPracticeFlow() {
     setFormQ("");
     setFormChoices(["", "", "", ""]);
     setFormAnswerIndex(0);
+    setFormAnswerText("");
     setFormExplain("");
     setFormImage("");
   }
@@ -122,13 +132,16 @@ export function QuizPracticeFlow() {
   function startCreate() {
     // ถ้ามีข้อ 0 อยู่แล้ว เติมค่าเดิมให้แก้ต่อ ไม่งั้นเริ่มฟอร์มเปล่า
     if (customQuestion) {
+      setFormMode(customQuestion.mode);
       setFormQ(customQuestion.question);
       setFormChoices([customQuestion.choices[0] ?? "", customQuestion.choices[1] ?? "", customQuestion.choices[2] ?? "", customQuestion.choices[3] ?? ""]);
-      setChoiceCount(customQuestion.choices.length);
+      setChoiceCount(customQuestion.choices.length >= 2 ? customQuestion.choices.length : 2);
       setFormAnswerIndex(customQuestion.answerIndex);
+      setFormAnswerText(customQuestion.answerText);
       setFormExplain(customQuestion.explanation);
       setFormImage(customQuestion.imageUrl);
     } else {
+      setFormMode("choices");
       clearForm();
       setChoiceCount(2);
     }
@@ -136,10 +149,17 @@ export function QuizPracticeFlow() {
   }
 
   function saveCustom() {
-    const choices = formChoices.slice(0, choiceCount).map((c) => c.trim());
-    if (formQ.trim() === "" || choices.some((c) => c === "")) return;
-    const answerIndex = Math.min(formAnswerIndex, choiceCount - 1);
-    saveCustomQuiz({ question: formQ.trim(), choices, answerIndex, explanation: formExplain.trim(), imageUrl: formImage.trim() });
+    if (formQ.trim() === "") return;
+    if (formMode === "open") {
+      const answerText = formAnswerText.trim();
+      if (answerText === "") return;
+      saveCustomQuiz({ mode: "open", question: formQ.trim(), choices: [], answerIndex: 0, answerText, explanation: formExplain.trim(), imageUrl: formImage.trim() });
+    } else {
+      const choices = formChoices.slice(0, choiceCount).map((c) => c.trim());
+      if (choices.some((c) => c === "")) return;
+      const answerIndex = Math.min(formAnswerIndex, choiceCount - 1);
+      saveCustomQuiz({ mode: "choices", question: formQ.trim(), choices, answerIndex, answerText: "", explanation: formExplain.trim(), imageUrl: formImage.trim() });
+    }
     setCustomQuestion(getCustomQuiz());
     setCreating(false);
   }
@@ -156,12 +176,22 @@ export function QuizPracticeFlow() {
     // ลิงก์รูปไม่บังคับ แต่ถ้าใส่มาต้องเป็น http/https จริง — ไม่งั้นกันบันทึกพร้อมบอกเหตุผล
     const imageTyped = formImage.trim();
     const imageOk = imageTyped === "" || normalizeImageUrl(imageTyped) !== "";
-    const canSave = formQ.trim() !== "" && filled && imageOk;
-    const formDirty = formQ !== "" || formExplain !== "" || formImage !== "" || formChoices.some((c) => c !== "");
+    const canSave = formMode === "open"
+      ? formQ.trim() !== "" && formAnswerText.trim() !== "" && imageOk
+      : formQ.trim() !== "" && filled && imageOk;
+    const formDirty = formQ !== "" || formExplain !== "" || formImage !== "" || formAnswerText !== "" || formChoices.some((c) => c !== "");
     return (
       <section className="scene-panel quiz-practice custom-quiz-form">
         <h2>✏️ สร้างโจทย์เอง (ข้อ 0)</h2>
         <p className="scene-lead">สร้างได้ครั้งละ 1 ข้อ · เก็บในเครื่องนี้เท่านั้น ไม่เข้าเกมจริง · อยากได้ข้อใหม่ให้กดรีเซต</p>
+        <div className="custom-answer-row">
+          <span>รูปแบบคำตอบ:</span>
+          <GameButton variant={formMode === "choices" ? undefined : "paper"} onClick={() => setFormMode("choices")}>🔘 เลือกตอบ</GameButton>
+          <GameButton variant={formMode === "open" ? undefined : "paper"} onClick={() => setFormMode("open")}>✍️ เขียนตอบ</GameButton>
+        </div>
+        {formMode === "open" && (
+          <p className="scene-lead custom-mode-hint">โหมดเขียนตอบ: ผู้เล่นพิมพ์คำตอบเอง ระบบไม่ตัดสินถูก/ผิด — จะโชว์คำตอบที่ส่งมาคู่กับเฉลยที่ตั้งไว้ ให้ผู้คุมเกมเป็นคนชี้ขาด</p>
+        )}
         <div className="button-row custom-form-tools">
           <GameButton variant="paper" disabled={!formDirty} onClick={clearForm}>🧹 ล้างข้อมูลทั้งหมด</GameButton>
         </div>
@@ -181,37 +211,45 @@ export function QuizPracticeFlow() {
             />
           )}
         </label>
-        <div className="custom-answer-row">
-          <span>จำนวนตัวเลือก:</span>
-          {[2, 3, 4].map((n) => (
-            <GameButton
-              key={n}
-              variant={choiceCount === n ? undefined : "paper"}
-              onClick={() => { setChoiceCount(n); if (formAnswerIndex >= n) setFormAnswerIndex(0); }}
-            >
-              {n} ข้อ
-            </GameButton>
-          ))}
-        </div>
-        {formChoices.slice(0, choiceCount).map((value, index) => (
-          <label key={index} className="topic-field">
-            <span>ตัวเลือก {CHOICE_LETTERS[index]}{formAnswerIndex === index ? " ✅ (เฉลย)" : ""}</span>
-            <input
-              value={value}
-              onChange={(e) => setFormChoices((prev) => prev.map((c, i) => (i === index ? e.target.value : c)))}
-              placeholder={`คำตอบ ${CHOICE_LETTERS[index]}`}
-              maxLength={120}
-            />
+        {formMode === "open" ? (
+          <label className="topic-field"><span>เฉลยที่ตั้งไว้ (บังคับ)</span>
+            <input value={formAnswerText} onChange={(e) => setFormAnswerText(e.target.value)} placeholder="คำตอบที่ถูกต้อง — ไว้เทียบกับที่ผู้เล่นพิมพ์" maxLength={200} />
           </label>
-        ))}
-        <div className="custom-answer-row">
-          <span>เฉลยคือข้อไหน?</span>
-          {Array.from({ length: choiceCount }, (_, i) => (
-            <GameButton key={i} variant={formAnswerIndex === i ? undefined : "paper"} onClick={() => setFormAnswerIndex(i)}>
-              {CHOICE_LETTERS[i]} ถูก
-            </GameButton>
-          ))}
-        </div>
+        ) : (
+          <>
+            <div className="custom-answer-row">
+              <span>จำนวนตัวเลือก:</span>
+              {[2, 3, 4].map((n) => (
+                <GameButton
+                  key={n}
+                  variant={choiceCount === n ? undefined : "paper"}
+                  onClick={() => { setChoiceCount(n); if (formAnswerIndex >= n) setFormAnswerIndex(0); }}
+                >
+                  {n} ข้อ
+                </GameButton>
+              ))}
+            </div>
+            {formChoices.slice(0, choiceCount).map((value, index) => (
+              <label key={index} className="topic-field">
+                <span>ตัวเลือก {CHOICE_LETTERS[index]}{formAnswerIndex === index ? " ✅ (เฉลย)" : ""}</span>
+                <input
+                  value={value}
+                  onChange={(e) => setFormChoices((prev) => prev.map((c, i) => (i === index ? e.target.value : c)))}
+                  placeholder={`คำตอบ ${CHOICE_LETTERS[index]}`}
+                  maxLength={120}
+                />
+              </label>
+            ))}
+            <div className="custom-answer-row">
+              <span>เฉลยคือข้อไหน?</span>
+              {Array.from({ length: choiceCount }, (_, i) => (
+                <GameButton key={i} variant={formAnswerIndex === i ? undefined : "paper"} onClick={() => setFormAnswerIndex(i)}>
+                  {CHOICE_LETTERS[i]} ถูก
+                </GameButton>
+              ))}
+            </div>
+          </>
+        )}
         <label className="topic-field"><span>คำอธิบายเฉลย (ไม่บังคับ)</span>
           <input value={formExplain} onChange={(e) => setFormExplain(e.target.value)} placeholder="ทำไมข้อนี้ถึงถูก" maxLength={200} />
         </label>
@@ -225,10 +263,42 @@ export function QuizPracticeFlow() {
 
   // หน้าเฉลย (ผลสมมติ — บอกชัดว่าไม่มีผลจริง)
   if (verdict) {
-    const { question, picked, elapsedSec } = verdict;
-    const correct = picked === question.answerIndex;
+    const { question, picked, typed, elapsedSec } = verdict;
     const reward = quizRewardAt(elapsedSec, state.config);
     const penalty = quizPenaltyAt(elapsedSec, state.config);
+    const navRow = (
+      <div className="button-row">
+        <GameButton variant="paper" onClick={() => setVerdict(null)}>← กลับ</GameButton>
+        <GameButton variant="paper" onClick={openRandom}>🎲 สุ่ม</GameButton>
+        <GameButton onClick={() => openNext(question)}>ต่อไป →</GameButton>
+      </div>
+    );
+
+    // โหมดเขียนตอบ — ระบบไม่ตัดสิน โชว์คำตอบผู้เล่นคู่เฉลย ให้ผู้คุมเกมชี้ขาด
+    if (question.mode === "open") {
+      const typedTrim = typed.trim();
+      return (
+        <section className="scene-panel quiz-scene">
+          <p className="eyebrow">🏋️ โหมดฝึกเชาว์ · ข้อ {Number(question.id.slice(1))} · ไม่มีผลกับเกมจริง</p>
+          <h2 className="quiz-verdict--open">📝 ผู้คุมเกมตัดสิน</h2>
+          <p className="scene-lead">{question.question}</p>
+          {question.imageUrl && <img className="quiz-question-image quiz-question-image--verdict" src={question.imageUrl} alt="รูปประกอบคำถาม" />}
+          <p className="big-callout">
+            คำตอบที่ส่งมา: {typedTrim !== "" ? typedTrim : "— (ไม่ได้พิมพ์)"}
+            <br />
+            เฉลยที่ตั้งไว้: {question.answerText}
+            <br />
+            <small className="practice-sim">
+              ถ้าเป็นเกมจริง: ตอบถูกได้ {reward} เหรียญ · ตอบผิดทุกคนเสีย {penalty} เหรียญ (ใช้เวลา {Math.round(elapsedSec)} วิ) — ผู้คุมเกมชี้ขาดถูก/ผิดเอง
+            </small>
+          </p>
+          {question.explanation && <p className="quiz-explain">💡 {question.explanation}</p>}
+          {navRow}
+        </section>
+      );
+    }
+
+    const correct = picked === question.answerIndex;
     return (
       <section className="scene-panel quiz-scene">
         <p className="eyebrow">🏋️ โหมดฝึกเชาว์ · ข้อ {Number(question.id.slice(1))} · ไม่มีผลกับเกมจริง</p>
@@ -245,11 +315,7 @@ export function QuizPracticeFlow() {
           </small>
         </p>
         {question.explanation && <p className="quiz-explain">💡 {question.explanation}</p>}
-        <div className="button-row">
-          <GameButton variant="paper" onClick={() => setVerdict(null)}>← กลับ</GameButton>
-          <GameButton variant="paper" onClick={openRandom}>🎲 สุ่ม</GameButton>
-          <GameButton onClick={() => openNext(question)}>ต่อไป →</GameButton>
-        </div>
+        {navRow}
       </section>
     );
   }
@@ -274,11 +340,26 @@ export function QuizPracticeFlow() {
         </div>
         <p className="big-callout quiz-question">{question.question}</p>
         {question.imageUrl && <img className="quiz-question-image" src={question.imageUrl} alt="รูปประกอบคำถาม" />}
-        <div className={`quiz-choices${question.choices.length > 2 ? " quiz-choices--multi" : ""}`}>
-          {question.choices.map((text, index) => (
-            <GameButton key={index} onClick={() => answer(index)}>{CHOICE_LETTERS[index]} · {text}</GameButton>
-          ))}
-        </div>
+        {question.mode === "open" ? (
+          <div className="quiz-open-answer">
+            <input
+              className="quiz-open-answer__input"
+              value={typedAnswer}
+              onChange={(e) => setTypedAnswer(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && typedAnswer.trim() !== "") answer(-1, typedAnswer); }}
+              placeholder="พิมพ์คำตอบของคุณ แล้วกดตอบ"
+              maxLength={200}
+              autoFocus
+            />
+            <GameButton disabled={typedAnswer.trim() === ""} onClick={() => answer(-1, typedAnswer)}>✅ ตอบ</GameButton>
+          </div>
+        ) : (
+          <div className={`quiz-choices${question.choices.length > 2 ? " quiz-choices--multi" : ""}`}>
+            {question.choices.map((text, index) => (
+              <GameButton key={index} onClick={() => answer(index)}>{CHOICE_LETTERS[index]} · {text}</GameButton>
+            ))}
+          </div>
+        )}
         <div className="button-row">
           <GameButton variant="paper" onClick={() => setAttempt(null)}>← กลับคลังโจทย์ (ไม่ตอบ)</GameButton>
         </div>
@@ -303,7 +384,7 @@ export function QuizPracticeFlow() {
       <div className="button-row custom-quiz-bar">
         {customQuestion ? (
           <>
-            <GameButton onClick={() => open(customToPractice(customQuestion))}>▶️ เล่นข้อ 0 (ที่สร้างเอง)</GameButton>
+            <GameButton onClick={() => open(customToPractice(customQuestion))}>▶️ เล่นข้อ 0 ({customQuestion.mode === "open" ? "เขียนตอบ" : "เลือกตอบ"})</GameButton>
             <GameButton variant="paper" onClick={startCreate}>✏️ แก้ไขข้อ 0</GameButton>
             <GameButton variant="paper" onClick={resetCustom}>♻️ รีเซตข้อ 0</GameButton>
           </>

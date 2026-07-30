@@ -14,7 +14,7 @@ function stubStorage() {
   return map;
 }
 
-const base = { question: "ในรูปมีแมวกี่ตัว?", choices: ["3 ตัว", "4 ตัว"], answerIndex: 0, explanation: "นับตัวที่ซ้อนกันหลังโซฟาด้วย" };
+const base = { mode: "choices" as const, question: "ในรูปมีแมวกี่ตัว?", choices: ["3 ตัว", "4 ตัว"], answerIndex: 0, answerText: "", explanation: "นับตัวที่ซ้อนกันหลังโซฟาด้วย" };
 
 describe("normalizeImageUrl", () => {
   it("รับเฉพาะ http/https", () => {
@@ -55,14 +55,26 @@ describe("customQuiz (localStorage)", () => {
     expect(getCustomQuiz()?.imageUrl).toBe("");
   });
 
-  it("ข้อเก่าที่บันทึกไว้ก่อนมีฟีเจอร์รูป อ่านได้ปกติ (imageUrl = ว่าง)", () => {
-    localStorage.setItem(KEY, JSON.stringify(base));
+  it("ข้อเก่าที่บันทึกไว้ก่อนมี mode/answerText อ่านได้ปกติ (เติมเป็นโหมด choices)", () => {
+    // จำลองข้อมูลเก่าที่ยังไม่มี mode/answerText
+    localStorage.setItem(KEY, JSON.stringify({ question: base.question, choices: base.choices, answerIndex: base.answerIndex, explanation: base.explanation }));
     expect(getCustomQuiz()).toEqual({ ...base, imageUrl: "" });
   });
 
   it("รูปแบบเก่าสุด (choiceA/choiceB/answer) ยังแปลงได้ และมี imageUrl ว่าง", () => {
     localStorage.setItem(KEY, JSON.stringify({ question: "ถามอะไรสักอย่าง", choiceA: "ใช่", choiceB: "ไม่ใช่", answer: "B", explanation: "เพราะงั้น" }));
-    expect(getCustomQuiz()).toEqual({ question: "ถามอะไรสักอย่าง", choices: ["ใช่", "ไม่ใช่"], answerIndex: 1, explanation: "เพราะงั้น", imageUrl: "" });
+    expect(getCustomQuiz()).toEqual({ mode: "choices", question: "ถามอะไรสักอย่าง", choices: ["ใช่", "ไม่ใช่"], answerIndex: 1, answerText: "", explanation: "เพราะงั้น", imageUrl: "" });
+  });
+
+  it("โหมดเขียนตอบ (open) บันทึก/อ่านคืนได้ครบ", () => {
+    const openQ = { mode: "open" as const, question: "เมืองหลวงของไทยคือ?", choices: [], answerIndex: 0, answerText: "กรุงเทพมหานคร", explanation: "", imageUrl: "" };
+    saveCustomQuiz(openQ);
+    expect(getCustomQuiz()).toEqual(openQ);
+  });
+
+  it("โหมด open ที่ไม่มีเฉลย (answerText ว่าง) ถือว่าไม่ถูกต้อง", () => {
+    localStorage.setItem(KEY, JSON.stringify({ mode: "open", question: "ถามลอยๆ", choices: [], answerIndex: 0, answerText: "   ", explanation: "" }));
+    expect(getCustomQuiz()).toBeNull();
   });
 
   it("ข้อมูลพังไม่ทำให้แอปล้ม", () => {
