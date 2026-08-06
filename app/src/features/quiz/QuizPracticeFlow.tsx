@@ -26,6 +26,15 @@ function formatClock(totalSec: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+// คำถามยาวเท่าไรก็พิมพ์ได้ (ไม่มีลิมิต) — ตอนโชว์ถ้าเกิน threshold ค่อยๆ ย่อขนาดตัวอักษรให้พอดี
+// ใช้ √ เพราะข้อความตัดหลายบรรทัด (พื้นที่ ∝ จำนวนตัวอักษร → ฟอนต์ ∝ 1/√len) จึงย่อนุ่มกว่าลดตรงๆ
+function questionFontSize(text: string, base: number, min = 14, threshold = 60): string {
+  const len = text.trim().length;
+  if (len <= threshold) return `${base}px`;
+  const scaled = Math.max(min, Math.round(base * Math.sqrt(threshold / len)));
+  return `${scaled}px`;
+}
+
 // รูปแบบกลางที่หน้าโจทย์/เฉลยใช้ — มีตัวเลือกกี่ข้อก็ได้ หรือเป็นโหมดเขียนตอบเอง
 interface PracticeQuestion {
   id: string;
@@ -196,7 +205,7 @@ export function QuizPracticeFlow() {
           <GameButton variant="paper" disabled={!formDirty} onClick={clearForm}>🧹 ล้างข้อมูลทั้งหมด</GameButton>
         </div>
         <label className="topic-field"><span>คำถาม</span>
-          <input value={formQ} onChange={(e) => setFormQ(e.target.value)} placeholder="พิมพ์คำถาม" maxLength={200} />
+          <input value={formQ} onChange={(e) => setFormQ(e.target.value)} placeholder="พิมพ์คำถาม" />
         </label>
         <label className="topic-field"><span>ลิงก์รูปประกอบคำถาม (ไม่บังคับ)</span>
           <input value={formImage} onChange={(e) => setFormImage(e.target.value)} placeholder="https://... วางลิงก์รูป" maxLength={2000} inputMode="url" />
@@ -281,7 +290,7 @@ export function QuizPracticeFlow() {
         <section className="scene-panel quiz-scene">
           <p className="eyebrow">🏋️ โหมดฝึกเชาว์ · ข้อ {Number(question.id.slice(1))} · ไม่มีผลกับเกมจริง</p>
           <h2 className="quiz-verdict--open">📝 ผู้คุมเกมตัดสิน</h2>
-          <p className="scene-lead">{question.question}</p>
+          <p className="scene-lead" style={{ fontSize: questionFontSize(question.question, 18, 12) }}>{question.question}</p>
           {question.imageUrl && <img className="quiz-question-image quiz-question-image--verdict" src={question.imageUrl} alt="รูปประกอบคำถาม" />}
           <p className="big-callout">
             คำตอบที่ส่งมา: {typedTrim !== "" ? typedTrim : "— (ไม่ได้พิมพ์)"}
@@ -338,7 +347,7 @@ export function QuizPracticeFlow() {
             {late ? `⚠️ โซนโทษแรง — ตอบผิดทุกคนเสีย ${penalty}` : `ตอบถูกตอนนี้ได้ ${reward} เหรียญ`}
           </span>
         </div>
-        <p className="big-callout quiz-question">{question.question}</p>
+        <p className="big-callout quiz-question" style={{ fontSize: questionFontSize(question.question, 28) }}>{question.question}</p>
         {question.imageUrl && <img className="quiz-question-image" src={question.imageUrl} alt="รูปประกอบคำถาม" />}
         {question.mode === "open" ? (
           <div className="quiz-open-answer">
